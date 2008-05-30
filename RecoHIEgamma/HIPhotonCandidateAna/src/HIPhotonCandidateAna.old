@@ -1,0 +1,444 @@
+// -*- C++ -*-
+//
+// Package:    HIPhotonCandidateAna
+// Class:      HIPhotonCandidateAna
+// 
+/**\class HIPhotonCandidateAna HIPhotonCandidateAna.cc RecoHIEgamma/HIPhotonCandidateAna/src/HIPhotonCandidateAna.cc
+
+ Description: <one line class summary>
+
+ Implementation:
+     <Notes on implementation>
+*/
+//
+// Original Author:  Yen-Jie Lee
+//         Created:  Sun Apr 13 13:53:50 EDT 2008
+// $Id$
+//
+//
+
+
+// system include files
+#include <memory>
+
+// user include files
+#include "FWCore/Framework/interface/Frameworkfwd.h"
+#include "FWCore/Framework/interface/EDAnalyzer.h"
+
+#include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/MakerMacros.h"
+
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
+
+#include "DataFormats/Candidate/interface/CandidateFwd.h"
+#include "DataFormats/Candidate/interface/Candidate.h"
+
+#include "DataFormats/EgammaReco/interface/BasicCluster.h"
+#include "DataFormats/EgammaReco/interface/BasicClusterFwd.h"
+
+#include "DataFormats/EgammaReco/interface/SuperCluster.h"
+#include "DataFormats/EgammaReco/interface/SuperClusterFwd.h"
+
+#include "DataFormats/EgammaReco/interface/ClusterShape.h"
+#include "DataFormats/EgammaReco/interface/ClusterShapeFwd.h"
+
+#include "DataFormats/EgammaReco/interface/BasicClusterShapeAssociation.h"
+
+#include "TNtuple.h"
+#include "TFile.h"
+
+#include "RecoHIEgamma/HIEgammaTools/interface/CandidateSuperClusterFinder.h"
+#include "RecoHIEgamma/HIEgammaTools/interface/CandidateGenParticleFinder.h"
+#include "RecoHIEgamma/HIEgammaTools/interface/CxCalculator.h"
+#include "RecoHIEgamma/HIEgammaTools/interface/RxCalculator.h"
+#include "RecoHIEgamma/HIEgammaTools/interface/HIPhotonMCType.h"
+#include "RecoHIEgamma/HIEgammaTools/interface/HIMCGammaJetSignalDef.h"
+
+//
+// class decleration
+//
+
+class HIPhotonCandidateAna : public edm::EDAnalyzer {
+   public:
+      explicit HIPhotonCandidateAna(const edm::ParameterSet&);
+      ~HIPhotonCandidateAna();
+
+
+   private:
+      virtual void beginJob(const edm::EventSetup&) ;
+      virtual void analyze(const edm::Event&, const edm::EventSetup&);
+      virtual void endJob() ;
+
+      // ----------member data ---------------------------
+      std::string GenCandInput;
+      std::string SCCandInput;
+      std::string SCBInput;
+      std::string SCEInput;
+      std::string ShapeBInput;
+      std::string ShapeEInput;
+      std::string output;
+      TNtuple *datatemp;
+      TFile *f;
+      double etCut;
+      int GetHighestEtPart(const reco::CandidateCollection  *parts);
+};
+
+//
+// constants, enums and typedefs
+//
+
+//
+// static data member definitions
+//
+
+//
+// constructors and destructor
+//
+HIPhotonCandidateAna::HIPhotonCandidateAna(const edm::ParameterSet& iConfig)
+
+{
+   //now do what ever initialization is needed
+   GenCandInput = iConfig.getUntrackedParameter<std::string>("GenCandInput", "genParticleCandidates");
+   SCCandInput  = iConfig.getUntrackedParameter<std::string>("SCCandInput", "barrelclusters");
+   SCBInput      = iConfig.getUntrackedParameter<std::string>("SCBInput", "correctedIslandBarrelSuperClusters");
+   SCEInput      = iConfig.getUntrackedParameter<std::string>("SCEInput", "correctedIslandEndcapSuperClusters");
+   ShapeBInput      = iConfig.getUntrackedParameter<std::string>("ShapeBInput", "islandBarrelShapeAssoc");
+   ShapeEInput      = iConfig.getUntrackedParameter<std::string>("ShapeEInput", "islandEndcapShapeAssoc");
+
+   output = iConfig.getUntrackedParameter<std::string>("output", "ughuu.root");
+
+   etCut = iConfig.getUntrackedParameter<double>("etCut", 70);
+}
+
+
+HIPhotonCandidateAna::~HIPhotonCandidateAna()
+{
+ 
+   // do anything here that needs to be done at desctruction time
+   // (e.g. close files, deallocate resources etc.)
+
+}
+
+
+//
+// member functions
+//
+
+// ------------ method called to for each event  ------------
+void
+HIPhotonCandidateAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
+{
+   using namespace edm;
+   using namespace reco;
+   using namespace std;
+
+   Handle<CandidateCollection> pGenCandInput;
+   iEvent.getByLabel(InputTag(GenCandInput), pGenCandInput);
+   const CandidateCollection *genParticles = pGenCandInput.product();
+   if(genParticles == 0)
+   {
+      cout <<"***HIPhotonCandidateAna: GenParticleCandidate not found!"<<endl;
+      return;
+   }
+
+   Handle<CandidateCollection> pSCCandInput;
+   iEvent.getByLabel(InputTag(SCCandInput), pSCCandInput);
+   const CandidateCollection *superClusters = pSCCandInput.product();
+   if(superClusters == 0)
+   {
+      cout <<"***HIPhotonCandidateAna: SuperClusterCandidate not found!"<<endl;
+      return;
+   }
+
+   Handle<SuperClusterCollection> pSCBInput;
+   iEvent.getByLabel(InputTag(SCBInput), pSCBInput);
+   const SuperClusterCollection *SCBcollection = pSCBInput.product();
+   if(SCBcollection == 0)
+   {
+      cout <<"***HIPhotonCandidateAna: SCBcollection not found!"<<endl;
+      return;
+   }
+
+   Handle<SuperClusterCollection> pSCEInput;
+   iEvent.getByLabel(InputTag(SCEInput), pSCEInput);
+   const SuperClusterCollection *SCEcollection = pSCEInput.product();
+   if(SCEcollection == 0)
+   {
+      cout <<"***HIPhotonCandidateAna: SCEcollection not found!"<<endl;
+      return;
+   }
+
+
+   Handle<BasicClusterShapeAssociationCollection> hShapeB;
+   iEvent.getByLabel(InputTag(ShapeBInput), hShapeB);
+   const BasicClusterShapeAssociationCollection *shapeB = hShapeB.product();
+   if(shapeB == 0 )
+   {
+      cout <<"***HIPhotonCandidateAna: ShapeB not found!"<<endl;
+      return;
+   }
+
+   Handle<BasicClusterShapeAssociationCollection> hShapeE;
+   iEvent.getByLabel(InputTag(ShapeEInput), hShapeE);
+   const BasicClusterShapeAssociationCollection *shapeE = hShapeE.product();
+   if(shapeE == 0 )
+   {
+      cout <<"***HIPhotonCandidateAna: ShapeE not found!"<<endl;
+      return;
+   }
+
+
+   int maxindex = (int)superClusters->size();
+
+   CandidateSuperClusterFinder SCFinder;
+   CxCalculator CxC(iEvent,iSetup);
+   RxCalculator RxC(iEvent,iSetup);
+
+
+
+   for(int i = 0; i < maxindex; i++)
+   {
+      const Candidate &SCCand = (*superClusters)[i];
+
+      CandidateGenParticleFinder mp(genParticles,SCCand,0.15,10);      
+      
+
+      Float_t var[100];
+      for (int j = 0; j<100; j++) var[j]=0;
+
+      if ((SCCand.energy()/cosh(SCCand.eta()))<etCut) continue;
+
+      vector<Float_t> vv;
+      vv.push_back(SCCand.et());      
+      vv.push_back(SCCand.energy());
+      vv.push_back(SCCand.energy()/cosh(SCCand.eta()));
+      vv.push_back(SCCand.eta());
+      vv.push_back(SCCand.phi());
+
+
+
+      if (mp.GetTriggerGenParticle()!=0) {
+         const Candidate &c1 = *(mp.GetTriggerGenParticle());
+      
+         vv.push_back(c1.energy());
+         vv.push_back(c1.energy()/cosh(c1.eta()));
+         vv.push_back(c1.eta());
+         vv.push_back(c1.phi());
+         vv.push_back(c1.pdgId());      
+
+         if (c1.mother()!=0) vv.push_back(c1.mother()->pdgId()); else vv.push_back(0);
+
+
+         HIPhotonMCType::EType photontype = HIPhotonMCType::kInvalid;
+         HIPhotonMCType mctype;
+         photontype = mctype.getType(c1);
+
+         int photonid1;
+
+         if (photontype == HIPhotonMCType::kInvalid) photonid1 = 6;
+         else photonid1=(Int_t)photontype;
+
+         vv.push_back(photonid1);
+
+         // old yenjie's id
+         Int_t id=0;
+         if (photonid1 == 2) id=1; //kDirect
+         if (photonid1 == 3 || photonid1 == 5) id=4; //KFrag+kBrems
+         if (photonid1 == 4 || photonid1 == 6) id=0; //kDecay+kInvalid
+
+         vv.push_back(id);
+
+         HIMCGammaJetSignalDef mcisocut(genParticles);
+         bool isMCIsolated = mcisocut.IsIsolated(c1);
+         bool isMCSignal   = mcisocut.IsSignal(c1,3,true);
+
+         int iNear = mcisocut.GetNearParton();
+         int iAway = mcisocut.GetAwayParton();
+
+         double delphi = 1e12;
+         double phi1= 1e12;
+         double phi2= 1e12;
+         if (iNear!=-1&&iAway!=-1) {
+            const Candidate &p1 = (*genParticles)[iNear];
+            const Candidate &p2 = (*genParticles)[iAway];
+            delphi = mcisocut.getDeltaPhi(p1,p2);
+            phi1 = p1.phi();
+            phi2 = p2.phi();
+         }
+
+         vv.push_back(isMCIsolated);
+         vv.push_back(isMCSignal);
+         vv.push_back(delphi);
+         vv.push_back(iNear);
+         vv.push_back(iAway);
+         vv.push_back(phi1);
+         vv.push_back(phi2);
+      } else {
+         // not matched
+         vv.push_back(0);
+         vv.push_back(0);
+         vv.push_back(0);
+         vv.push_back(0);
+         vv.push_back(0);
+         vv.push_back(0);
+         vv.push_back(0);
+         vv.push_back(0);
+         vv.push_back(0);
+         vv.push_back(0);
+         vv.push_back(0);
+         vv.push_back(0);
+         vv.push_back(0);
+         vv.push_back(0);
+         vv.push_back(0);
+      }
+      const SuperCluster *SC = SCFinder.findbest(SCBcollection,SCEcollection,SCCand);
+
+      BasicClusterShapeAssociationCollection::const_iterator seedItr; 
+
+      if (SC!=0) {
+         if (fabs(SC->eta())<1.479) {
+            seedItr = shapeB->find(SC->seed());
+            //std::cout << "[ASDGASDGASD] " << seedItr->val.get() << endl;
+         } else {
+            seedItr = shapeE->find(SC->seed());
+            //std::cout << "[ASDGASDGASD] " << seedItr->val.get() << endl;
+         }
+                  
+         const ClusterShape &sh = *(seedItr->val.get());
+
+	 vv.push_back(sh.eMax());
+	 vv.push_back(sh.e2nd());
+	 vv.push_back(sh.e2x2());
+	 vv.push_back(sh.e3x2());
+	 vv.push_back(sh.e3x3());
+	 vv.push_back(sh.e4x4());
+	 vv.push_back(sh.e5x5());
+	 vv.push_back(sh.e2x5Right());
+	 vv.push_back(sh.e2x5Top());
+	 vv.push_back(sh.e2x5Bottom());
+	 vv.push_back(sh.e2x5Left());
+	 vv.push_back(sh.e3x2Ratio());
+	 vv.push_back(sh.covEtaEta());
+	 vv.push_back(sh.covEtaPhi());
+	 vv.push_back(sh.covPhiPhi());  
+         vv.push_back(SC->clustersSize());
+         vv.push_back(SC->getHitsByDetId().size());
+         vv.push_back(CxC.getCx(SC,1,0));
+         vv.push_back(CxC.getCx(SC,2,0));
+         vv.push_back(CxC.getCx(SC,3,0));
+         vv.push_back(CxC.getCx(SC,4,0));
+         vv.push_back(CxC.getCx(SC,5,0));
+         vv.push_back(CxC.getCCx(SC,1,0));
+         vv.push_back(CxC.getCCx(SC,2,0));
+         vv.push_back(CxC.getCCx(SC,3,0));
+         vv.push_back(CxC.getCCx(SC,4,0));
+         vv.push_back(CxC.getCCx(SC,5,0));
+         vv.push_back(CxC.getCx(SC,1,-10));
+         vv.push_back(CxC.getCx(SC,2,-10));
+         vv.push_back(CxC.getCx(SC,3,-10));
+         vv.push_back(CxC.getCx(SC,4,-10));
+         vv.push_back(CxC.getCx(SC,5,-10));
+         vv.push_back(CxC.getCCx(SC,1,-10));
+         vv.push_back(CxC.getCCx(SC,2,-10));
+         vv.push_back(CxC.getCCx(SC,3,-10));
+         vv.push_back(CxC.getCCx(SC,4,-10));
+         vv.push_back(CxC.getCCx(SC,5,-10));
+         vv.push_back(RxC.getRx(SC,1,0));
+         vv.push_back(RxC.getRx(SC,2,0));
+         vv.push_back(RxC.getRx(SC,3,0));
+         vv.push_back(RxC.getRx(SC,4,0));
+         vv.push_back(RxC.getRx(SC,5,0));
+         vv.push_back(RxC.getCRx(SC,1,0));
+         vv.push_back(RxC.getCRx(SC,2,0));
+         vv.push_back(RxC.getCRx(SC,3,0));
+         vv.push_back(RxC.getCRx(SC,4,0));
+         vv.push_back(RxC.getCRx(SC,5,0));
+         vv.push_back(RxC.getRx(SC,1,-10));
+         vv.push_back(RxC.getRx(SC,2,-10));
+         vv.push_back(RxC.getRx(SC,3,-10));
+         vv.push_back(RxC.getRx(SC,4,-10));
+         vv.push_back(RxC.getRx(SC,5,-10));
+         vv.push_back(RxC.getCRx(SC,1,-10));
+         vv.push_back(RxC.getCRx(SC,2,-10));
+         vv.push_back(RxC.getCRx(SC,3,-10));
+         vv.push_back(RxC.getCRx(SC,4,-10));
+         vv.push_back(RxC.getCRx(SC,5,-10));
+         vv.push_back(CxC.getCx(SC,10000,0));
+         vv.push_back(RxC.getRx(SC,10000,0));
+ 
+      } else {
+         vv.resize(vv.size()+49);
+      }
+
+      for(int j=0;j<(int)vv.size();j++) var[j]=vv[j];
+
+       if (vv.size()!=79) cout <<"ERROR!!!!! "<<vv.size()<<endl;
+
+      datatemp->Fill(var);
+   }
+}
+
+
+// ------------ method called once each job just before starting event loop  ------------
+void 
+HIPhotonCandidateAna::beginJob(const edm::EventSetup&)
+{
+   TFile::TContext context(0);
+   f = TFile::Open(output.c_str(), "recreate");
+
+   datatemp = new TNtuple("gammas", "photon candidate info", 
+            "evt:e:et:eta:phi:"
+            "ge:get:geta:gphi:gid:gmid:id1:id:mciso:mcsig:delphi:iNear:iAway:phi1:phi2:"
+            "emax:e2nd:e4:e6:e9:e16:e25:e2x5R:e2x5T:e2x5B:e2x5L:e3x2Ratio:"
+            "convEtaEta:convEtaPhi:convPhiPhi:nc:nhit:"
+            "c1:c2:c3:c4:c5:cC1:cC2:cC3:cC4:cC5:"
+            "nc1:nc2:nc3:nc4:nc5:ncC1:ncC2:ncC3:ncC4:ncC5:"
+            "r1:r2:r3:r4:r5:cR1:cR2:cR3:cR4:cR5:"
+            "nr1:nr2:nr3:nr4:nr5:ncR1:ncR2:ncR3:ncR4:ncR5:"
+            "ECAL:HCAL"
+            );
+}
+
+// ------------ method called once each job just after ending the event loop  ------------
+void 
+HIPhotonCandidateAna::endJob() {
+   TFile::TContext context(f);
+
+   datatemp->Write();
+
+   f->Close();
+
+}
+
+
+int HIPhotonCandidateAna::GetHighestEtPart(const reco::CandidateCollection  *parts)
+{
+   if (parts==0) return -1;
+
+   int highestEtspart = -1;
+   double highestEt   = -1;
+
+   int maxindex = (int)parts->size();
+
+   for(int i = 0; i < maxindex; i++) {
+
+      const Candidate &p = (*parts)[i];
+
+      if (p.status()==3) continue;
+      int pid = abs(p.pdgId());
+      //no partons
+      if(pid <= 9 || pid  == 21) continue;
+      //no quarks, muons, neutrinos, gluons, W, H, Z, gravitons.
+      //only leptons (e,mu,tau) gammas are allowed:
+      if(pid<100 && pid!=11 && pid!=13 && pid!=15 && pid!=22) continue;
+      if(highestEt<p.et()) {
+         highestEt = p.et();
+         highestEtspart = i;
+      }
+   }
+
+   return highestEtspart;
+}
+
+//define this as a plug-in
+DEFINE_FWK_MODULE(HIPhotonCandidateAna);

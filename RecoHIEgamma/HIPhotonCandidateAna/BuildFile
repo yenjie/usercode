@@ -1,0 +1,14 @@
+<use name=FWCore/Framework>
+<use name=FWCore/PluginManager>
+<use name=FWCore/ParameterSet>
+<use name=root>
+<use name=DataFormats/Candidate>
+<use name=DataFormats/EgammaReco>
+<use name=RecoHIEgamma/HIEgammaTools>
+<flags EDM_PLUGIN=1>
+<export>
+   <lib name=RecoHIEgammaHIPhotonCandidateAna>
+   <use name=FWCore/Framework>
+   <use name=FWCore/PluginManager>
+   <use name=FWCore/ParameterSet>
+</export>

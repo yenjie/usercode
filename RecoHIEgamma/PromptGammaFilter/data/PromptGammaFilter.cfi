@@ -1,0 +1,6 @@
+module promptGammaFilter = PromptGammaFilter
+{
+   untracked double etCut = 70
+   untracked double etaRange = 2
+   untracked string input = "genParticleCandidates"
+}
