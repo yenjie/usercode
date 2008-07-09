@@ -1,0 +1,18 @@
+// Put here the modules you want the cfg file to use,
+// then include this file in your cfg file.
+// i.e. in HIBasicClusAna.cfg replace 'module demo = HIBasicClusAna {} '
+// with 'include "anlyzerDir/HIBasicClusAna/data/HIBasicClusAna.cfi" '.
+// (Remember that filenames are case sensitive.)
+
+module hIBasicClusAna = HIBasicClusAna {
+   untracked string GenCandInput = "genParticleCandidates"
+   untracked string SCCandInput = "barrelclusters"
+   untracked string SCCandInput1 = "endcapclusters"
+   untracked string SCBInput = "correctedIslandBarrelSuperClusters"
+   untracked string SCEInput = "correctedIslandEndcapSuperClusters"
+   untracked string ShapeBInput = "islandBasicClusters:islandBarrelShapeAssoc"
+   untracked string ShapeEInput = "islandBasicClusters:islandEndcapShapeAssoc"
+   untracked string output = "HIBasicClusAna.root"
+   untracked double etCut = 70
+   untracked double etaCut = 2
+}

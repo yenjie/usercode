@@ -1,0 +1,66 @@
+   include "HeavyIonsAnalysis/Configuration/data/EventEmbedding.cff"
+
+   module mix = MixingModule
+   {
+     secsource input = PoolRASource
+     {
+      untracked vstring fileNames =
+      { 
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000201.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000202.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000203.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000204.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000205.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000206.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000207.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000208.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000209.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000210.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000211.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000212.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000213.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000214.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000215.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000216.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000217.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000218.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000219.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000220.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000221.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000222.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000223.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000224.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000225.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000226.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000227.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000228.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000229.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000230.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000231.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000232.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000233.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000234.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000235.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000236.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000237.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000238.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000239.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000240.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000241.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000242.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000243.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000244.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000245.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000246.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000247.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000248.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000249.root",
+          "dcache:/pnfs/cmsaf.mit.edu/hibat/cms/users/yetkin/sim/hydjet_sim_x2_c1_d20080619/hydjet_sim_x2_c1_d20080619_r000250.root"
+
+        }
+      using eventEmbeddingSourceParameters
+      }
+
+      using simEventEmbeddingMixParameters
+    }
+
