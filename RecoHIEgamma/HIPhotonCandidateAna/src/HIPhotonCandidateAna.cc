@@ -402,12 +402,12 @@ HIPhotonCandidateAna::analyze(const edm::Event& iEvent, const edm::EventSetup& i
          }
 
          for (int x=1;x<6;x++) {
-            cx[x]=CxC.getCx(SC,x,-10);
+            cx[x]=CxC.getCx(SC,x,2);
             vv.push_back(cx[x]);
          }
 
          for (int x=1;x<6;x++) {
-            ccx[x]=CxC.getCCx(SC,x,-10);
+            ccx[x]=CxC.getCCx(SC,x,2);
             vv.push_back(ccx[x]);
          }
 

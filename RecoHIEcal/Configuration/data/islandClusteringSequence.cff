@@ -1,0 +1,24 @@
+#
+# $Id: islandClusteringSequence.cff,v 1.7 2007/03/13 17:21:44 futyand Exp $
+#
+#------------------
+#Island clustering:
+#------------------
+
+# Island BasicCluster producer
+include "RecoEcal/EgammaClusterProducers/data/islandBasicClusters.cfi"
+
+# Island SuperCluster producer
+include "RecoHIEcal/Configuration/data/islandSuperClusters.cfi"
+
+# Energy scale correction for Island SuperClusters
+include "RecoEcal/EgammaClusterProducers/data/correctedIslandBarrelSuperClusters.cfi"
+include "RecoEcal/EgammaClusterProducers/data/correctedIslandEndcapSuperClusters.cfi"
+
+# create sequence for island clustering
+sequence islandClusteringSequence = {
+             islandBasicClusters,
+             islandSuperClusters,
+             correctedIslandBarrelSuperClusters,
+             correctedIslandEndcapSuperClusters
+}
