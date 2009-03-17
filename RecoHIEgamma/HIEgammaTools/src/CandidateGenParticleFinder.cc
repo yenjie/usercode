@@ -8,26 +8,28 @@
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "RecoHIEgamma/HIEgammaTools/interface/HICaloUtil.h"
 
+
+
 using namespace reco;
 using namespace std;
 
-CandidateGenParticleFinder::CandidateGenParticleFinder (const CandidateCollection *genParticles,double eta,double phi,double dR,double etcut)  
+CandidateGenParticleFinder::CandidateGenParticleFinder (const GenParticleCollection *genParticles,double eta,double phi,double dR,double etcut)  
    : fEtCut(etcut), fDeltaR(dR), fEta(eta), fPhi(phi), fDoEcalEta(false), fParticles(new CandidateCollection)
 {
    Match(genParticles);
 } 
 
-CandidateGenParticleFinder::CandidateGenParticleFinder (const CandidateCollection *genParticles,const reco::Candidate &cand,double dR,double etcut)  
+CandidateGenParticleFinder::CandidateGenParticleFinder (const GenParticleCollection *genParticles,const reco::Candidate &cand,double dR,double etcut)  
    : fEtCut(etcut), fDeltaR(dR), fEta(cand.eta()), fPhi(cand.phi()), fDoEcalEta(true), fParticles(new CandidateCollection)
 {
    Match(genParticles);
 } 
 
-void CandidateGenParticleFinder::Match(const reco::CandidateCollection *genParticles)
+void CandidateGenParticleFinder::Match(const reco::GenParticleCollection *genParticles)
 {
    int nparts = (int)genParticles->size();
 
-   double dR2cut = fDeltaR*fDeltaR;
+   double dRcut = fDeltaR;
 
    for (int i=0;i<nparts;++i) {
       Candidate *p = (*genParticles)[i].clone();
@@ -43,9 +45,9 @@ void CandidateGenParticleFinder::Match(const reco::CandidateCollection *genParti
          eta = p->eta();  
       }
 
-      double dR2 = DeltaR2(fPhi,p->phi(),fEta,eta);
+      double dR = sqrt(DeltaR2(fPhi,p->phi(),fEta,eta));
 
-      if(dR2<dR2cut) {
+      if(dR<dRcut) {
          fParticles->push_back(p);
       }
 
@@ -64,17 +66,18 @@ const Candidate *CandidateGenParticleFinder::GetTriggerGenParticle()
       
       //Only check candidate particles 
       const int pid=abs(genPart->pdgId());
-      if (pid==22 || pid==111 || pid==211 || pid==221 || pid==223 || pid==331 || pid==11) {
+//      if (pid==22 || pid==111 || pid==211 || pid==221 || pid==223 || pid==331 || pid==11) {
+        if (genPart->status()==1) {
          if(genPart->et()<etCand) continue;
          etCand = genPart->et();
          cand = genPart;
-      }
+        }
    }
 
    return cand;
 }
 
-double  CandidateGenParticleFinder::DeltaR2(double phi1,double phi2,double eta1,double eta2)
+double CandidateGenParticleFinder::DeltaR2(double phi1,double phi2,double eta1,double eta2)
 {
     double dEta = eta1-eta2;
     double dPhi = phi1-phi2;
@@ -83,5 +86,5 @@ double  CandidateGenParticleFinder::DeltaR2(double phi1,double phi2,double eta1,
     while(dPhi >= PI)       dPhi -= (2.0*PI);
     while(dPhi < (-1.0*PI)) dPhi += (2.0*PI);
     
-    return sqrt(dEta*dEta+dPhi*dPhi);
+    return (dEta*dEta+dPhi*dPhi);
 }

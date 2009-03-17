@@ -12,7 +12,7 @@ using namespace reco;
 
 #define PI 3.141592653589793238462643383279502884197169399375105820974945
 
-HIMCGammaJetSignalDef::HIMCGammaJetSignalDef (const reco::CandidateCollection  *sigParticles) :
+HIMCGammaJetSignalDef::HIMCGammaJetSignalDef (const reco::GenParticleCollection  *sigParticles) :
 fSigParticles(0),fiNear(-1),fiAway(-1)
 {
    fSigParticles =  sigParticles;

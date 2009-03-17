@@ -12,12 +12,15 @@
 #include "Geometry/CaloGeometry/interface/CaloGeometry.h"
 #include "Geometry/Records/interface/IdealGeometryRecord.h"
 
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
+
 
 class HIMCGammaJetSignalDef
 {
   public:
   
-   HIMCGammaJetSignalDef(const reco::CandidateCollection  *sigParticles);
+   HIMCGammaJetSignalDef(const reco::GenParticleCollection  *sigParticles);
    bool IsIsolated(const reco::Candidate &pp);
    bool IsSignal(const reco::Candidate &pp, double dPhi, bool isIso);
 
@@ -28,7 +31,7 @@ class HIMCGammaJetSignalDef
    int GetNearParton() const { return fiNear;}
 
   private:
-   const reco::CandidateCollection        *fSigParticles;
+   const reco::GenParticleCollection        *fSigParticles;
    int                               fiNear;
    int                               fiAway;
 };

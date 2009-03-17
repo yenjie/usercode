@@ -11,6 +11,10 @@
 #include "DataFormats/EgammaReco/interface/SuperCluster.h"
 #include "DataFormats/EgammaReco/interface/SuperClusterFwd.h"
 
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
+
+
 using namespace std;
 using namespace edm;
 using namespace reco;
@@ -19,10 +23,10 @@ class CandidateGenParticleFinder
 {
   public:
   
-   CandidateGenParticleFinder(const CandidateCollection *genParticles,double eta,double phi,double dR,double etcut) ;
-   CandidateGenParticleFinder(const CandidateCollection *genParticles,const reco::Candidate &cand,double dR,double etcut) ;  
+   CandidateGenParticleFinder(const GenParticleCollection *genParticles,double eta,double phi,double dR,double etcut) ;
+   CandidateGenParticleFinder(const GenParticleCollection *genParticles,const reco::Candidate &cand,double dR,double etcut) ;  
 
-   void Match(const reco::CandidateCollection *genParticles);
+   void Match(const reco::GenParticleCollection *genParticles);
    const Candidate *GetTriggerGenParticle(); 
 
    double                        GetDeltaR()             const { return fDeltaR; }

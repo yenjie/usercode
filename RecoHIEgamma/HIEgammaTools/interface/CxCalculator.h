@@ -24,6 +24,8 @@ class CxCalculator
    double getCCx(const reco::SuperCluster* clus, double i,double threshold); // background subtracted Cx
    double getCCxRemoveSC(const reco::SuperCluster* clus, double i,double threshold); // background subtracted Cx
    double getCorrection(const reco::SuperCluster* clus, double i,double j,double threshold); // background subtracted Cx
+   double getAvgBCEt(const reco::SuperCluster* clus, double eta,double phi1, double phi2,double threshold); // background subtracted Cx
+   double getNBC(const reco::SuperCluster* clus, double eta,double phi1, double phi2,double threshold); // background subtracted Cx
    bool checkUsed(const reco::SuperCluster* clus, const reco::BasicCluster* clu);
 
   private:

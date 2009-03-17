@@ -4,7 +4,8 @@
 #include "DataFormats/Math/interface/Vector3D.h"
 #include "RecoHIEgamma/HIEgammaTools/interface/CxCalculator.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
-#include "Geometry/Records/interface/IdealGeometryRecord.h"
+#include "Geometry/Records/interface/CaloGeometryRecord.h"
+//#include "Geometry/Records/interface/IdealGeometryRecord.h"
 #include "Geometry/CaloGeometry/interface/CaloSubdetectorGeometry.h"
 #include "DataFormats/Common/interface/Handle.h"
 #include "DataFormats/EgammaReco/interface/BasicCluster.h"
@@ -29,8 +30,15 @@ CxCalculator::CxCalculator (const edm::Event &iEvent, const edm::EventSetup &iSe
    fEEclusters_ = pEEclusters.product(); 
 
    ESHandle<CaloGeometry> geometryHandle;
-   iSetup.get<IdealGeometryRecord>().get(geometryHandle);
+   iSetup.get<CaloGeometryRecord>().get(geometryHandle);
+
+
+
+
    geometry_ = geometryHandle.product();
+
+
+
 
 } 
 
@@ -393,3 +401,150 @@ double CxCalculator::getCorrection(const reco::SuperCluster* cluster, double x, 
   return TotalEnergy/nCrystal;
 }
 
+double CxCalculator::getAvgBCEt(const reco::SuperCluster* cluster, double x,double phi1,double phi2, double threshold)
+// x: eta cut, phi1: deltaPhiMin cut, phi2: deltaPhiMax
+{
+   using namespace edm;
+   using namespace reco;
+
+
+   if(!fEBclusters_) {       
+      LogError("CxCalculator") << "Error! Can't get EBclusters for event.";
+      return -100;
+   }
+
+   if(!fEEclusters_) {       
+      LogError("CxCalculator") << "Error! Can't get EEclusters for event.";
+      return -100;
+   }
+
+   double SClusterEta = cluster->eta();
+   double SClusterPhi = cluster->phi();
+
+   double TotalEt = 0;    // Total E
+   double TotalN = 0;     // Total N
+
+   TotalEt = - cluster->rawEnergy()/cosh(cluster->eta());
+
+   if (fabs(SClusterEta) < 1.479) {
+      //Barrel    
+      for(BasicClusterCollection::const_iterator iclu = fEBclusters_->begin();
+          iclu != fEBclusters_->end(); ++iclu) {
+         const BasicCluster *clu = &(*iclu);
+         math::XYZVector ClusPoint(clu->x(),clu->y(),clu->z());
+         double eta = ClusPoint.eta();
+         double phi = ClusPoint.phi();  
+
+         double dEta = fabs(eta-SClusterEta);
+         double dPhi = fabs(phi-SClusterPhi);
+         while (dPhi>2*PI) dPhi-=2*PI;
+
+         bool inSuperCluster = checkUsed(cluster,clu);
+
+         if (dEta<x*0.1&&inSuperCluster==false&&dPhi>phi1*0.1&&dPhi<phi2*0.1) {
+            double et = clu->energy()/cosh(eta);
+            if (et<threshold) et=0;
+            TotalEt += et;
+            TotalN ++;
+         } 
+      }   
+   } else {
+      //Endcap
+      for(BasicClusterCollection::const_iterator iclu = fEEclusters_->begin();
+          iclu != fEEclusters_->end(); ++iclu) {
+         const BasicCluster *clu = &(*iclu);
+         math::XYZVector ClusPoint(clu->x(),clu->y(),clu->z());
+         double eta = ClusPoint.eta();
+         double phi = ClusPoint.phi();  
+   
+         double dEta = fabs(eta-SClusterEta);
+         double dPhi = fabs(phi-SClusterPhi);
+         while (dPhi>2*PI) dPhi-=2*PI;
+
+         bool inSuperCluster = checkUsed(cluster,clu);
+
+         if (dEta<x*0.1&&inSuperCluster==false&&dPhi>phi1*0.1&&dPhi<phi2*0.1) {
+            double et = clu->energy()/cosh(eta);
+            if (et<threshold) et=0;
+            TotalEt += et;
+            TotalN ++;
+         } 
+      }
+   }
+   return TotalEt / TotalN;
+}
+
+double CxCalculator::getNBC(const reco::SuperCluster* cluster, double x,double phi1,double phi2, double threshold)
+// x: eta cut, phi1: deltaPhiMin cut, phi2: deltaPhiMax
+{
+   using namespace edm;
+   using namespace reco;
+
+
+   if(!fEBclusters_) {       
+      LogError("CxCalculator") << "Error! Can't get EBclusters for event.";
+      return -100;
+   }
+
+   if(!fEEclusters_) {       
+      LogError("CxCalculator") << "Error! Can't get EEclusters for event.";
+      return -100;
+   }
+
+   double SClusterEta = cluster->eta();
+   double SClusterPhi = cluster->phi();
+
+   double TotalEt = 0;    // Total E
+   double TotalN = 0;     // Total N
+
+   TotalEt = - cluster->rawEnergy()/cosh(cluster->eta());
+
+   
+
+   if (fabs(SClusterEta) < 1.479) {
+      //Barrel    
+      for(BasicClusterCollection::const_iterator iclu = fEBclusters_->begin();
+          iclu != fEBclusters_->end(); ++iclu) {
+         const BasicCluster *clu = &(*iclu);
+         math::XYZVector ClusPoint(clu->x(),clu->y(),clu->z());
+         double eta = ClusPoint.eta();
+         double phi = ClusPoint.phi();  
+
+         double dEta = fabs(eta-SClusterEta);
+         double dPhi = fabs(phi-SClusterPhi);
+         while (dPhi>2*PI) dPhi-=2*PI;
+
+         bool inSuperCluster = checkUsed(cluster,clu);
+
+         if (dEta<x*0.1&&inSuperCluster==false&&dPhi>phi1*0.1&&dPhi<phi2*0.1) {
+            double et = clu->energy()/cosh(eta);
+            if (et<threshold) et=0;
+            TotalEt += et;
+            TotalN ++;
+         } 
+      }   
+   } else {
+      //Endcap
+      for(BasicClusterCollection::const_iterator iclu = fEEclusters_->begin();
+          iclu != fEEclusters_->end(); ++iclu) {
+         const BasicCluster *clu = &(*iclu);
+         math::XYZVector ClusPoint(clu->x(),clu->y(),clu->z());
+         double eta = ClusPoint.eta();
+         double phi = ClusPoint.phi();  
+   
+         double dEta = fabs(eta-SClusterEta);
+         double dPhi = fabs(phi-SClusterPhi);
+         while (dPhi>2*PI) dPhi-=2*PI;
+
+         bool inSuperCluster = checkUsed(cluster,clu);
+
+         if (dEta<x*0.1&&inSuperCluster==false&&dPhi>phi1*0.1&&dPhi<phi2*0.1) {
+            double et = clu->energy()/cosh(eta);
+            if (et<threshold) et=0;
+            TotalEt += et;
+            TotalN ++;
+         } 
+      }
+   }
+   return TotalN;
+}

@@ -1,10 +1,12 @@
 #include "RecoHIEgamma/HIEgammaTools/interface/RxCalculator.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "Geometry/Records/interface/IdealGeometryRecord.h"
+#include "Geometry/Records/interface/CaloGeometryRecord.h"
 #include "Geometry/CaloGeometry/interface/CaloSubdetectorGeometry.h"
 #include "DataFormats/Common/interface/Handle.h"
 #include "DataFormats/EgammaReco/interface/BasicCluster.h"
 #include "DataFormats/EgammaReco/interface/SuperCluster.h"
+
 
 using namespace edm;
 using namespace reco;
@@ -27,7 +29,7 @@ RxCalculator::RxCalculator (const edm::Event &iEvent, const edm::EventSetup &iSe
    fHBHERecHits_ = hehbhandle.product();
 
    ESHandle<CaloGeometry> geometryHandle;
-   iSetup.get<IdealGeometryRecord>().get(geometryHandle);
+   iSetup.get<CaloGeometryRecord>().get(geometryHandle);
    geometry_ = geometryHandle.product();
 
 } 
