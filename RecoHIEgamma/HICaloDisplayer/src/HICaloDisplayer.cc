@@ -46,6 +46,9 @@
 #include "Geometry/CaloGeometry/interface/CaloGeometry.h"
 #include "Geometry/Records/interface/IdealGeometryRecord.h"
 #include "RecoCaloTools/MetaCollections/interface/CaloRecHitMetaCollections.h"
+#include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
+#include "DataFormats/EcalRecHit/interface/EcalRecHit.h"
+
 
 #include "TNtuple.h"
 #include "TFile.h"
@@ -70,9 +73,13 @@ class HICaloDisplayer : public edm::EDAnalyzer {
    const reco::BasicClusterCollection *fEEclusters_;
    const CaloGeometry                 *geometry_;
    const HBHERecHitCollection         *fHBHERecHits_;
+   const EcalRecHitCollection   *fEBHit_;
+   const EcalRecHitCollection   *fEEHit_;
+  
    TNtuple *datatemp;
    TNtuple *datatemp1;
    TNtuple *datatemp2;
+   TNtuple *datatemp3;
    TFile *f;
    int nEvent;
    std::string GenCandInput;
@@ -147,6 +154,21 @@ HICaloDisplayer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       return;
    }
 
+    
+   Handle<EcalRecHitCollection> pEBHit;
+   iEvent.getByLabel(InputTag("ecalRecHit:EcalRecHitsEB"), pEBHit);
+   fEBHit_ = pEBHit.product(); 
+ 
+   Handle<EcalRecHitCollection> pEEHit;
+   iEvent.getByLabel(InputTag("ecalRecHit:EcalRecHitsEE"), pEEHit);
+   fEEHit_ = pEEHit.product(); 
+
+
+
+   double candeta=0;
+   double candphi=0;
+
+
    for(int i = 0; i < (int) genParticles->size(); i++)
    {
      const Candidate &cand = (*genParticles)[i];
@@ -196,6 +218,37 @@ HICaloDisplayer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       datatemp->Fill(var);
    }
 
+
+
+   for(size_t index = 0; index < fEBHit_->size(); index++) {
+      const EcalRecHit &rechit = (*fEBHit_)[index];
+      const DetId &detid = rechit.id();
+      const GlobalPoint& hitpoint = geometry_->getPosition(detid);
+      double eta = hitpoint.eta();
+      double phi = hitpoint.phi();
+      float var[10];
+      var[0]=nEvent;
+      var[1]=phi;
+      var[2]=eta;
+      var[3]=rechit.energy();
+      datatemp3->Fill(var);
+   }
+
+
+   for(size_t index = 0; index < fEEHit_->size(); index++) {
+      const EcalRecHit &rechit = (*fEEHit_)[index];
+      const DetId &detid = rechit.id();
+      const GlobalPoint& hitpoint = geometry_->getPosition(detid);
+      double eta = hitpoint.eta();
+      double phi = hitpoint.phi();
+      float var[10];
+      var[0]=nEvent;
+      var[1]=phi;
+      var[2]=eta;
+      var[3]=rechit.energy();
+      datatemp3->Fill(var);
+   }
+
    for(size_t index = 0; index < fHBHERecHits_->size(); index++) {
       const HBHERecHit &rechit = (*fHBHERecHits_)[index];
       const DetId &detid = rechit.id();
@@ -242,6 +295,10 @@ HICaloDisplayer::beginJob(const edm::EventSetup&)
              "id:phi:eta:e:gid:mid:s"
             );
 
+   datatemp3 = new TNtuple("ehit", "ecal info",
+             "id:phi:eta:e"
+            );
+
   nEvent=0;
 }
 
@@ -253,6 +310,7 @@ HICaloDisplayer::endJob() {
    datatemp->Write();
    datatemp1->Write();
    datatemp2->Write();
+   datatemp3->Write();
 
    f->Close();
 

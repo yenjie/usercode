@@ -31,8 +31,11 @@
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "DataFormats/Candidate/interface/CandidateFwd.h"
-#include "DataFormats/Candidate/interface/Candidate.h"
+//#include "DataFormats/Candidate/interface/CandidateFwd.h"
+//#include "DataFormats/Candidate/interface/Candidate.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
+
 
 #include "DataFormats/EgammaReco/interface/BasicCluster.h"
 #include "DataFormats/EgammaReco/interface/BasicClusterFwd.h"
@@ -157,9 +160,9 @@ HIBasicClusAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    using namespace std; 
 
    int trigFlag=0;
-   Handle<CandidateCollection> pGenCandInput;
+   Handle<GenParticleCollection> pGenCandInput;
    iEvent.getByLabel(InputTag(GenCandInput), pGenCandInput);
-   const CandidateCollection *genParticles = pGenCandInput.product();
+   const GenParticleCollection *genParticles = pGenCandInput.product();
    if(genParticles == 0)
    {
       cout <<"***HIPhotonCandidateAna: GenParticleCandidate not found!"<<endl;
@@ -399,6 +402,16 @@ HIBasicClusAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
          }
 
       }
+      vv.push_back(CxC.getAvgBCEt(SC,1,0,1000,0));
+      vv.push_back(CxC.getAvgBCEt(SC,2,0,1000,0));
+      vv.push_back(CxC.getAvgBCEt(SC,3,0,1000,0));
+      vv.push_back(CxC.getAvgBCEt(SC,4,0,1000,0));
+      vv.push_back(CxC.getAvgBCEt(SC,5,0,1000,0));
+      vv.push_back(CxC.getNBC(SC,1,0,1000,0));
+      vv.push_back(CxC.getNBC(SC,2,0,1000,0));
+      vv.push_back(CxC.getNBC(SC,3,0,1000,0));
+      vv.push_back(CxC.getNBC(SC,4,0,1000,0));
+      vv.push_back(CxC.getNBC(SC,5,0,1000,0));
 
       for(int j=0;j<(int)vv.size();j++) var[j]=vv[j];
       datatemp->Fill(var);
@@ -461,7 +474,9 @@ HIBasicClusAna::beginJob(const edm::EventSetup& iSetup)
             "bcE27:bcEta27:bcPhi27:bcHoE27:"
             "bcE28:bcEta28:bcPhi28:bcHoE28:"
             "bcE29:bcEta29:bcPhi29:bcHoE29:"
-            "bcE30:bcEta30:bcPhi30:bcHoE30"            
+            "bcE30:bcEta30:bcPhi30:bcHoE30:"            
+            "avgBCEt1:avgBCEt2:avgBCEt3:avgBCEt4:avgBCEt5:"
+            "NBC1:NBC2:NBC3:NBC4:NBC5"
             );
 
    nEvent = 0;

@@ -16,4 +16,7 @@ module hIPhotonCandidateAna = HIPhotonCandidateAna {
    untracked string output = "HIPhotonCand.root"
    untracked double etCut = 70
    untracked double etaCut = 2
+   untracked bool DoBarrel = true
+   untracked bool DoEndcap = true
+   untracked bool SignalOnly = false
 }
