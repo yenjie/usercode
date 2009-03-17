@@ -64,7 +64,7 @@ double CxCalculator::getCx(const reco::SuperCluster* cluster, double x, double t
       math::XYZVector ClusPoint(clu->x(),clu->y(),clu->z());
       double eta = ClusPoint.eta();
 
-      double dR = DeltaR(ClusPoint,SClusPoint);
+      double dR = ROOT::Math::VectorUtil::DeltaR(ClusPoint,SClusPoint);
       
       if (dR<x*0.1) {
          double et = clu->energy()/cosh(eta);
@@ -80,7 +80,7 @@ double CxCalculator::getCx(const reco::SuperCluster* cluster, double x, double t
       math::XYZVector ClusPoint(clu->x(),clu->y(),clu->z());
       double eta = ClusPoint.eta();
 
-      double dR = DeltaR(ClusPoint,SClusPoint);
+      double dR = ROOT::Math::VectorUtil::DeltaR(ClusPoint,SClusPoint);
 
       if (dR<x*0.1) {
          double et = clu->energy()/cosh(eta);
@@ -124,7 +124,7 @@ double CxCalculator::getCxRemoveSC(const reco::SuperCluster* cluster, double x, 
       math::XYZVector ClusPoint(clu->x(),clu->y(),clu->z());
       double eta = ClusPoint.eta();
 
-      double dR = DeltaR(ClusPoint,SClusPoint);
+      double dR = ROOT::Math::VectorUtil::DeltaR(ClusPoint,SClusPoint);
       
       // check if this basic cluster is used in the target supercluster
       bool inSuperCluster = checkUsed(cluster,clu);
@@ -144,7 +144,7 @@ double CxCalculator::getCxRemoveSC(const reco::SuperCluster* cluster, double x, 
       math::XYZVector ClusPoint(clu->x(),clu->y(),clu->z());
       double eta = ClusPoint.eta();
 
-      double dR = DeltaR(ClusPoint,SClusPoint);
+      double dR = ROOT::Math::VectorUtil::DeltaR(ClusPoint,SClusPoint);
 
       // check if this basic cluster is used in the target supercluster
       bool inSuperCluster = checkUsed(cluster,clu);
