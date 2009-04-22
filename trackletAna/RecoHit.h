@@ -1,0 +1,117 @@
+#include <vector>
+#include "Math/Vector3D.h"
+#include <TRandom.h>
+
+using namespace std;
+
+class RecoHit {
+   public:
+
+   RecoHit(double _eta,double _phi,double _r) 
+   { 
+      eta = _eta;
+      phi = _phi;
+      r = _r;
+   }; 
+   RecoHit(double _eta,double _phi,double _r,double _l) 
+   { 
+      eta = _eta;
+      phi = _phi;
+      r = _r;
+      layer = _l;
+   }; 
+   
+   ~RecoHit(){};
+   
+      double eta;
+      double phi;
+      double r;
+      double layer;
+};
+
+class SelectionCriteria {
+ public:
+
+  double drCut   ;       // to remove double hit
+  double dPhiCut ;       // to remove double hit
+  double dEtaCut ;       // to remove double hit
+  double vzCut   ;       // vertex cut
+
+  bool verbose_ ;
+  bool useDeltaPhi_;
+  bool checkSecondLayer_;
+};
+
+class Parameters {
+ public:
+
+  float eta1[50000],phi1[50000],r1[50000],eta2[50000],phi2[50000],r2[50000],vz[5000];
+  float eta[50000],phi[50000],chg[50000],pdg[50000];
+  int nhits1,nhits2,mult,nv,npart;
+};
+
+class TrackletData {
+ public:
+
+  float eta1[50000],phi1[50000],eta2[50000],phi2[50000],vz[5000];
+  float deta[50000],dphi[50000];
+  float eta[50000],phi[50000],chg[50000],pdg[50000],nhad[12];
+  int nTracklet,nhit1,nhit2,mult,nv,npart;
+};
+
+bool compareEta(RecoHit a,RecoHit b) { return a.eta<b.eta;}
+bool comparePhi(RecoHit a,RecoHit b) { return a.phi<b.phi;}
+bool compareAbsEta(RecoHit a,RecoHit b) { return fabs(a.eta)<fabs(b.eta);}
+
+vector<RecoHit> removeDoubleHits(Parameters par, SelectionCriteria cuts,Int_t
+layer, double vz)
+{
+  vector<RecoHit> hits;
+  vector<RecoHit> cleanedHits;
+
+  if (layer == 1) {
+    for(int ihit = 0; ihit < par.nhits1; ++ihit){
+      RecoHit tmp(par.eta1[ihit],par.phi1[ihit],par.r1[ihit]);
+      hits.push_back(tmp);
+    }
+  } else {
+    for(int ihit = 0; ihit < par.nhits2; ++ihit){
+      RecoHit tmp(par.eta2[ihit],par.phi2[ihit],par.r2[ihit]);
+      hits.push_back(tmp);
+    }
+  }
+  sort (hits.begin(),hits.end(),compareEta);
+    
+  for(int ihit = 0; ihit < (int)hits.size(); ++ihit) {
+    double dr=0;
+    double dphi=10;
+    double deta=10;
+    if (ihit !=0) {
+      dphi = fabs(hits[ihit-1].phi - hits[ihit].phi);
+      dphi = fabs(hits[ihit-1].eta - hits[ihit].eta);
+      dr   = fabs(hits[ihit-1].r - hits[ihit].r);
+    }
+      
+    if (dr>cuts.drCut && dphi < cuts.dPhiCut && deta < cuts.dEtaCut) continue;
+      
+    // recalculate eta and phi
+    double x = hits[ihit].r*cos(hits[ihit].phi);
+    double y = hits[ihit].r*sin(hits[ihit].phi);
+    double z = hits[ihit].r/tan(atan(exp(-hits[ihit].eta))*2);
+
+    ROOT::Math::XYZVector tmpVector(x,y,z-vz);
+    RecoHit tmpHit(tmpVector.eta(),tmpVector.phi(),tmpVector.rho());
+    cleanedHits.push_back(tmpHit);      
+  }
+  return cleanedHits;
+}
+
+
+
+RecoHit RandomHit(double etaMin, double etaMax, double phiMin, double phiMax)
+{
+   double eta = etaMin + (etaMax-etaMin)*gRandom->Rndm();
+   double phi = phiMin + (phiMax-phiMin)*gRandom->Rndm();
+   RecoHit myRandomHit(eta,phi,0);
+   return myRandomHit;
+}
