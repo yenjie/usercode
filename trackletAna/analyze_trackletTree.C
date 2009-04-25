@@ -11,7 +11,9 @@
 
 using namespace std;
 
-void analyze_trackletTree(char * infile, char * outfile = "output.root"){
+void analyze_trackletTree(char * infile, char * outfile = "output.root", int makeVzCut = 1,
+                          int addL1Bck = 0, int addL2Bck = 0)
+{
   TFile* inf = new  TFile(infile);
   TTree* t = dynamic_cast<TTree*>(inf->Get("ana/PixelTree"));
 
@@ -60,6 +62,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root"){
   trackletTree->Branch("pdg",tdata.pdg,"pdg[npart]/I");
   trackletTree->Branch("chg",tdata.chg,"chg[npart]/I");
   trackletTree->Branch("nhad",tdata.nhad,"nhad[12]/F");
+  trackletTree->Branch("evtType",&tdata.evtType,"evtType/I");
 
 
   // Hit vectors & pdfs ===================================================================================
@@ -112,7 +115,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root"){
   t->SetBranchAddress("phi",&par.phi);
   t->SetBranchAddress("chg",&par.chg);
   t->SetBranchAddress("pdg",&par.pdg);
-
+  if(!makeVzCut) t->SetBranchAddress("evtType",&par.evtType);
   cout <<"Number of Events: "<<t->GetEntries()<<endl;
 
   // Main loop ===========================================================================================
@@ -126,13 +129,53 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root"){
     for(int j = 0; j<par.nv;j++) {
        tdata.vz[j] = par.vz[j];
     }
+    
+    // add background 
+    if (addL1Bck!=0) {
+       double etaMin = -2.5;
+       double etaMax = 2.5;
+       double phiMin = -3.1415926;
+       double phiMax = 3.1415926;
+       
+       for (int i = par.nhits1; i < par.nhits1+addL1Bck; i++) {
+
+          double eta = etaMin + (etaMax-etaMin)*gRandom->Rndm();
+          double phi = phiMin + (phiMax-phiMin)*gRandom->Rndm();
+	  double r = 4.15;
+	  par.eta1[i] = eta;
+	  par.phi1[i] = phi;
+	  par.r1[i] = r;
+
+       }
+       par.nhits1+=addL1Bck;
+    }
+
+    if (addL2Bck!=0) {
+       double etaMin = -2.5;
+       double etaMax = 2.5;
+       double phiMin = -3.1415926;
+       double phiMax = 3.1415926;
+
+       for (int i = par.nhits2; i < par.nhits2+addL2Bck; i++) {
+          double eta = etaMin + (etaMax-etaMin)*gRandom->Rndm();
+          double phi = phiMin + (phiMax-phiMin)*gRandom->Rndm();
+	  double r = 7.05;
+	  par.eta2[i] = eta;
+	  par.phi2[i] = phi;
+	  par.r2[i] = r;
+       }
+       par.nhits2+=addL2Bck;
+
+    }
+
+    
     // add trackletVertex
     if (tdata.nv == 2) tdata.nv=3;
     tdata.vz[tdata.nv] = TrackletVertexUnbin(par,0.14,0.08);
     tdata.nv++;
     
     // use trackletVertex
-    if (fabs(tdata.vz[tdata.nv-1])>cuts.vzCut) continue;
+    if (fabs(tdata.vz[tdata.nv-1])>cuts.vzCut && makeVzCut == 1) continue;
 
     // Process the first layer
     vector<RecoHit> layer1 = removeDoubleHits(par, cuts,1,tdata.vz[tdata.nv-1]);
@@ -186,7 +229,6 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root"){
     {
         if (fabs(par.eta[j])>3||par.chg[j]==0) continue;
 	tdata.eta[tdata.npart]=par.eta[j];
-//	tdata.phi[tdata.npart]=par.phi[j];
 	tdata.chg[tdata.npart]=par.chg[j];
 	tdata.pdg[tdata.npart]=par.pdg[j];
         tdata.npart++;
@@ -197,6 +239,8 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root"){
 
     nhits->Fill(mult,layer1.size(),layer2.size());
     ntmult->Fill(mult,layer1.size(),layer2.size());
+
+    tdata.evtType = par.evtType;
     trackletTree->Fill();
     
   }

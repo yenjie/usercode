@@ -47,7 +47,7 @@ class Parameters {
 
   float eta1[50000],phi1[50000],r1[50000],eta2[50000],phi2[50000],r2[50000],vz[5000];
   float eta[50000],phi[50000],chg[50000],pdg[50000];
-  int nhits1,nhits2,mult,nv,npart;
+  int nhits1,nhits2,mult,nv,npart,evtType;
 };
 
 class TrackletData {
@@ -56,7 +56,7 @@ class TrackletData {
   float eta1[50000],phi1[50000],eta2[50000],phi2[50000],vz[5000];
   float deta[50000],dphi[50000];
   float eta[50000],phi[50000],chg[50000],pdg[50000],nhad[12];
-  int nTracklet,nhit1,nhit2,mult,nv,npart;
+  int nTracklet,nhit1,nhit2,mult,nv,npart,evtType;
 };
 
 bool compareEta(RecoHit a,RecoHit b) { return a.eta<b.eta;}

@@ -36,20 +36,20 @@ void analyze_tracklet(char * infile, char * outfile = "output.root"){
   TNtuple *ntmult = new TNtuple("ntmult","","mult:nhit1:nhit2");
 
   vector<TH1D*> layer1HitEta;
-  layer1HitEta.reserve(nbins);
   vector<TH1D*> layer1HitPhi;
-  layer1HitPhi.reserve(nbins);
-
   vector<TH1D*> layer2HitEta;
-  layer2HitEta.reserve(nbins);
   vector<TH1D*> layer2HitPhi;
+
+  layer1HitEta.reserve(nbins);
+  layer1HitPhi.reserve(nbins);
+  layer2HitEta.reserve(nbins);
   layer2HitPhi.reserve(nbins);
     
-  for(int i = 0; i< nbins; ++i){
-    layer1HitEta[i] = new TH1D(Form("dNdEtaHits1_%02d",i),"dNdEta Hits Layer 1",500,-3,3);
-    layer2HitEta[i] = new TH1D(Form("dNdEtaHits2_%02d",i),"dNdEta Hits Layer 2",500,-3,3);
-    layer1HitPhi[i] = new TH1D(Form("dNdPhiHits1_%02d",i),"dNdPhi Hits Layer 1",500,-3.2,3.2);
-    layer2HitPhi[i] = new TH1D(Form("dNdPhiHits2_%02d",i),"dNdPhi Hits Layer 2",500,-3.2,3.2);
+  for (int i = 0; i< nbins; ++i) {
+    layer1HitEta[i] = new TH1D(Form("dNdEtaHits1_%02d",i),"dNdEta Hits Layer 1", 500, -3,3);
+    layer2HitEta[i] = new TH1D(Form("dNdEtaHits2_%02d",i),"dNdEta Hits Layer 2", 500, -3,3);
+    layer1HitPhi[i] = new TH1D(Form("dNdPhiHits1_%02d",i),"dNdPhi Hits Layer 1", 500, -3.2, 3.2);
+    layer2HitPhi[i] = new TH1D(Form("dNdPhiHits2_%02d",i),"dNdPhi Hits Layer 2", 500, -3.2, 3.2);
   }
   
   TH1D* hm1 = new TH1D("hm1","Number of Hits Layer 1",50,0,50);

@@ -68,23 +68,19 @@ TFile* getTriggerCorrectionFile(int useCorrectionFile){
 // Main Routine
 //===========================================================================
 int plotFinalResult(char* filename,char *myPlotTitle="PYTHIA 900 GeV",int
-useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry = 0)
+useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry = 0,int verbose = 1)
 {
    FILE *logFile = fopen("correction.log","w");
    
    TFile *f= new TFile(filename);
    
-   //TNtuple * ntmatched= dynamic_cast<TNtuple *>(f->Get("ntmatched"));
    TTree * TrackletTree= dynamic_cast<TTree *>(f->Get("TrackletTree"));
 
    // Read alpha, beta, geometry correction from file.
    TFile *fCorrection = getCorrectionFile(useCorrectionFile);
    TFile *fTriggerCorrection = getTriggerCorrectionFile(useCorrectionFile);
    
-
-//   double HitBins[nHitBin+1] = {0,1,2,3,4,5,6,7,8,9,10,15,20,25,30,35,40,50,60,80,120,160,200};
    double HitBins[nHitBin+1] = {0,5,10,15,20,25,30,35,40,50,60,80,100,300};
-//   double HitBins[nHitBin+1] = {0,200};
    double EtaBins[nEtaBin+1];
    double VzBins[nVzBin+1];
    
@@ -92,18 +88,31 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry = 0)
    for (int i=0;i<=nVzBin;i++) VzBins[i] = (double)i*20.0/(double)nVzBin-10.0;
 
 
-   // Output file
+   // Signal and Sideband regions ==================================================================================================
+
+   double signalRegionCut = 1;      //delta phi cut for signal region
+   double sideBandRegionCut = 2;    //delta phi cut for sideband
+
+   TCut signalRegion = Form("abs(dphi)<%f&&abs(deta)<0.1",signalRegionCut);
+   TCut signalRegionEta = Form("abs(dphi)<%f&&abs(deta)<0.1",signalRegionCut);
+   TCut signalRegionInPhi = Form("abs(dphi)<%f",signalRegionCut);
+   TCut sideBandRegionInPhi = Form("abs(dphi)>%f&&abs(dphi)<%f",signalRegionCut,sideBandRegionCut);
+   TCut sideBandRegion =  Form("abs(dphi)>%f&&abs(dphi)<%f&&abs(deta)<0.1",signalRegionCut,sideBandRegionCut);
+   TCut sideBandRegionEta = Form("abs(dphi)>%f&&abs(dphi)<%f&&abs(deta)>1",signalRegionCut,sideBandRegionCut);
+   TCut sideBandRegionEtaSignalRegion = Form("abs(dphi)>%f&&abs(dphi)<%f&&abs(deta)<0.1",signalRegionCut,sideBandRegionCut);
+   TCut vzCut = "abs(vz[3])<10";
+
+   // Output file =================================================================================================================
+
    TFile *outf = new TFile ("correction.root","recreate");
 
    TNtuple * betas = new TNtuple("betas","","bin:nhit:vz:beta:betaErr");
    TNtuple * alphas = new TNtuple("alphas","","bin:nhit:vz:alpha:alphaErr");
    TNtuple * correction = new TNtuple("correction","","bin:nhit:obs:gen:err");
-   TNtuple * correction1 = new TNtuple("correction1","","e1:e2");
    
    
    TH3F *hEverything = new TH3F("hEverything","Everything",nEtaBin,EtaBins,nHitBin,HitBins,nVzBin,VzBins);
    TH3F *h2 = new TH3F("h2","Reproduced Background",nEtaBin,EtaBins,nHitBin,HitBins,nVzBin,VzBins);
-   TH3F *h4 = new TH3F("h4","(1-beta)*Everything",nEtaBin,EtaBins,nHitBin,HitBins,nVzBin,VzBins);
    TH3F *hSubtracted = new TH3F("hSubtracted","",nEtaBin,EtaBins,nHitBin,HitBins,nVzBin,VzBins);
    TH3F *hHadron = new TH3F("hHadron","",nEtaBin,EtaBins,nHitBin,HitBins,nVzBin,VzBins);
    TH3F *hHadronAccepted = new TH3F("hHadronAccepted","",nEtaBin,EtaBins,nHitBin,HitBins,nVzBin,VzBins);
@@ -111,48 +120,54 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry = 0)
 
    TH2F *hEtaVzRatio = new TH2F("hEtaVzatio","#eta:Vz",nEtaBin,EtaBins,nVzBin,VzBins);
    TH2F *hEtaHitRatio = new TH2F("hEtaHitatio","#eta:N_{Hit}",nEtaBin,EtaBins,nHitBin,HitBins);
-
    TH2F *hAcceptance = new TH2F("hAcceptance","",nEtaBin,EtaBins,nVzBin,VzBins);
-   TH2F *hHadron1 = new TH2F("hHadron1","Hadron hit vs vz",nEtaBin,EtaBins,nHitBin,HitBins);
-   TH2F *hHadron2 = new TH2F("hHadron2","Hadron eta vs vz",nEtaBin,EtaBins,nVzBin,VzBins);
 
+   TH1F *hCorrectedEtaBin = new TH1F("hCorrectedEtaBin","Corrected",nEtaBin,-3,3);
+   TH1F *hTruthRatio;
+   TH1F *hVz = new TH1F("hVz","",nVzBin,VzBins);
    TH1F *alphaPlots[nEtaBin][nVzBin];
    TH1F *betaPlots[nEtaBin][nVzBin];
    TH1F *alphaErrPlots[nEtaBin][nVzBin];
    TH1F *betaErrPlots[nEtaBin][nVzBin];
    TH1F *hDEtaAll[nEtaBin][nVzBin];
-   TH1F *hDEtaSig[nEtaBin][nVzBin];
    TH1F *hDEtaBck[nEtaBin][nVzBin];
-
-   TH1F *hCorrectedEtaBin = new TH1F("hCorrectedEtaBin","Corrected",nEtaBin,-3,3);
    TH1F *hTriggerCorrection;   
 
    TF1 *funBeta[nEtaBin][nVzBin];
    TF1 *funAlpha[nEtaBin][nVzBin];
    TF1 *funBetaErr[nEtaBin][nVzBin];
    TF1 *funAlphaErr[nEtaBin][nVzBin];
-   TF1 *fBeta[nEtaBin][nVzBin];
-   TF1 *fBetaErr[nEtaBin][nVzBin];
    TF1 *fAlpha[nEtaBin][nVzBin];
    TF1 *fAlphaErr[nEtaBin][nVzBin];
-   TH1D *hTruthRatio;
-   TH1F *hVz = new TH1F("hVz","",nVzBin,VzBins);
-   TrackletTree->Project("hVz","vz[3]","","",nentries,firstentry);   
-   hVz->Scale(1./hVz->GetEntries());
    
+   
+   // Acceptance calculation ===========================================================================
+
+   TCanvas *cVz = new TCanvas("cVz","Vz distribution",400,400);
+   TrackletTree->Project("hVz","vz[3]",vzCut,"",nentries,firstentry);   
+   hVz->Sumw2();
+   hVz->Scale(1./hVz->GetEntries());
+   hVz->Fit("gaus");
+   TF1 *fVz = hVz->GetFunction("gaus");
+   hVz->Draw();
+   cVz->SaveAs("plot/plotVz.gif");
+    
    double rho2 = 7.6;  // second layer rho (cm)
    double endpoint2 = 26.6; // end point (cm)
+   
    for (int i=0;i<nEtaBin;i++) {
       for (int j=0;j<nVzBin;j++) {
          double minEta = EtaBins[i];
 	 double maxEta = EtaBins[i+1];
 	 double maxEdge = VzBins[j+1]-rho2 / tan(atan(exp(maxEta-0.1))*2);
 	 double minEdge = VzBins[j]-rho2 / tan(atan(exp(minEta+0.1))*2);
-	 cout <<minEta <<" "<<maxEta<<" "<<VzBins[j]<<" "<<maxEdge<<" "<<minEdge;
+	 if (verbose) cout <<minEta <<" "<<maxEta<<" "<<VzBins[j]<<" "<<maxEdge<<" "<<minEdge;
+	 
 	 if ((maxEdge>-endpoint2&&minEdge<endpoint2)) {
-	       hAcceptance->SetBinContent(i+1,j+1,hVz->GetBinContent(j+1));
-	       hAcceptance->SetBinError(i+1,j+1,0);
-	       cout <<" Selected!";
+           //    hAcceptance->SetBinContent(i+1,j+1,fVz->Integral(VzBins[j],VzBins[j+1])/20.*(double)nVzBin);
+               hAcceptance->SetBinContent(i+1,j+1,hVz->GetBinContent(j+1));
+	       hAcceptance->SetBinError(i+1,j+1,hVz->GetBinError(j+1));
+	       if (verbose) cout <<" Selected!";
          } else {
 	       hAcceptance->SetBinContent(i+1,j+1,0);
 	 }
@@ -161,9 +176,10 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry = 0)
       
    }
    
-//   return 1;   
-      
-   // Prepare histograms
+   
+   
+   // Prepare histograms ===========================================================================================================
+
    for (int i=0;i<nEtaBin;i++) {
       for (int j=0;j<nVzBin;j++) {
          alphaPlots[i][j] = new TH1F(Form("alpha%dVz%d",i,j),"",nHitBin,HitBins);
@@ -175,32 +191,28 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry = 0)
       } 
    }
    
-   // Signal and Sideband regions  
-   double signalRegionCut = 1;
-   double sideBandRegionCut = 2;
-   TCut signalRegion = Form("abs(dphi)<%f&&abs(deta)<0.1",signalRegionCut);
-   TCut signalRegionEta = Form("abs(dphi)<%f&&abs(deta)<0.1",signalRegionCut);
-   TCut signalRegionInPhi = Form("abs(dphi)<%f",signalRegionCut);
-   TCut sideBandRegionInPhi = Form("abs(dphi)>%f&&abs(dphi)<%f",signalRegionCut,sideBandRegionCut);
-   TCut sideBandRegion =  Form("abs(dphi)>%f&&abs(dphi)<%f&&abs(deta)<0.1",signalRegionCut,sideBandRegionCut);
-   TCut sideBandRegionEta = Form("abs(dphi)>%f&&abs(dphi)<%f&&abs(deta)>1",signalRegionCut,sideBandRegionCut);
-   TCut sideBandRegionEtaSignalRegion = Form("abs(dphi)>%f&&abs(dphi)<%f&&abs(deta)<0.1",signalRegionCut,sideBandRegionCut);
 
-   TrackletTree->Project("hEverything","vz[3]:nhit1:eta1",signalRegion,"",nentries,firstentry);
-   TrackletTree->Project("h2","vz[3]:nhit1:eta1",sideBandRegionEtaSignalRegion,"",nentries,firstentry);   
+   TrackletTree->Project("hEverything","vz[3]:nhit1:eta1",signalRegion&&vzCut,"",nentries,firstentry);
+   TrackletTree->Project("h2","vz[3]:nhit1:eta1",sideBandRegionEtaSignalRegion&&vzCut,"",nentries,firstentry);   
 
    hEverything->Sumw2();
    h2->Sumw2();
 
+   // Charged Hadrons ========================================================================================================
+
+   hHadron->SetXTitle("#eta");
+   hHadron->SetYTitle("N_{hit}^{Layer1} |#eta|<1");
+   TrackletTree->Project("hHadron","vz[3]:nhit1:eta","abs(eta)<3"&&vzCut,"",nentries,firstentry);
+   hHadronAccepted = (TH3F*) hHadron->Clone();
+   hHadronAccepted->SetName("hHadronAccepted");
 
 
-   // Beta calculation
+   // Beta calculation ============================================================================================================
    for (int x=1;x<=nEtaBin;x++) {
       for (int y=1;y<=nHitBin;y++) {
          for (int z=1;z<=nVzBin;z++) {
             double beta = 0;
 	    if (hAcceptance->GetBinContent(x,z)==0) continue;
-	    
   	    if (hEverything->GetBinContent(x,y,z)!=0&&h2->GetBinContent(x,y,z)!=0) 
 	    {   
 	       beta = h2->GetBinContent(x,y,z)/hEverything->GetBinContent(x,y,z);
@@ -214,8 +226,6 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry = 0)
 	          betaPlots[x-1][z-1]->SetBinError(y,betaErr);
 	          betaErrPlots[x-1][z-1]->SetBinContent(y,betaErr);
 	       }  
-
-//	       fprintf(logFile,"beta(%2d,%2d,%2d) = %.2f +- %.2f    S = %6d, B = %6d \n",x,y,z,beta,betaErr,(int)hEverything->GetBinContent(x,y,z),(int)h2->GetBinContent(x,y,z));
 	       beta = hEverything->GetBinContent(x,y,z)-h2->GetBinContent(x,y,z);
                hSubtracted->SetBinContent(x,y,z, beta);
 	       double e3 = hEverything->GetBinError(x,y,z);
@@ -228,48 +238,30 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry = 0)
 	 }      
       }
    }
-
-   // Charged Hadrons:
-   TCanvas *cHadrons = new TCanvas("cHadrons","",400,400);
-   hHadron->SetXTitle("#eta");
-   hHadron->SetYTitle("N_{hit}^{Layer1} |#eta|<1");
-   TrackletTree->Project("hHadron","vz[3]:nhit1:eta","abs(eta)<3","",nentries,firstentry);
-   hHadronAccepted = (TH3F*) hHadron->Clone();
-   hHadronAccepted->SetName("hHadronAccepted");
-
-   TrackletTree->Project("hHadron1","nhit1:eta","abs(eta)<3","",nentries,firstentry);
-   TrackletTree->Project("hHadron2","vz:eta","abs(eta)<3","",nentries,firstentry);
-
-
+   
    
    for (int j=0;j<nVzBin;j++) 
    {
-//      TCanvas *cBetaFit = new TCanvas(Form("cBetaFit%d",j),Form("cBetaFit%d",j),800,800);
-//      TPad *p1 = new TPad(Form("p1_%d",j),"",0,0,1,1);
-//      p1->Divide(3,4,0.01,0.01);
-//      p1->Draw();   
       for (int i=0;i<nEtaBin;i++) 
       {
       //c[i]= new TCanvas (Form("c%d",i),"",400,400);
-//      p1->cd(i+1);
+      //p1->cd(i+1);
       formatHist(betaPlots[i][j],2,1);
-      funBeta[i][j] = new TF1(Form("funBeta%dVz%d",i,j),"[1]/(x+[3]+0.5)+[2]/(x+0.5)/(x+0.5)+[0]",0,100);
-      funBetaErr[i][j] = new TF1(Form("funBetaErr%d%-d",i,j),"[0]+[1]/(x+0.5)+[2]*exp([3]*x)",0,100);
       double etaMin = i*0.5 -3;
       double etaMax = i*0.5 -3+0.5;
 
-      //betaPlots[i]->Fit(Form("funBeta%d",i),"m E");
       betaPlots[i][j]->SetXTitle("N_{Hits}");
       betaPlots[i][j]->SetYTitle(Form("#beta %.1f < #eta < %.1f",etaMin,etaMax)); 
       betaPlots[i][j]->SetAxisRange(0,1,"Y");
       betaPlots[i][j]->SetAxisRange(0,100,"X");
       betaPlots[i][j]->Draw("p");
-      
-      //fBeta[i] = betaPlots[i]->GetFunction(Form("funBeta%d",i));
       }
    }   
 
-   // alpha calculation
+
+
+
+   // alpha calculation ===================================================================================
    if (useCorrectionFile == 0) {   
       for (int x=1;x<=nEtaBin;x++) {
          for (int y=1;y<=nHitBin;y++) {
@@ -279,62 +271,51 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry = 0)
                double val = 0;
    	       if (hEverything->GetBinContent(x,y,z)!=0&&hHadron->GetBinContent(x,y,z)!=0) 
 	       {   
-	             val = hEverything->GetBinContent(x,y,z);
-                     double beta = betaPlots[x-1][z-1]->GetBinContent(y);
-	             double betaErr = betaPlots[x-1][z-1]->GetBinError(y);
-	             h4->SetBinContent(x,y,z, val*(1-beta));
-	             double e1 = hEverything->GetBinError(x,y,z);
-                     double e2 = h2->GetBinError(x,y,z);
-	             double nsig = val * (1-beta);
-                     double valErr = sqrt(e1*e1+e2*e2);
-                     h4->SetBinError(x,y,z, valErr);
-//                     if (beta>=1||betaErr==0) continue;
-	             double truth    = hHadron->GetBinContent(x,y,z);
-	             double truthErr = hHadron->GetBinError(x,y,z);
-	             double alpha = truth/val/(1-beta);
-	             double alphaErr = truth/nsig* sqrt(valErr/nsig*valErr/nsig+truthErr/truth*truthErr/truth*0);
-//	             fprintf(logFile," beta (%2d,%2d,%2d) = %.2f +- %.2f",x,y,z,beta,betaErr);
-//	             fprintf(logFile," alpha (%2d,%2d,%2d) = %.2f +- %.2f \n",x,y,z,alpha,alphaErr);
-                     if (beta!=1&&alpha/alphaErr>-3&&alpha<500&&alpha>0) {
-		        alphas->Fill(x,y,z,alpha,alphaErr);
-	                alphaPlots[x-1][z-1]->SetBinContent(y,alpha);
-	                alphaPlots[x-1][z-1]->SetBinError(y,alphaErr);
-	                alphaErrPlots[x-1][z-1]->SetBinContent(y,alphaErr);
-	             } 
+	          val = hEverything->GetBinContent(x,y,z);
+                  double beta = betaPlots[x-1][z-1]->GetBinContent(y);
+	          double e1 = hEverything->GetBinError(x,y,z);
+                  double e2 = h2->GetBinError(x,y,z);
+	          double nsig = val * (1-beta);
+                  double valErr = sqrt(e1*e1+e2*e2);
+	          double truth    = hHadron->GetBinContent(x,y,z);
+	          double truthErr = hHadron->GetBinError(x,y,z);
+	          double alpha = truth/val/(1-beta);
+	          double alphaErr = truth/nsig* sqrt(valErr/nsig*valErr/nsig+truthErr/truth*truthErr/truth*0);
+                  if (beta!=1&&alpha/alphaErr>-3&&alpha<500&&alpha>0) {
+	             alphas->Fill(x,y,z,alpha,alphaErr);
+	             alphaPlots[x-1][z-1]->SetBinContent(y,alpha);
+	             alphaPlots[x-1][z-1]->SetBinError(y,alphaErr);
+	             alphaErrPlots[x-1][z-1]->SetBinContent(y,alphaErr);
+	          } 
 	       }	     
 	    }      
          }
       }
    }
 
-   // corrected calculation
-   
+   // Alpha correction calculation =======================================================================
    hTriggerCorrection = (TH1F*)fTriggerCorrection->FindObjectAny("h");
 
    if (useCorrectionFile != 0) {
+      // use the alpha value obtained from the Correction file.
       for (int i=0;i<nEtaBin;i++)
       {
          for (int j=0;j<nVzBin;j++)
          {
-//         if (hAcceptance->GetBinContent(i+1,j+1)==0) continue;
-         fAlpha[i][j] = (TF1*)
-	 fCorrection->FindObjectAny(Form("funAlpha%dVz%d",i,j));
-	 fAlphaErr[i][j] = (TF1*)
-	 fCorrection->FindObjectAny(Form("funAlphaErr%dVz%d",i,j));
-         alphaPlots[i][j] = (TH1F*)
-	 fCorrection->FindObjectAny(Form("alpha%dVz%d",i,j));
+         fAlpha[i][j] = (TF1*) fCorrection->FindObjectAny(Form("funAlpha%dVz%d",i,j));
+	 fAlphaErr[i][j] = (TF1*) fCorrection->FindObjectAny(Form("funAlphaErr%dVz%d",i,j));
+         alphaPlots[i][j] = (TH1F*) fCorrection->FindObjectAny(Form("alpha%dVz%d",i,j));
          }
       }
-      hTruthRatio = (TH1D*) fCorrection->FindObjectAny("hTruthRatio");
+      hTruthRatio = (TH1F*) fCorrection->FindObjectAny("hTruthRatio");
    } else {
       for (int j=0;j<nVzBin;j++) 
       {
          for (int i=0;i<nEtaBin;i++) 
          {
-  //       if (hAcceptance->GetBinContent(i+1,j+1)==0) continue;
          // c[i]= new TCanvas (Form("c%d",i),"",400,400);
+         // p2->cd(i+1);
          formatHist(alphaPlots[i][j],2,1);
-//	 p2->cd(i+1);
          funAlpha[i][j] = new TF1(Form("funAlpha%dVz%d",i,j),"[1]/(x+[3]+0.5)+[2]/(x+0.5)/(x+0.5)+[0]",0,100);
          funAlphaErr[i][j] = new TF1(Form("funAlphaErr%dVz%d",i,j),"[0]+[1]/(x+0.5)+[2]*exp([3]*x)",0,100);
          double etaMin = i*0.5 -3;
@@ -353,11 +334,25 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry = 0)
          }
       }  
    }
-   
+/*
+   // make plot 
+   if (1==1) {
+      for (int x=1;x<=nEtaBin;x++) {
+          TCanvas *cc = new TCanvas(Form("cBetaPlot%d",x),"",400,400);
+          for (int z=1;z<=nVzBin;z++) {
+             formatHist(alphaPlots[x-1][z-1],z);
+	     alphaPlots[x-1][z-1]->SetAxisRange(0,4,"Y");
+             alphaPlots[x-1][z-1]->Draw("C hist same");
+          }
+      }
+   }
+*/
+   // Apply correction ===============================================================================
+
    for (int x=1;x<=nEtaBin;x++) {
    
-       double totalN=0;
-       double totalNErr=0;
+      double totalN=0;
+      double totalNErr=0;
           
       for (int y=1;y<=nHitBin;y++) {
          for (int z=1;z<=nVzBin;z++) {
@@ -371,17 +366,12 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry = 0)
 	    alpha = alphaPlots[x-1][z-1]->GetBinContent(y);
             alphaErr = alphaPlots[x-1][z-1]->GetBinError(y);
 
-	    if (alpha!=0) {
-	    //&&(alphaErr/(alpha+0.00001)<1)) {
-	    } else {
-	       alpha = fAlpha[x-1][z-1]->Eval(y);
-	       alphaErr = fAlphaErr[x-1][z-1]->Eval(y);
-	    //   cout <<x<<" "<<y<<" extrapolate! "<<alpha<<" "<<alphaErr<<endl;
+            // use extrapolated value if alpha is not available
+ 	    if (alpha==0) {
+	       alpha = fAlpha[x-1][z-1]->Eval((HitBins[y]+HitBins[y-1])/2);
+	       alphaErr = fAlphaErr[x-1][z-1]->Eval((HitBins[y]+HitBins[y-1])/2);
+	       if (verbose) cout <<x<<" "<<y<<" extrapolate! "<<alpha<<" "<<alphaErr<<endl;
 	    }
-
-//	    hAcceptance->SetBinContent(x,z,(double)1/double(nVzBin));
-//	    hAcceptance->SetBinError(x,z,0);
-
             
             double nCorrected = val*(1-beta)*alpha;
 	    hSubtracted->SetBinContent(x,y,z,nCorrected/alpha);
@@ -393,10 +383,9 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry = 0)
 
             hCorrected->SetBinError(x,y,z, valErr);
 	    correction->Fill(x,y,nCorrected,hHadronAccepted->GetBinContent(x,y,z),valErr);
-//	    correction->Fill(x,y,hEverything->GetBinContent(x,y,z),hHadronAccepted->GetBinContent(x,y,z)/alpha/(1-beta),sqrt(hEverything->GetBinContent(x,y,z)));
             totalN +=nCorrected;
 	    totalNErr += valErr*valErr;      
-	    cout <<x<<" "<<y<<" "<<z<<" "<<nCorrected<<" "<<valErr<<endl;  
+	    if (verbose) cout <<x<<" "<<y<<" "<<z<<" "<<nCorrected<<" "<<valErr<<endl;  
 	   
             hEtaVzRatio->Fill(x,z,nCorrected-hHadronAccepted->GetBinContent(x,y,z));	 
 	    hEtaHitRatio->Fill(x,y,nCorrected-hHadronAccepted->GetBinContent(x,y,z));
@@ -413,8 +402,8 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry = 0)
       
    }
    
-   TCanvas *cDNdEtaC = new TCanvas("cDNdEtaC","Before Trigger correction",400,400);
-   double nevent = TrackletTree->GetEntries("nhit1");
+   TCanvas *cDNdEtaC = new TCanvas("cDNdEtaC","Before Acceptance correction",400,400);
+   double nevent = TrackletTree->GetEntries(vzCut);
    if (nentries<nevent) nevent=nentries;
    TH1D *hTruth = (TH1D*)hHadron->Project3D("x");
    hTruth->SetName("hTruth");
@@ -425,41 +414,25 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry = 0)
    hTruthAccepted->Sumw2();
    if (useCorrectionFile == 0) {
       // Calculate Acceptance
-      hTruthRatio = (TH1D*)hHadron->Project3D("x");
+      hTruthRatio = (TH1F*)hHadron->Project3D("x");
       hTruthRatio->SetName("hTruthRatio");
       hTruthRatio->Sumw2();
       hTruthRatio->Divide(hTruthAccepted);
       hTruthRatio->SetName("hTruthRatio");
-
-/*
-      // Calculate Acceptance
-      TH3D *htmp = (TH3D*)hCorrected->Clone();
-      htmp->SetName("htmp");
-      htmp->Divide(htmp);
-      
-      hTruthRatio = (TH1D*)htmp->Project3D("x");
-      hTruthRatio->SetName("hTruthRatio");
-//      hTruthRatio->Sumw2();
-//      hTruthRatio->Divide(hTruthAccepted);
-//      hTruthRatio->SetName("hTruthRatio");
-*/
-
    } 
    
    formatHist(hTruthAccepted,1,nevent/nEtaBin*6);
    formatHist(hCorrectedEtaBin,2,nevent/nEtaBin*6);
-   hTruthAccepted->SetAxisRange(0,5.5,"y");
+   hTruthAccepted->SetAxisRange(0,8,"y");
    hTruthAccepted->SetXTitle("#eta (Calculated Hand)");
    hTruthAccepted->SetYTitle("dN/d#eta");
-//   hTruthAccepted->Multiply(hTriggerCorrection);
    hTruthAccepted->Draw("hist");
-//   hCorrectedEtaBin->Multiply(hTruthRatio);
    hCorrectedEtaBin->Draw("e same");    
    
    
    
    TCanvas *cDNdEta = new TCanvas("cDNdEta","Final result",400,400);
-   TH1D *hMeasured = (TH1D*)hCorrected->Project3D("x"); 
+   TH1F *hMeasured = (TH1F*)hCorrected->Project3D("x"); 
    hMeasured->Sumw2();
    
    formatHist(hTruth,1,nevent/nEtaBin*6);
@@ -468,13 +441,13 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry = 0)
 //   hMeasured->Multiply(hTruthRatio);  // calibrate the acceptance
    hMeasured->Divide(hAcceptance->ProjectionX());  // calibrate the acceptance
 
-   TH1D *hRatio = (TH1D*)hMeasured->Clone();
+   TH1F *hRatio = (TH1F*)hMeasured->Clone();
    hRatio->Divide(hTruth);
 
    hTruth->Multiply(hTriggerCorrection);
    hMeasured->Multiply(hTriggerCorrection);
 
-   hTruth->SetAxisRange(0,5.5,"y");
+   hTruth->SetAxisRange(0,8,"y");
    hTruth->SetXTitle("#eta");
    hTruth->SetYTitle("dN/d#eta");
    hTruth->Draw("hist");
@@ -494,11 +467,16 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry = 0)
    leg1->AddEntry(hMeasured,"Reconstructed","pl");
 
    leg1->Draw();
+
+   cDNdEta->SaveAs(Form("plot/result-%s.gif",myPlotTitle));
+   cDNdEta->SaveAs(Form("plot/result-%s.C",myPlotTitle));
+
+
     
    TCanvas *cRatio = new TCanvas("cRatio","Ratio",400,400);
    hRatio->SetXTitle("#eta");
    hRatio->SetYTitle("Ratio");
-   hRatio->SetAxisRange(0.9,1.1,"y");
+   hRatio->SetAxisRange(0.8,1.2,"y");
    hRatio->Draw();
    
    TLine *l1 = new TLine(-3,1,3,1);
@@ -512,7 +490,7 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry = 0)
    
    formatHist(hTruthHit,1,nevent);
    formatHist(hMeasuredHit,2,nevent);
-   hTruthHit->SetAxisRange(0,5.5,"y");
+   hTruthHit->SetAxisRange(0,8,"y");
    hTruthHit->SetXTitle("N_{Hit1} |#eta|<1");
    hTruthHit->SetYTitle("dN/dN_{Hit1}");
    hTruthHit->Draw("hist");
@@ -560,6 +538,10 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry = 0)
    fclose(logFile);
 }
 
+
+//===========================================================================
+// Format Histogram
+//===========================================================================
 void formatHist(TH1* h, int col, double norm){
 
   h->Scale(1/norm);
