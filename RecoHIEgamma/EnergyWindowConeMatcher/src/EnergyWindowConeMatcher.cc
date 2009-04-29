@@ -13,7 +13,7 @@
 //
 // Original Author:  Yi Chen, Yen-Jie Lee
 //         Created:  Tue Apr  8 19:18:40 EDT 2008
-// $Id$
+// $Id: EnergyWindowConeMatcher.cc,v 1.4 2009/03/17 17:25:25 yjlee Exp $
 //
 //
 
@@ -32,7 +32,7 @@
 
 #include "DataFormats/Candidate/interface/CandidateFwd.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
-#include "DataFormats/HepMCCandidate/interface/GenParticleCandidate.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 
 using namespace std;
 using namespace edm;
@@ -169,7 +169,7 @@ EnergyWindowConeMatcher::produce(edm::Event& iEvent, const edm::EventSetup& iSet
       }
       else   // put a dummy candidate there
       {
-         std::auto_ptr<GenParticleCandidate> answer(new GenParticleCandidate(0, Particle::LorentzVector(0, 0, 0, 0), Particle::Point(0, 0, 0), 0, 1, true));
+         std::auto_ptr<GenParticle> answer(new GenParticle(0, Particle::LorentzVector(0, 0, 0, 0), Particle::Point(0, 0, 0), 0, 1, true));
          result->push_back(answer);
       }
    }

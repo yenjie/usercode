@@ -13,7 +13,7 @@
 //
 // Original Author:  Yen-Jie Lee
 //         Created:  Mon Jul  7 02:21:19 EDT 2008
-// $Id$
+// $Id: HIBasicClusAna.cc,v 1.3 2009/03/17 17:25:25 yjlee Exp $
 //
 //
 
@@ -391,7 +391,7 @@ HIBasicClusAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                vv.push_back((*theEclust)->eta());
                vv.push_back((*theEclust)->phi());
                const BasicCluster *bc = &(**theEclust);
-               vv.push_back(calc_.getHoE(GlobalPoint((*theEclust)->x(),(*theEclust)->y(),(*theEclust)->z()),(*theEclust)->energy(),iEvent,iSetup));
+               vv.push_back(calc_(bc,iEvent,iSetup));
             } else {
                vv.push_back(0);
                vv.push_back(0);

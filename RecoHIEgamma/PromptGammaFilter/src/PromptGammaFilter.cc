@@ -13,7 +13,7 @@
 //
 // Original Author:  Yen-Jie Lee
 //         Created:  Sat Apr 12 20:05:56 EDT 2008
-// $Id$
+// $Id: PromptGammaFilter.cc,v 1.4 2009/03/17 17:25:26 yjlee Exp $
 //
 //
 
@@ -30,7 +30,7 @@
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "DataFormats/HepMCCandidate/interface/GenParticleCandidate.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 //
 // class declaration
 //
@@ -67,7 +67,7 @@ PromptGammaFilter::PromptGammaFilter(const edm::ParameterSet& iConfig)
    //now do what ever initialization is needed
    fETCut = iConfig.getUntrackedParameter<double>("etCut", 70);
    fEtaRange = iConfig.getUntrackedParameter<double>("etaRange", 2);
-   fParticleSource = iConfig.getUntrackedParameter<std::string>("input", "genParticleCandidates");
+   fParticleSource = iConfig.getUntrackedParameter<std::string>("input", "genParticles");
 }
 
 
