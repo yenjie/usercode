@@ -38,7 +38,7 @@ class HIMCGammaJetSignalDef
    const reco::GenParticleCollection        *fSigParticles;
    int                               fiNear;
    int                               fiAway;
-   std::vector<int>             fmap;   
+   std::vector<int>             fMap;   
 };
 
 #endif

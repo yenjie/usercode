@@ -28,7 +28,6 @@ HIMCGammaJetSignalDef::HIMCGammaJetSignalDef (const reco::GenParticleCollection 
   using namespace std;
 
    fSigParticles =  sigParticles;
-   fMap = 0;
 } 
 
 bool HIMCGammaJetSignalDef::IsIsolated(const reco::Candidate &pp, const int candId)
@@ -58,7 +57,7 @@ bool HIMCGammaJetSignalDef::IsIsolated(const reco::Candidate &pp, const int cand
   int candSub = 0;
   int SigSub  = 0;
 
-  if (fMap) candSub = fMap[candId];
+  if (fMap.size()!=0) candSub = fMap[candId];
    
   const int maxindex = (int)fSigParticles->size();
   for(int i=0; i < maxindex ; ++i) {
@@ -89,7 +88,7 @@ bool HIMCGammaJetSignalDef::IsIsolated(const reco::Candidate &pp, const int cand
      if(p.status()!=1) 
        continue;
         
-     if (fMap) {
+     if (fMap.size()!=0) {
         SigSub = fMap[i];
      }
      
