@@ -13,7 +13,7 @@
 //
 // Original Author:  Yen-Jie Lee
 //         Created:  Sat Apr 12 20:05:56 EDT 2008
-// $Id: PromptGammaFilter.cc,v 1.4 2009/03/17 17:25:26 yjlee Exp $
+// $Id: PromptGammaFilter.cc,v 1.5 2009/04/29 09:30:21 yjlee Exp $
 //
 //
 
@@ -94,7 +94,7 @@ PromptGammaFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
    using namespace std;
 
    // select events with photon whose mother is a photon, no grandmother,
-   // et > 70 GeV, |eta| < 2 (Yenjie's definition of prompt photon)
+   // et > 70 GeV, |eta| < 2 (Yenjie's old definition of prompt photon)
 
    // forget about mixing~
    // it "may be" supported in the future
