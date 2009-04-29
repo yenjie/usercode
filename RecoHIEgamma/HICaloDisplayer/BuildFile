@@ -8,6 +8,7 @@
 <use name=Geometry/CaloGeometry>
 <use name=Geometry/CaloEventSetup>
 <use name=RecoCaloTools/MetaCollections>
+<use name=PhysicsTools/UtilAlgos>
 <flags EDM_PLUGIN=1>
 <export>
    <lib name=RecoHIEgammaHICaloDisplayer>
