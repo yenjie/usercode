@@ -16,13 +16,13 @@
 
 
 void formatHist(TH1* h, int col = 1, double norm = 1);
-void plotSubtracted(char* filename,char *toyMC="pseudoExp.root",char *mycut= "",bool useMC = false)
+void plotSubtracted(char* filename,char *title="",char *mycut= "",bool useMC = false)
 {
    TFile *f= new TFile(filename);
    
    TTree * TrackletTree= dynamic_cast<TTree *>(f->Get("TrackletTree"));
-   TFile *fmc= new TFile(toyMC);
-   TNtuple * TrackletTreeMC= dynamic_cast<TNtuple *>(fmc->Get("ntmatched"));
+//   TFile *fmc= new TFile(toyMC);
+//   TNtuple * TrackletTreeMC= dynamic_cast<TNtuple *>(fmc->Get("ntmatched"));
 
    TH2F *h1 = new TH2F("h1","",12,-3,3,50,0,5);
    TH2F *h2 = new TH2F("h2","",12,-3,3,50,0,5);
@@ -36,16 +36,8 @@ void plotSubtracted(char* filename,char *toyMC="pseudoExp.root",char *mycut= "",
 
    h3->SetXTitle("#eta");
    h3->SetYTitle("#Delta#eta");
-   if (useMC) {
-     cout <<"Use ToyM"<<endl;
-     TrackletTreeMC->Draw("abs(deta):eta1>>h2","abs(dphi)>1&&abs(dphi)<2&&abs(deta)>1"&&cut);
-     TrackletTree  ->Draw("abs(deta):eta1>>h2p","abs(dphi)>1&&abs(dphi)<2&&abs(deta)>1"&&cut);
-     double scaleFactor = 1./h2->GetEntries()*h2p->GetEntries();
-     TrackletTreeMC->Draw("abs(deta):eta1>>h2","abs(dphi)>1&&abs(dphi)<2"&&cut);
-     h2->Scale(scaleFactor); 
-   } else {
-     TrackletTree->Draw("abs(deta):eta1>>h2","abs(dphi)>1&&abs(dphi)<2"&&cut);   
-   }
+
+   TrackletTree->Draw("abs(deta):eta1>>h2","abs(dphi)>1&&abs(dphi)<2"&&cut);   
 
    h1->Sumw2();
    h2->Sumw2();
@@ -58,7 +50,7 @@ void plotSubtracted(char* filename,char *toyMC="pseudoExp.root",char *mycut= "",
    }
    h3->Draw("col");
    TCanvas *c2 = new TCanvas ("c2","",400,400);
-
+   c2->SetLogy();
    TH1D *hx1 = h1->ProjectionX();
    TH1D *hx2 = h2->ProjectionX();
    TH1D *hx3 = h3->ProjectionX();
@@ -66,11 +58,13 @@ void plotSubtracted(char* filename,char *toyMC="pseudoExp.root",char *mycut= "",
    TH1D *hy2 = h2->ProjectionY();
    TH1D *hy3 = h3->ProjectionY();
 
-   formatHist(hy1,1,1);
-   formatHist(hy2,4,1);
-   formatHist(hy3,2,1);
-   hy1->SetXTitle("#Delta#eta");
-   hy1->SetYTitle("#");
+   int norm = h1->GetEntries();
+   if (norm==0) norm=1;
+   formatHist(hy1,1,norm);
+   formatHist(hy2,4,norm);
+   formatHist(hy3,2,norm);
+   hy1->SetXTitle(Form("|#Delta#eta| %s",title));
+   hy1->SetYTitle("Arbitrary Normalization");
    
    hy1->Draw();
    hy2->SetMarkerColor(4);
@@ -79,18 +73,21 @@ void plotSubtracted(char* filename,char *toyMC="pseudoExp.root",char *mycut= "",
    hy3->SetMarkerColor(2);
    hy3->SetLineColor(2);
    hy3->Draw("same");
-    TLegend * leg1 = new TLegend(0.25,0.66,0.56,0.85);
+    TLegend * leg1 = new TLegend(0.23,0.8,0.56,0.93);
     leg1->SetFillStyle(0);  
     leg1->SetFillColor(0); 
     leg1->SetBorderSize(0);
     leg1->SetTextSize(0.03);
     
-    leg1->AddEntry(hy1,"Everything","p");
-    leg1->AddEntry(hy2,"Reproduced Combinatorial Background","p");
-    leg1->AddEntry(hy3,"Reproduced Combinatorial Background Subtracted","p");
+    leg1->AddEntry(hy1,"All tracklets","p");
+    leg1->AddEntry(hy2,"Combinatorial Background","p");
+    leg1->AddEntry(hy3,"Tracklets with Background Subtracted","p");
 
     leg1->Draw();
-    
+    c2->SaveAs("Subtracted.gif");
+    c2->SaveAs("Subtracted.C");
+    c2->SaveAs("Subtracted.eps");
+
 }
 
 void formatHist(TH1* h, int col, double norm){

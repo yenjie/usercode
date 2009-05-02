@@ -21,7 +21,7 @@
 #define nEtaBin 12
 #define nHitBin 13
 #define nDEtaBin 80
-#define nVzBin 40
+#define nVzBin 10
 
 #define plotDEta true
 
@@ -68,7 +68,8 @@ TFile* getTriggerCorrectionFile(int useCorrectionFile){
 // Main Routine
 //===========================================================================
 int plotFinalResult(char* filename,char *myPlotTitle="PYTHIA 900 GeV",int
-useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry = 0,int verbose = 1)
+useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
+0,int verbose = 1,int makePlot = 0)
 {
    FILE *logFile = fopen("correction.log","w");
    
@@ -151,6 +152,9 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry = 0,
    TF1 *fVz = hVz->GetFunction("gaus");
    hVz->Draw();
    cVz->SaveAs("plot/plotVz.gif");
+   cVz->SaveAs(Form("plot/plotVz-%s.gif",myPlotTitle));
+   cVz->SaveAs(Form("plot/plotVz-%s.eps",myPlotTitle));
+   cVz->SaveAs(Form("plot/plotVz-%s.C",myPlotTitle));
     
    double rho2 = 7.6;  // second layer rho (cm)
    double endpoint2 = 26.6; // end point (cm)
@@ -334,19 +338,87 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry = 0,
          }
       }  
    }
-/*
+
    // make plot 
-   if (1==1) {
-      for (int x=1;x<=nEtaBin;x++) {
-          TCanvas *cc = new TCanvas(Form("cBetaPlot%d",x),"",400,400);
-          for (int z=1;z<=nVzBin;z++) {
-             formatHist(alphaPlots[x-1][z-1],z);
-	     alphaPlots[x-1][z-1]->SetAxisRange(0,4,"Y");
-             alphaPlots[x-1][z-1]->Draw("C hist same");
+   if (makePlot) {
+
+      // Beta plot
+      for (int z=1;z<=nVzBin;z++) {
+          TLegend * leg1 = new TLegend(0.73,0.6,1,0.9);
+          leg1->SetFillStyle(0);  
+          leg1->SetFillColor(0); 
+          leg1->SetBorderSize(0);
+          leg1->SetTextSize(0.03);
+	  TCanvas *cc = new TCanvas(Form("cBetaPlot%d",z),"",400,400);
+          for (int x=2;x<=nEtaBin-1;x++) {
+             int color = x-1;
+	     int mtype = 4;
+	     if (color>5) {
+	        color=11-color;
+		mtype = 20;
+             }
+	     if (color==5) color=6;
+	     
+             formatHist(betaPlots[x-1][z-1],color);
+	     if (betaPlots[x-1][z-1]->GetEntries()){
+  	     betaPlots[x-1][z-1]->SetMarkerStyle(mtype);
+	     betaPlots[x-1][z-1]->SetAxisRange(0,0.5,"Y");
+             betaPlots[x-1][z-1]->Draw("C hist same");
+             betaPlots[x-1][z-1]->Draw("e same");
+	     betaPlots[x-1][z-1]->SetYTitle("#beta");
+	     betaPlots[x-1][z-1]->SetXTitle(Form("N_{Hits} (%.0f #leq V_{z} < %.0f cm)",VzBins[z-1],VzBins[z]));
+             leg1->AddEntry(betaPlots[x-1][z-1],Form("%.1f #leq #eta<%.1f",EtaBins[x-1],EtaBins[x]),"pl");
+             }
           }
+          leg1->Draw();
+	  cc->SaveAs(Form("plot/betaPlot/betaPlot-%s-%d.gif",myPlotTitle,z));
+	  cc->SaveAs(Form("plot/betaPlot/betaPlot-%s-%d.C",myPlotTitle,z));
+	  cc->SaveAs(Form("plot/betaPlot/betaPlot-%s-%d.eps",myPlotTitle,z));
+          cc->Close();
       }
+
+      for (int z=1;z<=nVzBin;z++) {
+          TLegend * leg1 = new TLegend(0.73,0.6,1,0.9);
+          leg1->SetFillStyle(0);  
+          leg1->SetFillColor(0); 
+          leg1->SetBorderSize(0);
+          leg1->SetTextSize(0.03);
+	  TCanvas *cc = new TCanvas(Form("cAlphaPlot%d",z),"",400,400);
+	  cc->SetLogy();
+          for (int x=2;x<=nEtaBin-1;x++) {
+             int color = x-1;
+	     int mtype = 4;
+	     if (color>5) {
+	        color=11-color;
+		mtype = 20;
+             }
+	     if (color==5) color=6;
+	     
+             formatHist(alphaPlots[x-1][z-1],color);
+	     if (alphaPlots[x-1][z-1]->GetEntries()){
+  	     alphaPlots[x-1][z-1]->SetMarkerStyle(mtype);
+	     alphaPlots[x-1][z-1]->SetYTitle("#alpha");
+	     alphaPlots[x-1][z-1]->SetXTitle(Form("N_{Hits} (%.0f #leq V_{z} < %.0f cm)",VzBins[z-1],VzBins[z]));
+	     alphaPlots[x-1][z-1]->SetStats(0);
+	     alphaPlots[x-1][z-1]->GetYaxis()->SetMoreLogLabels(1);
+	     alphaPlots[x-1][z-1]->SetAxisRange(0.9,9,"Y");
+	     alphaPlots[x-1][z-1]->GetYaxis()->SetNoExponent(1);
+	     
+             alphaPlots[x-1][z-1]->Draw("C hist same");
+             alphaPlots[x-1][z-1]->Draw("hist error p same");
+	     leg1->AddEntry(alphaPlots[x-1][z-1],Form("%.1f #leq #eta<%.1f",EtaBins[x-1],EtaBins[x]),"pl");
+             }
+          }
+          leg1->Draw();
+	  cc->SaveAs(Form("plot/alphaPlot/alphaPlot-%s-%d.gif",myPlotTitle,z));
+	  cc->SaveAs(Form("plot/alphaPlot/alphaPlot-%s-%d.C",myPlotTitle,z));
+	  cc->SaveAs(Form("plot/alphaPlot/alphaPlot-%s-%d.eps",myPlotTitle,z));
+          cc->Close();
+
+      }
+
    }
-*/
+
    // Apply correction ===============================================================================
 
    for (int x=1;x<=nEtaBin;x++) {
@@ -423,7 +495,7 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry = 0,
    
    formatHist(hTruthAccepted,1,nevent/nEtaBin*6);
    formatHist(hCorrectedEtaBin,2,nevent/nEtaBin*6);
-   hTruthAccepted->SetAxisRange(0,8,"y");
+   hTruthAccepted->SetAxisRange(0,5.5,"y");
    hTruthAccepted->SetXTitle("#eta (Calculated Hand)");
    hTruthAccepted->SetYTitle("dN/d#eta");
    hTruthAccepted->Draw("hist");
@@ -447,7 +519,7 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry = 0,
    hTruth->Multiply(hTriggerCorrection);
    hMeasured->Multiply(hTriggerCorrection);
 
-   hTruth->SetAxisRange(0,8,"y");
+   hTruth->SetAxisRange(0,5.5,"y");
    hTruth->SetXTitle("#eta");
    hTruth->SetYTitle("dN/d#eta");
    hTruth->Draw("hist");
@@ -457,7 +529,7 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry = 0,
    hMeasured->Draw("e same");    
    
      
-   TLegend * leg1 = new TLegend(0.45,0.26,0.8,0.45);
+   TLegend * leg1 = new TLegend(0.3,0.18,1,0.3);
    leg1->SetFillStyle(0);  
    leg1->SetFillColor(0); 
    leg1->SetBorderSize(0);
@@ -468,8 +540,9 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry = 0,
 
    leg1->Draw();
 
-   cDNdEta->SaveAs(Form("plot/result-%s.gif",myPlotTitle));
-   cDNdEta->SaveAs(Form("plot/result-%s.C",myPlotTitle));
+   cDNdEta->SaveAs(Form("plot/result/result-%s.gif",myPlotTitle));
+   cDNdEta->SaveAs(Form("plot/result/result-%s.eps",myPlotTitle));
+   cDNdEta->SaveAs(Form("plot/result/result-%s.C",myPlotTitle));
 
 
     
@@ -478,9 +551,23 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry = 0,
    hRatio->SetYTitle("Ratio");
    hRatio->SetAxisRange(0.8,1.2,"y");
    hRatio->Draw();
-   
+   TLegend * leg2 = new TLegend(0.3,0.18,1,0.3);
+   leg2->SetFillStyle(0);  
+   leg2->SetFillColor(0); 
+   leg2->SetBorderSize(0);
+   leg2->SetTextSize(0.03);
+   leg2->AddEntry(hTruth,myPlotTitle,"");
+   leg2->AddEntry(hRatio,"Reconstructed / MC Truth","pl");
+
+   leg2->Draw();
+
+
    TLine *l1 = new TLine(-3,1,3,1);
    l1->Draw();
+   cRatio->SaveAs(Form("plot/ratio/ratio-%s.gif",myPlotTitle));
+   cRatio->SaveAs(Form("plot/ratio/ratio-%s.eps",myPlotTitle));
+   cRatio->SaveAs(Form("plot/ratio/ratio-%s.C",myPlotTitle));
+   
 
    TCanvas *cDNdNhit = new TCanvas("cDNdNhit","Measured vs mult",400,400);
    TH1D *hTruthHit = (TH1D*)hHadronAccepted->Project3D("y");
@@ -490,7 +577,7 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry = 0,
    
    formatHist(hTruthHit,1,nevent);
    formatHist(hMeasuredHit,2,nevent);
-   hTruthHit->SetAxisRange(0,8,"y");
+   hTruthHit->SetAxisRange(0,5.5,"y");
    hTruthHit->SetXTitle("N_{Hit1} |#eta|<1");
    hTruthHit->SetYTitle("dN/dN_{Hit1}");
    hTruthHit->Draw("hist");
@@ -548,7 +635,7 @@ void formatHist(TH1* h, int col, double norm){
   h->SetLineColor(col);
   h->SetMarkerColor(col);
   h->SetMarkerSize(0.7);
-  h->GetYaxis()->SetTitleOffset(1.15);
+  h->GetYaxis()->SetTitleOffset(1.25);
   h->GetXaxis()->CenterTitle();
   h->GetYaxis()->CenterTitle();
   h->SetTitle("");

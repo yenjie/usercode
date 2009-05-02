@@ -80,20 +80,25 @@ layer, double vz)
       hits.push_back(tmp);
     }
   }
-  sort (hits.begin(),hits.end(),compareEta);
+  sort (hits.begin(),hits.end(),comparePhi);
     
   for(int ihit = 0; ihit < (int)hits.size(); ++ihit) {
     double dr=0;
     double dphi=10;
     double deta=10;
+    int flag=0;
     if (ihit !=0) {
-      dphi = fabs(hits[ihit-1].phi - hits[ihit].phi);
-      dphi = fabs(hits[ihit-1].eta - hits[ihit].eta);
-      dr   = fabs(hits[ihit-1].r - hits[ihit].r);
+
+      for (int k=ihit-1;k<ihit;k++) {
+      dphi = fabs(hits[k].phi - hits[ihit].phi);
+      deta = fabs(hits[k].eta - hits[ihit].eta);
+      dr   = fabs(hits[k].r - hits[ihit].r);
+      if (dr>cuts.drCut && dphi < cuts.dPhiCut) flag=1;
+//      if (dphi > cuts.dPhiCut) k=0;
+      }
     }
       
-    if (dr>cuts.drCut && dphi < cuts.dPhiCut && deta < cuts.dEtaCut) continue;
-      
+    if (flag==1) continue;  
     // recalculate eta and phi
     double x = hits[ihit].r*cos(hits[ihit].phi);
     double y = hits[ihit].r*sin(hits[ihit].phi);

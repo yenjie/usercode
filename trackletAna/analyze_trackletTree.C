@@ -119,7 +119,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
   cout <<"Number of Events: "<<t->GetEntries()<<endl;
 
   // Main loop ===========================================================================================
-  for(int i = 0;  i<t->GetEntries(); ++i){    
+  for(int i = 0;  i<t->GetEntries() && i < 100000 ; ++i){    
     t->GetEntry(i);
     if (i % 1000 == 0) cout <<"Event "<<i<<endl;    
     // Selection on Events
