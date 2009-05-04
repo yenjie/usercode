@@ -305,7 +305,7 @@ double TrackletVertexUnbin(Parameters par,double histDeltaZ, double dPhiCut, boo
        for(int ihit2 = 0; ihit2< (int)par.nhits2; ++ihit2) {
           double r2 = par.r2[ihit2];
           double phi2 = par.phi2[ihit2];
-	  if (fabs(phi1-phi2)>dPhiCut) continue;
+	  if (fabs(calcDphi(phi1,phi2))>dPhiCut) continue;
           double z2 = par.r2[ihit2]/tan(atan(exp(-par.eta2[ihit2]))*2);
 	  
 	  double z = z1-(z2-z1)/(r2-r1)*r1;

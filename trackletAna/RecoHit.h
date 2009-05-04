@@ -63,6 +63,9 @@ bool compareEta(RecoHit a,RecoHit b) { return a.eta<b.eta;}
 bool comparePhi(RecoHit a,RecoHit b) { return a.phi<b.phi;}
 bool compareAbsEta(RecoHit a,RecoHit b) { return fabs(a.eta)<fabs(b.eta);}
 
+double calcDphi(double phi1,double phi2);
+
+
 vector<RecoHit> removeDoubleHits(Parameters par, SelectionCriteria cuts,Int_t
 layer, double vz)
 {
@@ -90,7 +93,8 @@ layer, double vz)
     if (ihit !=0) {
 
       for (int k=ihit-1;k<ihit;k++) {
-      dphi = fabs(hits[k].phi - hits[ihit].phi);
+      dphi = fabs(calcDphi(hits[k].phi, hits[ihit].phi));
+      
       deta = fabs(hits[k].eta - hits[ihit].eta);
       dr   = fabs(hits[k].r - hits[ihit].r);
       if (dr>cuts.drCut && dphi < cuts.dPhiCut) flag=1;
@@ -119,4 +123,21 @@ RecoHit RandomHit(double etaMin, double etaMax, double phiMin, double phiMax)
    double phi = phiMin + (phiMax-phiMin)*gRandom->Rndm();
    RecoHit myRandomHit(eta,phi,0);
    return myRandomHit;
+}
+
+double calcDphi(double phi1_,double phi2_)
+{
+   double pi = 3.14159265358979;
+   double dphi=phi1_-phi2_;
+
+   if (dphi>0){
+      while (dphi>2*pi) dphi-=2*pi;
+      if (dphi>pi) dphi=2*pi-dphi;
+   } else {
+      while (dphi<-2*pi) dphi+=2*pi;
+      if (dphi<-pi) dphi=-2*pi-dphi;
+   }
+
+
+   return dphi; 
 }
