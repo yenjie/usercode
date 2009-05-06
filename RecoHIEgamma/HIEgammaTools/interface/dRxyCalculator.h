@@ -15,6 +15,11 @@
 #include "DataFormats/Candidate/interface/CandidateFwd.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
 
+#include "DataFormats/TrackReco/interface/Track.h"
+#include "DataFormats/TrackReco/interface/TrackFwd.h"
+
+#define PI 3.141592653
+
 class dRxyCalculator
 {
 public:  
@@ -22,17 +27,30 @@ public:
    double getDRxy(const reco::Candidate &cluster, double x, double y);
 
 private:
-   double dRDistance(const reco::Candidate &a, const reco::Candidate &b)
+   double dRDistance(double eta1,double phi1,double eta2,double phi2)
    {
-      double deta = a.eta() - b.eta();
-      double dphi = a.phi() - b.phi();
-      if(dphi > 3.1415926535)
-         dphi = 3.1415926535 * 2 - dphi;
+      double deta = eta1 - eta2;
+      double dphi = (calcDphi(phi1, phi2));
+      
       return sqrt(deta * deta + dphi * dphi);
    }
+   
+   double calcDphi(double phi1_,double phi2_)
+   {
+       double dphi=phi1_-phi2_;
 
+      if (dphi>0){
+         while (dphi>2*PI) dphi-=2*PI;
+         if (dphi>PI) dphi=2*PI-dphi; 
+      } else {
+         while (dphi<-2*PI) dphi+=2*PI;
+         if (dphi<-PI) dphi=-2*PI-dphi;
+      }
+      return dphi;
+   }
+   
 private:
-   const reco::CandidateCollection *tracks;
+   edm::Handle<reco::TrackCollection>  recCollection;
 };
 
 #endif

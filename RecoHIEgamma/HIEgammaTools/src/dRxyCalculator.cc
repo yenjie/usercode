@@ -12,43 +12,49 @@ using namespace reco;
 
 dRxyCalculator::dRxyCalculator(const edm::Event &iEvent, const edm::EventSetup &iSetup)
 {
-   Handle<CandidateCollection> hTracks;
-   iEvent.getByLabel(InputTag(""), hTracks);
-   tracks = hTracks.product();
+   // Get reconstructed tracks
+   iEvent.getByLabel("globalPrimTracks", recCollection); // !!
+
 } 
 
 double dRxyCalculator::getDRxy(const reco::Candidate &candidate, double x, double y)
 {
    using namespace edm;
    using namespace reco;
-
+   /*
    if(!tracks)
    {
       LogError("dRxyCalculator") << "Error! The track container is not found.";
       return -100;
    }
+   */
 
    const Candidate &p = candidate;
 
+   double eta1 = p.eta();
+   double phi1 = p.phi();
+
    std::vector<double> Rxy;
 
-   for(int j = 0; j < (int)tracks->size(); j++)
-   {  
-      const Candidate &q = (*tracks)[j];
+   for(reco::TrackCollection::const_iterator
+   	  recTrack = recCollection->begin(); recTrack!= recCollection->end(); recTrack++)
+   {
+      double pt = recTrack->pt();
+      double eta2 = recTrack->eta();
+      double phi2 = recTrack->phi();
+      
+      if(pt < x * 0.4)
+         continue;
 
-      if(q.pt() < x * 0.4)
-         continue;
-      if(q.charge() == 0)
-         continue;
+      double dR = dRDistance(eta1,phi1,eta2,phi2);
 
       if(Rxy.size() < y)
       {  
-         Rxy.push_back(dRDistance(p, q));
+         Rxy.push_back(dR);
          sort(Rxy.begin(), Rxy.end());
          continue;
       }
 
-      double dR = dRDistance(p, q);
       if(dR < Rxy[Rxy.size()-1])
       {  
          Rxy[Rxy.size()-1] = dR;

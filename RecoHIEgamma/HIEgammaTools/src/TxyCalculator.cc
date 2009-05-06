@@ -11,10 +11,9 @@ using namespace edm;
 using namespace reco;
 
 TxyCalculator::TxyCalculator(const edm::Event &iEvent, const edm::EventSetup &iSetup)
-{
-   Handle<CandidateCollection> hTracks;
-   iEvent.getByLabel(InputTag(""), hTracks);
-   tracks = hTracks.product();
+{ 
+   // Get reconstructed tracks
+   iEvent.getByLabel("globalPrimTracks", recCollection); // !!
 } 
 
 double TxyCalculator::getTxy(const reco::Candidate &candidate, double x, double y)
@@ -22,24 +21,32 @@ double TxyCalculator::getTxy(const reco::Candidate &candidate, double x, double 
    using namespace edm;
    using namespace reco;
 
-   if(!tracks)
+   /*
+   if(!recCollection)
    {
       LogError("TxyCalculator") << "Error! The track container is not found.";
       return -100;
    }
-
+   */
+   
    const Candidate &p = candidate;
 
+   double eta1 = p.eta();
+   double phi1 = p.phi();
+   
    float txy = 0;
 
-   for(int j = 0; j < (int)tracks->size(); j++)
+   for(reco::TrackCollection::const_iterator
+   	  recTrack = recCollection->begin(); recTrack!= recCollection->end(); recTrack++)
    {
-      const Candidate &q = (*tracks)[j];
-
-      if(dRDistance(p, q) >= 0.1 * x)
+      double pt = recTrack->pt();
+      double eta2 = recTrack->phi();
+      double phi2 = recTrack->phi();
+      
+      if(dRDistance(eta1,phi1,eta2,phi2) >= 0.1 * x)
          continue;
 
-      if(q.pt() > y * 3)
+      if(pt > y * 3)
          txy = txy + 1;
    }
 
