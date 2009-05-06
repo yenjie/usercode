@@ -35,6 +35,22 @@ private:
       
       return sqrt(deta * deta + dphi * dphi);
    }
+<<<<<<< TxyCalculator.h
+   
+   double calcDphi(double phi1_,double phi2_)
+   {
+       double dphi=phi1_-phi2_;
+
+      if (dphi>0){
+         while (dphi>2*PI) dphi-=2*PI;
+         if (dphi>PI) dphi=2*PI-dphi; 
+      } else {
+         while (dphi<-2*PI) dphi+=2*PI;
+         if (dphi<-PI) dphi=-2*PI-dphi;
+      }
+      return dphi;
+   }
+=======
    
    double calcDphi(double phi1_,double phi2_)
    {
@@ -50,6 +66,7 @@ private:
       return dphi;
    }
 
+>>>>>>> 1.2
 
 private:
    edm::Handle<reco::TrackCollection>  recCollection;

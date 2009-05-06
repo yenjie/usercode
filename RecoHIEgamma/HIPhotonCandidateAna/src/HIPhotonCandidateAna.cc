@@ -13,7 +13,7 @@
 //
 // Original Author:  Yen-Jie Lee
 //         Created:  Sun Apr 13 13:53:50 EDT 2008
-// $Id$
+// $Id: HIPhotonCandidateAna.cc,v 1.4 2009/03/17 17:25:26 yjlee Exp $
 //
 //
 
@@ -144,7 +144,7 @@ HIPhotonCandidateAna::HIPhotonCandidateAna(const edm::ParameterSet& iConfig)
 
    // Cuts
    etCut = iConfig.getUntrackedParameter<double>("etCut", 10);
-   etaCut = iConfig.getUntrackedParameter<double>("etaCut", 2);
+   etaCut = iConfig.getUntrackedParameter<double>("etaCut", 3);
    dRCut = iConfig.getUntrackedParameter<double>("dRCut", 0.2);
 
 

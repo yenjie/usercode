@@ -1,8 +1,0 @@
-module mix = MixingModule
-{
-      string Label = ""
-      int32 minBunch = 0
-      int32 maxBunch = 0
-   int32 bunchspace = 125
-   untracked bool checktof = false
-}
