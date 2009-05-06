@@ -61,8 +61,10 @@ double dRxyCalculator::getDRxy(const reco::Candidate &candidate, double x, doubl
          sort(Rxy.begin(), Rxy.end());
       }
    }
-
-   if (Rxy.size()<y) return 4;
-   return Rxy[(int)y-1];
+   
+   double rxy = 4;
+   if (Rxy.size()<y) rxy=4; else rxy = Rxy[(int)y-1];
+   Rxy.clear();
+   return rxy;
 }
 

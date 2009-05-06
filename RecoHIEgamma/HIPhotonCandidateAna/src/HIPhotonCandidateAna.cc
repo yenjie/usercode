@@ -60,6 +60,11 @@
 #include "RecoHIEgamma/HIEgammaTools/interface/CandidateGenParticleFinder.h"
 #include "RecoHIEgamma/HIEgammaTools/interface/CxCalculator.h"
 #include "RecoHIEgamma/HIEgammaTools/interface/RxCalculator.h"
+#include "RecoHIEgamma/HIEgammaTools/interface/TxyCalculator.h"
+#include "RecoHIEgamma/HIEgammaTools/interface/dRxyCalculator.h"
+
+
+
 #include "RecoHIEgamma/HIEgammaTools/interface/ShapeCalculator.h"
 #include "RecoHIEgamma/HIEgammaTools/interface/HIPhotonMCType.h"
 #include "RecoHIEgamma/HIEgammaTools/interface/HIMCGammaJetSignalDef.h"
@@ -69,6 +74,8 @@
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
 
+#include "FWCore/ServiceRegistry/interface/Service.h"
+#include "PhysicsTools/UtilAlgos/interface/TFileService.h"
 
 //
 // class decleration
@@ -110,6 +117,9 @@ class HIPhotonCandidateAna : public edm::EDAnalyzer {
   bool DoBarrel;
   bool DoEndcap;
   bool SignalOnly;
+
+  edm::Service<TFileService> fs;           
+
 
 };
 
@@ -240,8 +250,8 @@ HIPhotonCandidateAna::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 
    std::auto_ptr<CandidateCollection> sClusters(new CandidateCollection);
 
-
    double maxEt=0;
+
 
 
    if (DoBarrel) {
@@ -254,7 +264,8 @@ HIPhotonCandidateAna::analyze(const edm::Event& iEvent, const edm::EventSetup& i
          if (fabs(p.eta())>etaCut) continue;
          if ((p.energy()/cosh(p.eta()))>maxEt) maxEt = p.energy()/cosh(p.eta());
          sClusters->push_back(p.clone());
-      }
+
+       }
    }
 
    if (DoEndcap) {   
@@ -280,6 +291,8 @@ HIPhotonCandidateAna::analyze(const edm::Event& iEvent, const edm::EventSetup& i
    CandidateSuperClusterFinder SCFinder;
    CxCalculator CxC(iEvent,iSetup);
    RxCalculator RxC(iEvent,iSetup);
+   TxyCalculator Txy(iEvent,iSetup);
+   dRxyCalculator dRxy(iEvent,iSetup);
    ShapeCalculator ShapeC(iEvent,iSetup);
 
    
@@ -293,7 +306,6 @@ HIPhotonCandidateAna::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 
       CandidateGenParticleFinder mp(genParticles,SCCand,dRCut,1);      
       
-     
       Float_t var[300];
       for (int j = 0; j<100; j++) var[j]=0;
 
@@ -311,85 +323,105 @@ HIPhotonCandidateAna::analyze(const edm::Event& iEvent, const edm::EventSetup& i
       Int_t id=0,photonid1=0;
 
       if (mp.GetTriggerGenParticle()!=0) {
-         // Matched with Trigger GenParticle
-         const Candidate &c1 = *(mp.GetTriggerGenParticle());
-      
-         vv.push_back(c1.energy());
-         vv.push_back(c1.energy()/cosh(c1.eta()));
-         vv.push_back(c1.eta());
-         vv.push_back(c1.phi());
-         vv.push_back(HICaloUtil::EcalEta(c1));
-         vv.push_back(HICaloUtil::EcalPhi(c1));
-         vv.push_back(c1.vertex().X());
-         vv.push_back(c1.vertex().Y());
-         vv.push_back(c1.vertex().Z());
-         vv.push_back(float(c1.status()));
+	// Matched with Trigger GenParticle
+	const Candidate &c1 = *(mp.GetTriggerGenParticle());
+	
+	vv.push_back(c1.energy());
+	vv.push_back(c1.energy()/cosh(c1.eta()));
+	vv.push_back(c1.eta());
+	vv.push_back(c1.phi());
+	vv.push_back(HICaloUtil::EcalEta(c1));
+	vv.push_back(HICaloUtil::EcalPhi(c1));
+	vv.push_back(c1.vertex().X());
+	vv.push_back(c1.vertex().Y());
+	vv.push_back(c1.vertex().Z());
+	vv.push_back(float(c1.status()));
+	
+	vv.push_back(c1.pdgId()); 
+	if (c1.mother()!=0) {
+	  vv.push_back(c1.mother()->pdgId()); 
+	  if (c1.mother()->mother()!=0) {
+	    vv.push_back(c1.mother()->mother()->pdgId());
+	  } else {
+	    vv.push_back(0);
+	  }
+	} else {
+	  vv.push_back(0);
+	  vv.push_back(0);
+	}
+	
+	HIPhotonMCType::EType photontype = HIPhotonMCType::kInvalid;
+	HIPhotonMCType mctype;
+	photontype = mctype.getType(c1);
+	
+	if (photontype == HIPhotonMCType::kInvalid) photonid1 = 6;
+	else photonid1=(Int_t)photontype;
+	
+	vv.push_back(photonid1);
+	
+	// old yenjie's id
+	if (photonid1 == 2) id=1; //kDirect
+	if (photonid1 == 3 || photonid1 == 5) id=4; //KFrag+kBrems
+	if (photonid1 == 4 || photonid1 == 6) id=0; //kDecay+kInvalid
+	
+	
+	cout <<"id="<<id<<" "<<SignalOnly<<endl;
+	if (SignalOnly && id !=1 ) continue;
+	
+	cout <<"oh id="<<id<<" "<<SignalOnly<<endl;
+	
+	vv.push_back(id);
+	
+	HIMCGammaJetSignalDef mcisocut(genParticles);
+	bool isMCIsolated = mcisocut.IsIsolated(c1);
+	bool isMCSignal   = mcisocut.IsSignal(c1,3,true);
+	
+	int iNear = mcisocut.GetNearParton();
+	int iAway = mcisocut.GetAwayParton();
+	
+	double delphi = -100;
+	double phi1= -100;
+	double phi2= -100;
+	if (iNear!=-1&&iAway!=-1) {
+	  const Candidate &p1 = (*genParticles)[iNear];
+	  const Candidate &p2 = (*genParticles)[iAway];
+	  delphi = mcisocut.getDeltaPhi(p1,p2);
+	  phi1 = p1.phi();
+	  phi2 = p2.phi();
+	}
+	
+	vv.push_back(isMCIsolated);
+	vv.push_back(isMCSignal);
+	vv.push_back(delphi);
+	vv.push_back(iNear);
+	vv.push_back(iAway);
+	vv.push_back(phi1);
+	vv.push_back(phi2);
 
-         vv.push_back(c1.pdgId()); 
-         if (c1.mother()!=0) {
-            vv.push_back(c1.mother()->pdgId()); 
-            if (c1.mother()->mother()!=0) {
-               vv.push_back(c1.mother()->mother()->pdgId());
-            } else {
-               vv.push_back(0);
-            }
-         } else {
-            vv.push_back(0);
-            vv.push_back(0);
-         }
+	//here 27//                                                                                                                                                                                                                 
+	Float_t txy[4][5], drxy[4][5];
+	
+	for ( int x=1 ; x <=4 ; x++) {
+	  for (  int y = 0 ; y <= 4 ; y++) {
+	    txy[x][y] = Txy.getTxy(c1,x,y);
+	    vv.push_back(txy[x][y]);
+          }
+	} //20 variables
+	
+	for ( int x=1 ; x <=4 ; x++) {
+	  for (  int y = 1 ; y <= 5 ; y++) {
+	    drxy[x][y] = dRxy.getDRxy(c1,x,y);
+	    vv.push_back(drxy[x][y]);
+	  }
+	} // 20 variables
+	
 
-         HIPhotonMCType::EType photontype = HIPhotonMCType::kInvalid;
-         HIPhotonMCType mctype;
-         photontype = mctype.getType(c1);
-
-         if (photontype == HIPhotonMCType::kInvalid) photonid1 = 6;
-         else photonid1=(Int_t)photontype;
-
-         vv.push_back(photonid1);
-
-         // old yenjie's id
-         if (photonid1 == 2) id=1; //kDirect
-         if (photonid1 == 3 || photonid1 == 5) id=4; //KFrag+kBrems
-         if (photonid1 == 4 || photonid1 == 6) id=0; //kDecay+kInvalid
-
-
-         cout <<"id="<<id<<" "<<SignalOnly<<endl;
-         if (SignalOnly && id !=1 ) continue;
-
-         cout <<"oh id="<<id<<" "<<SignalOnly<<endl;
-
-         vv.push_back(id);
-
-         HIMCGammaJetSignalDef mcisocut(genParticles);
-         bool isMCIsolated = mcisocut.IsIsolated(c1);
-         bool isMCSignal   = mcisocut.IsSignal(c1,3,true);
-
-         int iNear = mcisocut.GetNearParton();
-         int iAway = mcisocut.GetAwayParton();
-
-         double delphi = 1e12;
-         double phi1= 1e12;
-         double phi2= 1e12;
-         if (iNear!=-1&&iAway!=-1) {
-            const Candidate &p1 = (*genParticles)[iNear];
-            const Candidate &p2 = (*genParticles)[iAway];
-            delphi = mcisocut.getDeltaPhi(p1,p2);
-            phi1 = p1.phi();
-            phi2 = p2.phi();
-         }
-
-         vv.push_back(isMCIsolated);
-         vv.push_back(isMCSignal);
-         vv.push_back(delphi);
-         vv.push_back(iNear);
-         vv.push_back(iAway);
-         vv.push_back(phi1);
-         vv.push_back(phi2);
-      } else {
-         // not matched, fill 0s.
-         for (int it=0;it<21;it++) vv.push_back(0);
+	
+      } 
+      else {
+	// not matched, fill 0s.
+	for (int it=0;it<62;it++) vv.push_back(0);
       }
-
       if (SignalOnly && id !=1 ) continue;
       const SuperCluster *SC = SCFinder.findbest(SCBcollection,SCEcollection,SCCand);
 
@@ -427,6 +459,7 @@ HIPhotonCandidateAna::analyze(const edm::Event& iEvent, const edm::EventSetup& i
          vv.push_back(SC->rawEnergy());
          vv.push_back(calc_(SC,iEvent,iSetup));
 
+         if (1==2) {
          ShapeC.calculate(SC);
          TLorentzVector  thrust = ShapeC.thrust();
          double Sper = ShapeC.Sper(thrust);
@@ -465,8 +498,14 @@ HIPhotonCandidateAna::analyze(const edm::Event& iEvent, const edm::EventSetup& i
          vv.push_back(sfw3.R(3));
          vv.push_back(sfw3.R(4));
 
+         } else {
+	          vv.resize(vv.size()+21);
+         }
+
          Float_t cx[10],ccx[10],rx[10],crx[10],sccx[10],scrx[10];
 
+
+	 
          for (int x=1;x<6;x++) {
             cx[x]=CxC.getCx(SC,x,0);
             vv.push_back(cx[x]);
@@ -476,11 +515,11 @@ HIPhotonCandidateAna::analyze(const edm::Event& iEvent, const edm::EventSetup& i
             ccx[x]=CxC.getCCx(SC,x,0);
             vv.push_back(ccx[x]);
          }
-
-         for (int x=1;x<10;x++) {
-            sccx[x]=CxC.getCCx(SC,(double)x/10.0,0);
-            vv.push_back(sccx[x]);
-         }
+	   
+	 //    for (int x=1;x<10;x++) {
+	 //    sccx[x]=CxC.getCCx(SC,(double)x/10.0,0);
+	 //    vv.push_back(sccx[x]);
+	 //  }
 
          for (int x=1;x<6;x++) {
             cx[x]=CxC.getCxRemoveSC(SC,x,0);
@@ -512,10 +551,10 @@ HIPhotonCandidateAna::analyze(const edm::Event& iEvent, const edm::EventSetup& i
             vv.push_back(crx[x]);
          }
 
-         for (int x=1;x<10;x++) {
-            scrx[x]=RxC.getCRx(SC,(double)x/10.0,0);
-            vv.push_back(scrx[x]);
-         }
+	 //  for (int x=1;x<10;x++) {
+	 //    scrx[x]=RxC.getCRx(SC,(double)x/10.0,0);
+	 //    vv.push_back(scrx[x]);
+	 //   }
 
          for (int x=1;x<6;x++) {
             rx[x]=RxC.getRx(SC,x,-10);
@@ -549,14 +588,13 @@ HIPhotonCandidateAna::analyze(const edm::Event& iEvent, const edm::EventSetup& i
          vv.push_back(CxC.getNBC(SC,3,0,1000,0));
          vv.push_back(CxC.getNBC(SC,4,0,1000,0));
          vv.push_back(CxC.getNBC(SC,5,0,1000,0));
-
       } else {
-         vv.resize(vv.size()+130);
+         vv.resize(vv.size()+113);
       }
 
       for(int j=0;j<(int)vv.size();j++) var[j]=vv[j];
 
-       if (vv.size()!=157) cout <<"ERROR!!!!! "<<vv.size()<<endl;
+       if (vv.size()!=180) cout <<"ERROR!!!!! "<<vv.size()<<endl;
 
       if (SignalOnly && id !=1 ) continue; else      datatemp->Fill(var);
    }
@@ -572,25 +610,25 @@ HIPhotonCandidateAna::beginJob(const edm::EventSetup& iSetup)
    using namespace reco;
    using namespace std;
 
-   TFile::TContext context(0);
-   f = TFile::Open(output.c_str(), "recreate");
-
-   datatemp = new TNtuple("gammas", "photon candidate info", 
-            "evt:e:et:eta:phi:"
-            "ge:get:geta:gphi:cgeta:cgphi:vx:vy:vz:status:gid:gmid:ggmid:id1:id:mciso:mcsig:delphi:iNear:iAway:phi1:phi2:"
-            "emax:e2nd:e4:e6:e9:e16:e25:e2x5R:e2x5T:e2x5B:e2x5L:e3x2Ratio:"
-            "convEtaEta:convEtaPhi:convPhiPhi:nc:nhit:etawidth:phiwidth:rawE:HoE:Spher:Moment:tx:ty:sfw0:sfw1:sfw2:sfw3:sfw4:sfw5:sfw6:msfw0:msfw1:msfw2:msfw3:msfw4:xsfw0:xsfw1:xsfw2:xsfw3:xsfw4:"
-            "c1:c2:c3:c4:c5:cC1:cC2:cC3:cC4:cC5:"
-            "cC01:cC02:cC03:cC04:cC05:cC06:cC07:cC08:cC09:"
-            "rmc1:rmc2:rmc3:rmc4:rmc5:rmcC1:rmcC2:rmcC3:rmcC4:rmcC5:"
-            "nc1:nc2:nc3:nc4:nc5:ncC1:ncC2:ncC3:ncC4:ncC5:"
-            "r1:r2:r3:r4:r5:cR1:cR2:cR3:cR4:cR5:"
-            "cR01:cR02:cR03:cR04:cR05:cR06:cR07:cR08:cR09:"
-            "nr1:nr2:nr3:nr4:nr5:ncR1:ncR2:ncR3:ncR4:ncR5:"
-            "ECAL:HCAL:SuperE:SuperR:SuperCR:ce2:ce3:ce4:ce5:bcMax:bc2nd:"
-            "avgBCEt1:avgBCEt2:avgBCEt3:avgBCEt4:avgBCEt5:"
-            "NBC1:NBC2:NBC3:NBC4:NBC5"
-            );
+   datatemp = fs->make<TNtuple>("gammas", "photon candidate info", 
+			  "evt:e:et:eta:phi:"  //5
+			  "ge:get:geta:gphi:cgeta:cgphi:vx:vy:vz:status:gid:gmid:ggmid:id1:id:mciso:mcsig:delphi:iNear:iAway:phi1:phi2:"  //22
+			  "T10:T11:T12:T13:T14:T20:T21:T22:T23:T24:T30:T31:T32:T33:T34:T40:T41:T42:T43:T44:"  //20
+                          "dR10:dR11:dR12:dR13:dR14:dR20:dR21:dR22:dR23:dR24:dR30:dR31:dR32:dR33:dR34:dR40:dR41:dR42:dR43:dR44:" //20
+			  "emax:e2nd:e4:e6:e9:e16:e25:e2x5R:e2x5T:e2x5B:e2x5L:e3x2Ratio:" //12
+			  "convEtaEta:convEtaPhi:convPhiPhi:nc:nhit:etawidth:phiwidth:rawE:HoE:" //9
+			  "Spher:Moment:tx:ty:sfw0:sfw1:sfw2:sfw3:sfw4:sfw5:sfw6:msfw0:msfw1:msfw2:msfw3:msfw4:xsfw0:xsfw1:xsfw2:xsfw3:xsfw4:"  //21
+			  "c1:c2:c3:c4:c5:cC1:cC2:cC3:cC4:cC5:" //10
+			  //        "cC01:cC02:cC03:cC04:cC05:cC06:cC07:cC08:cC09:"
+			  "rmc1:rmc2:rmc3:rmc4:rmc5:rmcC1:rmcC2:rmcC3:rmcC4:rmcC5:" //10
+			  "nc1:nc2:nc3:nc4:nc5:ncC1:ncC2:ncC3:ncC4:ncC5:" //10
+			  "r1:r2:r3:r4:r5:cR1:cR2:cR3:cR4:cR5:"  //10
+			  //      "cR01:cR02:cR03:cR04:cR05:cR06:cR07:cR08:cR09:"
+			  "nr1:nr2:nr3:nr4:nr5:ncR1:ncR2:ncR3:ncR4:ncR5:" //10
+			  "ECAL:HCAL:SuperE:SuperR:SuperCR:ce2:ce3:ce4:ce5:bcMax:bc2nd:" //11
+			  "avgBCEt1:avgBCEt2:avgBCEt3:avgBCEt4:avgBCEt5:" //5
+			  "NBC1:NBC2:NBC3:NBC4:NBC5" //5
+			  );
 
    nEvent = 0;
    nTrigEvent = 0;
@@ -607,11 +645,6 @@ HIPhotonCandidateAna::beginJob(const edm::EventSetup& iSetup)
 // ------------ method called once each job just after ending the event loop  ------------
 void 
 HIPhotonCandidateAna::endJob() {
-   TFile::TContext context(f);
-
-   datatemp->Write();
-
-   f->Close();
    cout <<"HIPhotonCandidateAna: nEvent = "<<nEvent<<endl;
    cout <<"HIPhotonCandidateAna: nTrigEvent = "<<nTrigEvent;
 }

@@ -32,9 +32,9 @@ void CandidateGenParticleFinder::Match(const reco::GenParticleCollection *genPar
    double dRcut = fDeltaR;
 
    for (int i=0;i<nparts;++i) {
-      Candidate *p = (*genParticles)[i].clone();
-      if (p->et()<fEtCut) continue;
-      if (p->status()==3) continue;;
+      const Candidate &p = (*genParticles)[i];
+      if (p.et()<fEtCut) continue;
+      if (p.status()==3) continue;;
       
       double eta = 0;
       
@@ -42,10 +42,10 @@ void CandidateGenParticleFinder::Match(const reco::GenParticleCollection *genPar
          const Candidate &par = (*genParticles)[i];
          eta = HICaloUtil::EcalEta(par);  //should be replaced by corrected Ecal Eta.
       } else {
-         eta = p->eta();  
+         eta = p.eta();  
       }
 
-      double dR = sqrt(DeltaR2(fPhi,p->phi(),fEta,eta));
+      double dR = sqrt(DeltaR2(fPhi,p.phi(),fEta,eta));
 
       if(dR<dRcut) {
          fParticles->push_back(p);
