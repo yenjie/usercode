@@ -46,7 +46,7 @@ double TxyCalculator::getTxy(const reco::Candidate &candidate, double x, double 
       if(dRDistance(eta1,phi1,eta2,phi2) >= 0.1 * x)
          continue;
 
-      if(pt > y * 3)
+      if(pt > y * 0.4)
          txy = txy + 1;
    }
 
