@@ -40,7 +40,7 @@ double TxyCalculator::getTxy(const reco::Candidate &candidate, double x, double 
    	  recTrack = recCollection->begin(); recTrack!= recCollection->end(); recTrack++)
    {
       double pt = recTrack->pt();
-      double eta2 = recTrack->phi();
+      double eta2 = recTrack->eta();
       double phi2 = recTrack->phi();
       
       if(dRDistance(eta1,phi1,eta2,phi2) >= 0.1 * x)
