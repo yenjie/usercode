@@ -28,15 +28,17 @@ dump = cms.EDAnalyzer("EventContentAnalyzer")
 #genParticles.src = cms.InputTag("source")
 #genParticles.abortOnUnknownPDGCode = cms.untracked.bool(False)
 
+# changed genparticles_cfi for subEvent map
+#from RecoHI.HiCandidateAlgos.hiGenParticles_cfi import *
+
+
 
 from  RecoHIEgamma.HIPhotonCandidateAna.hiphotoncandidateana_cfi import *
-#replace hIPhotonCandidateAna.GenCandInput="genParticleCandidates"
-#replace hIPhotonCandidateAna.etCut=40
-#replace hIPhotonCandidateAna.output="HIPhotonCand.root"
+
+
 
 #Hcal local reco
 from RecoHIEcal.Configuration.recoHICalo_cfi import *
-
 
 
 
@@ -77,7 +79,7 @@ gammaMatch = cms.EDFilter("MCTruthDeltaRMatcher",
                           matchedPDGId = cms.vint32(22),
                           )
   
-#from RecoHIEgamma.RechitAna.rechitana_cfi import *
+
 
 from RecoLocalCalo.Configuration.ecalLocalRecoSequence_cff import *
 
@@ -88,9 +90,9 @@ ecalWeightUncalibRecHit.EEdigiCollection = 'simEcalDigis:eeDigis'
 
 #HIPhotonPP = cms.Sequence( genParticleCandidates * barrelclusters * endcapclusters * hybridclusters * multi5x5clusters * hIPhotonCandidateAna)
 
-HIPhoton = cms.Sequence(barrelclusters*endcapclusters*hIPhotonCandidateAna)     
-#HIPhoton = cms.Sequence(genParticles*barrelclusters*endcapclusters*hIPhotonCandidateAna)
-#HIPhotonT = cms.Sequence(genParticles*barrelclusters*endcapclusters)
-#RecHit   = cms.Sequence(rechitAna)
+#HIPhoton = cms.Sequence(hiGenParticles*hIPhotonCandidateAna)
+HIPhoton = cms.Sequence(barrelclusters * endcapclusters *hIPhotonCandidateAna)
+
+
 
 
