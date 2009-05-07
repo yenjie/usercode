@@ -13,7 +13,7 @@
 //
 // Original Author:  Yen-Jie Lee
 //         Created:  Sun Apr 13 13:53:50 EDT 2008
-// $Id: HIPhotonCandidateAna.cc,v 1.4 2009/03/17 17:25:26 yjlee Exp $
+// $Id: HIPhotonCandidateAna.cc,v 1.6 2009/05/06 18:56:44 yjlee Exp $
 //
 //
 
@@ -56,6 +56,15 @@
 #include "TFile.h"
 #include "TLorentzVector.h"
 
+#include "HepMC/GenEvent.h"
+#include "HepMC/HeavyIon.h"
+#include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
+//#include "SimDataFormats/HepMCProduct/interface/HepMCProduct.h"
+#include "SimDataFormats/CrossingFrame/interface/MixCollection.h"
+
+
+
+
 #include "RecoHIEgamma/HIEgammaTools/interface/CandidateSuperClusterFinder.h"
 #include "RecoHIEgamma/HIEgammaTools/interface/CandidateGenParticleFinder.h"
 #include "RecoHIEgamma/HIEgammaTools/interface/CxCalculator.h"
@@ -68,6 +77,7 @@
 #include "RecoHIEgamma/HIEgammaTools/interface/ShapeCalculator.h"
 #include "RecoHIEgamma/HIEgammaTools/interface/HIPhotonMCType.h"
 #include "RecoHIEgamma/HIEgammaTools/interface/HIMCGammaJetSignalDef.h"
+#include "RecoHIEgamma/HIEgammaTools/interface/HIGenMatch.h"
 #include "RecoHIEgamma/HIEgammaTools/interface/HICaloUtil.h"
 #include "RecoEgamma/EgammaTools/interface/HoECalculator.h"
 
@@ -94,13 +104,14 @@ class HIPhotonCandidateAna : public edm::EDAnalyzer {
 
       // ----------member data ---------------------------
   std::string GenCandInput;     // GenParticle Candidates
+  std::string hiGenParticles;
   std::string SCCandInput;      // SuperCluster Candidates1
   std::string SCCandInput1;     // SuperCluster Candidates2
   std::string SCBInput;         // Barrel SuperClusters
   std::string SCEInput;         // Endcap SuperClusters
   std::string ShapeBInput;      // Barrel Clustershape
   std::string ShapeEInput;      // EndCap Clustershape
-  std::string output;           // Output filename
+  //  std::string output;           // Output filename
   HoECalculator calc_;
 
   TNtuple *datatemp;
@@ -138,19 +149,20 @@ HIPhotonCandidateAna::HIPhotonCandidateAna(const edm::ParameterSet& iConfig)
 
 {
    // Input Tags
-   GenCandInput = iConfig.getUntrackedParameter<std::string>("GenCandInput", "genParticles");
-   SCCandInput  = iConfig.getUntrackedParameter<std::string>("SCCandInput", "barrelclusters");
-   SCCandInput1  = iConfig.getUntrackedParameter<std::string>("SCCandInput1", "endcapclusters");
-   SCBInput      = iConfig.getUntrackedParameter<std::string>("SCBInput", "correctedIslandBarrelSuperClusters");
-   SCEInput      = iConfig.getUntrackedParameter<std::string>("SCEInput", "correctedIslandEndcapSuperClusters");
-   ShapeBInput      = iConfig.getUntrackedParameter<std::string>("ShapeBInput", "islandBarrelShapeAssoc");
-   ShapeEInput      = iConfig.getUntrackedParameter<std::string>("ShapeEInput", "islandEndcapShapeAssoc");
-   DoBarrel      = iConfig.getUntrackedParameter<bool>("DoBarrel", true);
-   DoEndcap      = iConfig.getUntrackedParameter<bool>("DoEndcap", true);
-   SignalOnly      = iConfig.getUntrackedParameter<bool>("SignalOnly", false);
+  GenCandInput = iConfig.getUntrackedParameter<std::string>("GenCandInput", "genParticles");
+  hiGenParticles = iConfig.getUntrackedParameter<std::string>("src", "hiGenParticles");
+  SCCandInput  = iConfig.getUntrackedParameter<std::string>("SCCandInput", "barrelclusters");
+  SCCandInput1  = iConfig.getUntrackedParameter<std::string>( "SCCandInput1", "endcapclusters");
+  SCBInput      = iConfig.getUntrackedParameter<std::string>("SCBInput", "correctedIslandBarrelSuperClusters");
+  SCEInput      = iConfig.getUntrackedParameter<std::string>("SCEInput", "correctedIslandEndcapSuperClusters");
+  ShapeBInput      = iConfig.getUntrackedParameter<std::string>("ShapeBInput", "islandBarrelShapeAssoc");
+  ShapeEInput      = iConfig.getUntrackedParameter<std::string>("ShapeEInput", "islandEndcapShapeAssoc");
+  DoBarrel      = iConfig.getUntrackedParameter<bool>("DoBarrel", true);
+  DoEndcap      = iConfig.getUntrackedParameter<bool>("DoEndcap", true);
+  SignalOnly      = iConfig.getUntrackedParameter<bool>("SignalOnly", false);
   
    // Output
-   output = iConfig.getUntrackedParameter<std::string>("output", "ughuu.root");
+   //   output = iConfig.getUntrackedParameter<std::string>("output", "ughuu.root");
 
    // Cuts
    etCut = iConfig.getUntrackedParameter<double>("etCut", 10);
@@ -177,22 +189,90 @@ HIPhotonCandidateAna::analyze(const edm::Event& iEvent, const edm::EventSetup& i
    using namespace edm;
    using namespace reco;
    using namespace std;
+   using namespace HepMC;
 
    int trigFlag=0;
 
+   int jj = 0;
+   
+ 
+ 
+   //  const GenEvent* evt;
+   //  Handle<CrossingFrame<HepMCProduct> > cf;
+   //  iEvent.getByLabel(InputTag("mix","source"),cf);
+   //  cout << " line " << jj << endl ; jj++;
+   
+   //  MixCollection<HepMCProduct> mix(cf.product());
+   // int mixsize = mix.size();
+   // evt = mix.getObject(mixsize-1).GetEvent();
+   //  const HeavyIon* hi = evt->heavy_ion();
+   // int nPart = hi->Npart_proj()+hi->Npart_targ();
+   // double impactP = hi->impact_parameter();
+   int nPart = 0;
+   double impactP = 0;
+ 
+
+
+
 
    
-   //   Handle<CandidateCollection> pGenCandInput;
+   //   Handle<CandidateCollection> pGenCandInput;    This has only Background
    Handle<GenParticleCollection> pGenCandInput;
    iEvent.getByLabel(InputTag(GenCandInput), pGenCandInput);
- 
-   const GenParticleCollection *genParticles = pGenCandInput.product();
-   if(genParticles == 0)
+
+
+  
+  
+   const GenParticleCollection *genParticlesBack = pGenCandInput.product();
+   if(genParticlesBack == 0)
    {
       cout <<"***HIPhotonCandidateAna: GenParticleCandidate not found!"<<endl;
       return;
    }
 
+
+   //  These are the GenCand Collection from HIGenParticles.  which has all the particles ( Background + signal)
+   edm::Handle<GenParticleCollection> pGenCandInputHI;
+   iEvent.getByLabel(InputTag(hiGenParticles),pGenCandInputHI);
+   const GenParticleCollection *genParticlesHI = pGenCandInputHI.product();
+   if(genParticlesHI == 0)
+     {
+       cout <<"***genparcilesHI is empty  !!"<<endl;
+       return;
+     }
+
+   
+
+   
+    //   vector<reco::GenParticle>
+
+   GenParticleCollection genParticlesP;
+   GenParticleCollection* genParticles = &genParticlesP;
+   HIGenMatch gm(genParticlesBack);
+   
+   int maxindexHI = (int)genParticlesHI->size();
+   cout << "Number of Total Particles = " << maxindexHI << endl;
+   cout << "Number of Background Particles = " << genParticlesBack->size() << endl;
+   
+   for ( int i = 0 ; i < maxindexHI ; i ++)
+     {       
+       const reco::GenParticle &cc = (*genParticlesHI)[i];
+       if ( gm.IsMatched(cc) == true)  // which means this is background
+	 { //cout << "matched!  it is background " << endl; 
+	 continue;}
+       else
+	 { 
+	 cout <<i<<endl;
+	 //cout << "Not matched!  it is Signal " << endl;
+	 //cout << "pdgId of this = " << cc.pdgId() << endl;
+	 genParticles->push_back(cc);
+	 }
+     }   
+   
+   cout << "Number of signals = " << genParticles->size() << endl;
+   
+   
+//   cout << " line jj " << endl; jj++;
    Handle<CandidateCollection> pSCCandInput;
    iEvent.getByLabel(InputTag(SCCandInput), pSCCandInput);
    const CandidateCollection *superClusters = pSCCandInput.product();
@@ -201,6 +281,7 @@ HIPhotonCandidateAna::analyze(const edm::Event& iEvent, const edm::EventSetup& i
       cout <<"***HIPhotonCandidateAna: SuperClusterCandidate not found!"<<endl;
       return;
    }
+//   cout << " line jj " << endl; jj++;
 
    Handle<CandidateCollection> pSCCandInput1;
    iEvent.getByLabel(InputTag(SCCandInput1), pSCCandInput1);
@@ -210,6 +291,7 @@ HIPhotonCandidateAna::analyze(const edm::Event& iEvent, const edm::EventSetup& i
       cout <<"***HIPhotonCandidateAna: SuperClusterCandidate1 not found!"<<endl;
       return;
    }
+//   cout << " line jj " << endl; jj++;
 
    Handle<SuperClusterCollection> pSCBInput;
    iEvent.getByLabel(InputTag(SCBInput), pSCBInput);
@@ -219,6 +301,7 @@ HIPhotonCandidateAna::analyze(const edm::Event& iEvent, const edm::EventSetup& i
       cout <<"***HIPhotonCandidateAna: SCBcollection not found!"<<endl;
       return;
    }
+//   cout << " line jj " << endl; jj++;
 
    Handle<SuperClusterCollection> pSCEInput;
    iEvent.getByLabel(InputTag(SCEInput), pSCEInput);
@@ -229,6 +312,7 @@ HIPhotonCandidateAna::analyze(const edm::Event& iEvent, const edm::EventSetup& i
       return;
    }
 
+//   cout << " line jj " << endl; jj++;
 
    Handle<BasicClusterShapeAssociationCollection> hShapeB;
    iEvent.getByLabel(InputTag(ShapeBInput), hShapeB);
@@ -238,6 +322,8 @@ HIPhotonCandidateAna::analyze(const edm::Event& iEvent, const edm::EventSetup& i
       cout <<"***HIPhotonCandidateAna: ShapeB not found!"<<endl;
       return;
    }
+
+//   cout << " line jj " << endl; jj++;
 
    Handle<BasicClusterShapeAssociationCollection> hShapeE;
    iEvent.getByLabel(InputTag(ShapeEInput), hShapeE);
@@ -252,6 +338,7 @@ HIPhotonCandidateAna::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 
    double maxEt=0;
 
+//   cout << " line jj " << endl; jj++;
 
 
    if (DoBarrel) {
@@ -296,15 +383,17 @@ HIPhotonCandidateAna::analyze(const edm::Event& iEvent, const edm::EventSetup& i
    ShapeCalculator ShapeC(iEvent,iSetup);
 
    
-   cout <<"Endcap: "<<superClusters1->size()<<" Barrel: "<<superClusters->size()<<endl;
+//   cout <<"Endcap: "<<superClusters1->size()<<" Barrel: "<<superClusters->size()<<endl;
 
 
+   HIMCGammaJetSignalDef mcisocut(genParticles);
    // Loop over SuperCluster Candidates
    for(int i = 0; i < maxindex; i++)
    {
       const Candidate &SCCand = (*sClusters)[i];
 
-      CandidateGenParticleFinder mp(genParticles,SCCand,dRCut,1);      
+      CandidateGenParticleFinder mp(genParticles,SCCand,dRCut,1);
+
       
       Float_t var[300];
       for (int j = 0; j<100; j++) var[j]=0;
@@ -365,14 +454,13 @@ HIPhotonCandidateAna::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 	if (photonid1 == 4 || photonid1 == 6) id=0; //kDecay+kInvalid
 	
 	
-	cout <<"id="<<id<<" "<<SignalOnly<<endl;
+//	cout <<"id="<<id<<" "<<SignalOnly<<endl;
 	if (SignalOnly && id !=1 ) continue;
 	
-	cout <<"oh id="<<id<<" "<<SignalOnly<<endl;
+//	cout <<"oh id="<<id<<" "<<SignalOnly<<endl;
 	
 	vv.push_back(id);
 	
-	HIMCGammaJetSignalDef mcisocut(genParticles);
 	bool isMCIsolated = mcisocut.IsIsolated(c1);
 	bool isMCSignal   = mcisocut.IsSignal(c1,3,true);
 	
@@ -588,8 +676,11 @@ HIPhotonCandidateAna::analyze(const edm::Event& iEvent, const edm::EventSetup& i
          vv.push_back(CxC.getNBC(SC,3,0,1000,0));
          vv.push_back(CxC.getNBC(SC,4,0,1000,0));
          vv.push_back(CxC.getNBC(SC,5,0,1000,0));
+	 
+	 vv.push_back(float(nPart));
+	 vv.push_back(impactP);
       } else {
-         vv.resize(vv.size()+113);
+         vv.resize(vv.size()+113+2);
       }
 
       for(int j=0;j<(int)vv.size();j++) var[j]=vv[j];
@@ -598,6 +689,9 @@ HIPhotonCandidateAna::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 
       if (SignalOnly && id !=1 ) continue; else      datatemp->Fill(var);
    }
+
+
+   
 
 }
 
@@ -627,9 +721,11 @@ HIPhotonCandidateAna::beginJob(const edm::EventSetup& iSetup)
 			  "nr1:nr2:nr3:nr4:nr5:ncR1:ncR2:ncR3:ncR4:ncR5:" //10
 			  "ECAL:HCAL:SuperE:SuperR:SuperCR:ce2:ce3:ce4:ce5:bcMax:bc2nd:" //11
 			  "avgBCEt1:avgBCEt2:avgBCEt3:avgBCEt4:avgBCEt5:" //5
-			  "NBC1:NBC2:NBC3:NBC4:NBC5" //5
-			  );
-
+				"NBC1:NBC2:NBC3:NBC4:NBC5:" //5
+				"npart:b" //2
+				
+				);
+   
    nEvent = 0;
    nTrigEvent = 0;
 
