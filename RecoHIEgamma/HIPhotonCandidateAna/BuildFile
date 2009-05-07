@@ -8,7 +8,8 @@
 <use name=RecoEgamma/EgammaTools>
 <use name=Geometry/Records>
 <use name=Geometry/CaloGeometry>
-
+<use name=FWCore/ServiceRegistry>
+<use name=PhysicsTools/UtilAlgos>
 <flags EDM_PLUGIN=1>
 <export>
    <lib name=RecoHIEgammaHIPhotonCandidateAna>

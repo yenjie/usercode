@@ -1,9 +1,9 @@
 // -*- C++ -*-
 //
-// Package:    ListImpParameter
-// Class:      ListImpParameter
+// Package:    ImpParameter
+// Class:      ImpParameter
 // 
-/**\class ListImpParameter ListImpParameter.cc yetkin/ListImpParameter/src/ListImpParameter.cc
+/**\class ImpParameter ImpParameter.cc yetkin/ImpParameter/src/ImpParameter.cc
 
  Description: <one line class summary>
 
@@ -13,7 +13,7 @@
 //
 // Original Author:  Yetkin Yilmaz
 //         Created:  Tue Dec 18 09:44:41 EST 2007
-// $Id: ListImpParameter.cc,v 1.3 2008/05/28 12:47:44 yilmaz Exp $
+// $Id: ImpParameter.cc,v 1.1 2009/05/07 11:54:40 yjlee Exp $
 //
 //
 
@@ -59,10 +59,10 @@ using namespace std;
 // class decleration
 //
 
-class ListImpParameter : public edm::EDAnalyzer {
+class ImpParameter : public edm::EDAnalyzer {
    public:
-      explicit ListImpParameter(const edm::ParameterSet&);
-      ~ListImpParameter();
+      explicit ImpParameter(const edm::ParameterSet&);
+      ~ImpParameter();
 
 
    private:
@@ -102,7 +102,7 @@ class ListImpParameter : public edm::EDAnalyzer {
 //
 // constructors and destructor
 //
-ListImpParameter::ListImpParameter(const edm::ParameterSet& iConfig)
+ImpParameter::ImpParameter(const edm::ParameterSet& iConfig)
 {
    //now do what ever initialization is needed
    fBFileName = iConfig.getUntrackedParameter<std::string>("output_b", "b_values.txt");
@@ -116,7 +116,7 @@ ListImpParameter::ListImpParameter(const edm::ParameterSet& iConfig)
 }
 
 
-ListImpParameter::~ListImpParameter()
+ImpParameter::~ImpParameter()
 {
    // do anything here that needs to be done at desctruction time
    // (e.g. close files, deallocate resources etc.)
@@ -130,7 +130,7 @@ ListImpParameter::~ListImpParameter()
 
 // ------------ method called to for each event  ------------
 void
-ListImpParameter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
+ImpParameter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
    using namespace edm;
    using namespace HepMC;
@@ -227,7 +227,7 @@ ListImpParameter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
-ListImpParameter::beginJob(const edm::EventSetup&)
+ImpParameter::beginJob(const edm::EventSetup&)
 {
    out_b.open(fBFileName.c_str());
    if(out_b.good() == false)
@@ -249,7 +249,7 @@ ListImpParameter::beginJob(const edm::EventSetup&)
 
 // ------------ method called once each job just after ending the event loop  ------------
 void 
-ListImpParameter::endJob() {
+ImpParameter::endJob() {
    TFile::TContext context(f);
 
    datatemp->Write();
@@ -259,4 +259,4 @@ ListImpParameter::endJob() {
 }
 
 //define this as a plug-in
-DEFINE_FWK_MODULE(ListImpParameter);
+DEFINE_FWK_MODULE(ImpParameter);
