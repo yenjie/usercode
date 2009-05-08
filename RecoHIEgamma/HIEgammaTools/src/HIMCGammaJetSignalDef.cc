@@ -47,6 +47,9 @@ bool HIMCGammaJetSignalDef::IsIsolated(const reco::Candidate &pp)
 	 if(p.pdgId()!=2212 &&
 	    p.et()>40) { 
             double dphi = fabs(p.phi()-pp.phi());
+            while (dphi>2*PI) {
+               dphi-=2*PI;
+            }   
             if (dphi>PI) dphi = 2*PI-dphi;
 	    if(dphi < 0.5*PI) {
 	       if(p.et()>etNear){
