@@ -13,7 +13,7 @@
 //
 // Original Author:  Yen-Jie Lee
 //         Created:  Sun Apr 13 13:53:50 EDT 2008
-// $Id: HIPhotonCandidateAna.cc,v 1.6 2009/05/06 18:56:44 yjlee Exp $
+// $Id: HIPhotonCandidateAna.cc,v 1.7 2009/05/07 23:27:45 yjlee Exp $
 //
 //
 
@@ -251,24 +251,40 @@ HIPhotonCandidateAna::analyze(const edm::Event& iEvent, const edm::EventSetup& i
    HIGenMatch gm(genParticlesBack);
    
    int maxindexHI = (int)genParticlesHI->size();
+   int maxindexGen = (int)genParticlesBack->size();
+   int idx=0;
    cout << "Number of Total Particles = " << maxindexHI << endl;
    cout << "Number of Background Particles = " << genParticlesBack->size() << endl;
-   
+/*   
    for ( int i = 0 ; i < maxindexHI ; i ++)
-     {       
+     {      
+       
        const reco::GenParticle &cc = (*genParticlesHI)[i];
        if ( gm.IsMatched(cc) == true)  // which means this is background
 	 { //cout << "matched!  it is background " << endl; 
-	 continue;}
+//	 cout <<i<<" "<<cc.pdgId()<<" bck"<<endl;
+	 }
        else
 	 { 
-	 cout <<i<<endl;
+	 cout <<i<<" "<<cc.pdgId()<<" sig"<<" "<<cc.status()<<" "<<idx<<endl;
 	 //cout << "Not matched!  it is Signal " << endl;
 	 //cout << "pdgId of this = " << cc.pdgId() << endl;
 	 genParticles->push_back(cc);
+	 idx++;
+	 if (idx==maxindexHI-maxindexGen) i=maxindexHI;
 	 }
      }   
-   
+
+*/
+   for ( int i = 0 ; i < maxindexHI-maxindexGen ; i ++)
+   {     
+       idx++; 
+       const reco::GenParticle &cc = (*genParticlesHI)[i];
+       genParticles->push_back(cc);
+
+       if (idx==maxindexHI-maxindexGen) i=maxindexHI;
+   }   
+
    cout << "Number of signals = " << genParticles->size() << endl;
    
    
@@ -680,12 +696,12 @@ HIPhotonCandidateAna::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 	 vv.push_back(float(nPart));
 	 vv.push_back(impactP);
       } else {
-         vv.resize(vv.size()+113+2);
+         vv.resize(vv.size()+115);
       }
 
       for(int j=0;j<(int)vv.size();j++) var[j]=vv[j];
 
-       if (vv.size()!=180) cout <<"ERROR!!!!! "<<vv.size()<<endl;
+       if (vv.size()!=182) cout <<"ERROR!!!!! "<<vv.size()<<endl;
 
       if (SignalOnly && id !=1 ) continue; else      datatemp->Fill(var);
    }
