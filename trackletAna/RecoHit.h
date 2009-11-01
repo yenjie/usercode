@@ -57,6 +57,7 @@ class TrackletData {
  public:
 
   float eta1[maxEntry2],phi1[maxEntry2],eta2[maxEntry2],phi2[maxEntry2],vz[maxEntry2];
+  float r1[maxEntry2],r2[maxEntry2];
   float deta[maxEntry2],dphi[maxEntry2];
   float eta[maxEntry2],phi[maxEntry2],chg[maxEntry2],pdg[maxEntry2],nhad[12],pt[maxEntry2];
   int nTracklet,nhit1,nhit2,mult,nv,npart,evtType,trackletType;

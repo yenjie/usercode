@@ -9,13 +9,17 @@ using namespace std;
 class Tracklet
 {
    public:
-      Tracklet(double eta1,double eta2,double phi1,double phi2);
+      Tracklet(double eta1,double eta2,double phi1,double phi2,double r1,double
+      r2);
       ~Tracklet(){};
 
       double eta1() { return eta1_; }
       double eta2() { return eta2_; }
       double phi1() { return phi1_; }
       double phi2() { return phi2_; }
+      double r1()   { return r1_; }
+      double r2()   { return r2_; }
+      
 
       double deta() { return eta1_-eta2_; }
       double dphi();
@@ -48,6 +52,9 @@ class Tracklet
       double phi1_;
       double phi2_;
 
+      double r1_;
+      double r2_;
+
       int it1_;   // first iterator
       int it2_;   // second iterator
       
@@ -59,7 +66,7 @@ class Tracklet
       
 };
 
-Tracklet::Tracklet(double eta1, double eta2, double phi1, double phi2) {
+Tracklet::Tracklet(double eta1, double eta2, double phi1, double phi2, double r1, double r2) {
 
    eta1_ = eta1;
    eta2_ = eta2;
@@ -69,6 +76,9 @@ Tracklet::Tracklet(double eta1, double eta2, double phi1, double phi2) {
 
    phi2_ = phi2;
    while (phi2_>2*PI) phi2_-=2*PI;
+
+   r1_ = r1;
+   r2_ = r2;
 }
 
 double Tracklet::dphi() 
@@ -114,7 +124,7 @@ vector<Tracklet> recoProtoTracklets(vector<RecoHit> hits1, vector<RecoHit> hits2
     {
       for (int j = 0; j < (int) hits2.size(); j++)
 	{
-	  Tracklet mytracklet(hits1[i].eta,hits2[j].eta,hits1[i].phi,hits2[j].phi);
+	  Tracklet mytracklet(hits1[i].eta,hits2[j].eta,hits1[i].phi,hits2[j].phi,hits1[i].r,hits2[j].r);
 	  mytracklet.setIt1(i);
 	  mytracklet.setIt2(j);
 	  protoTracklets.push_back(mytracklet);
@@ -186,7 +196,7 @@ vector<Tracklet> recoFastTracklets(vector<RecoHit> hits,int verbose_ = 0)
 	      continue;
 	  }
 	  flag=0;
-	  Tracklet mytracklet(hits[i1-1].eta,hits[i1].eta,hits[i1-1].phi,hits[i1].phi);
+	  Tracklet mytracklet(hits[i1-1].eta,hits[i1].eta,hits[i1-1].phi,hits[i1].phi,hits[i1-1].r,hits[i1].r);
           fastTracklets.push_back(mytracklet);
 	  n[(int)hits[i1-1].layer]--;
 	  n[(int)hits[i1].layer]--;
