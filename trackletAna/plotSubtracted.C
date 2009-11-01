@@ -13,16 +13,14 @@
 #include <math.h>
 #include <TF1.h>
 #include <TCut.h>
-
+#include <TLatex.h>
 
 void formatHist(TH1* h, int col = 1, double norm = 1);
 void plotSubtracted(char* filename,char *title="",char *mycut= "",bool useMC = false)
 {
    TFile *f= new TFile(filename);
    
-   TTree * TrackletTree= dynamic_cast<TTree *>(f->Get("TrackletTree"));
-//   TFile *fmc= new TFile(toyMC);
-//   TNtuple * TrackletTreeMC= dynamic_cast<TNtuple *>(fmc->Get("ntmatched"));
+   TTree * TrackletTree= dynamic_cast<TTree *>(f->Get("TrackletTree12"));
 
    TH2F *h1 = new TH2F("h1","",12,-3,3,50,0,5);
    TH2F *h2 = new TH2F("h2","",12,-3,3,50,0,5);
@@ -42,12 +40,14 @@ void plotSubtracted(char* filename,char *title="",char *mycut= "",bool useMC = f
    h1->Sumw2();
    h2->Sumw2();
    h3->Sumw2();
+
    for (int x=0;x<80;x++) {
       for (int y=0;y<200;y++) {
          h3->SetBinContent(x,y, h1->GetBinContent(x,y)-h2->GetBinContent(x,y));
          h3->SetBinError(x,y, sqrt(h1->GetBinError(x,y)*h1->GetBinError(x,y)+h2->GetBinError(x,y)*h2->GetBinError(x,y)));
       }
    }
+   
    h3->Draw("col");
    TCanvas *c2 = new TCanvas ("c2","",400,400);
    c2->SetLogy();
@@ -65,15 +65,17 @@ void plotSubtracted(char* filename,char *title="",char *mycut= "",bool useMC = f
    formatHist(hy3,2,norm);
    hy1->SetXTitle(Form("|#Delta#eta| %s",title));
    hy1->SetYTitle("Arbitrary Normalization");
-   
+   hy1->SetAxisRange(10e-7,2,"Y");
    hy1->Draw();
    hy2->SetMarkerColor(4);
+   hy2->SetMarkerStyle(24);
    hy2->SetLineColor(4);
    hy2->Draw("same");
    hy3->SetMarkerColor(2);
    hy3->SetLineColor(2);
+   hy3->SetMarkerStyle(25);
    hy3->Draw("same");
-    TLegend * leg1 = new TLegend(0.23,0.8,0.56,0.93);
+    TLegend * leg1 = new TLegend(0.28,0.72,0.50,0.85);
     leg1->SetFillStyle(0);  
     leg1->SetFillColor(0); 
     leg1->SetBorderSize(0);
@@ -84,6 +86,10 @@ void plotSubtracted(char* filename,char *title="",char *mycut= "",bool useMC = f
     leg1->AddEntry(hy3,"Tracklets with Background Subtracted","p");
 
     leg1->Draw();
+    TLatex *   tex = new TLatex(0.8,0.48,"CMS Preliminary");
+    tex->SetLineWidth(2);
+    tex->Draw();
+
     c2->SaveAs("Subtracted.gif");
     c2->SaveAs("Subtracted.C");
     c2->SaveAs("Subtracted.eps");
@@ -95,7 +101,7 @@ void formatHist(TH1* h, int col, double norm){
   h->Scale(1/norm);
   h->SetLineColor(col);
   h->SetMarkerColor(col);
-  h->SetMarkerSize(0.7);
+  h->SetMarkerSize(1);
   h->GetYaxis()->SetTitleOffset(1.15);
   h->GetXaxis()->CenterTitle();
   h->GetYaxis()->CenterTitle();

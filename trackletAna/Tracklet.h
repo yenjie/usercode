@@ -237,9 +237,9 @@ vector<Tracklet> cleanTracklets(vector<Tracklet> input, int matchNumber,Selectio
 
 
     if(cuts.useDeltaPhi_) {
-      if (cuts.verbose_) cout<<"Eta 1 : "<<input[i].eta1()<<"  ; Eta 2 : "<<input[i].eta2()<<" ;  Delta R : "<<input[i].dR()<<endl;
+       if (cuts.verbose_) cout<<"Eta 1 : "<<input[i].eta1()<<"  ; Eta 2 : "<<input[i].eta2()<<" ;  Delta R : "<<input[i].dR()<<endl;
     } else {
-	if (cuts.verbose_) cout<<"Eta 1 : "<<input[i].eta1()<<"  ; Eta 2 : "<<input[i].eta2()<<" ;  Delta Eta : "<<input[i].deta()<<endl;
+       if (cuts.verbose_) cout<<"Eta 1 : "<<input[i].eta1()<<"  ; Eta 2 : "<<input[i].eta2()<<" ;  Delta Eta : "<<input[i].deta()<<endl;
     }
     int i1=input[i].getIt1();
     int i2=input[i].getIt2();
@@ -285,9 +285,7 @@ double sumTrackletVector(vector<Tracklet> x)
    return total;
 }
 
-
-
-double TrackletVertexUnbin(Parameters par,double histDeltaZ, double dPhiCut, bool redoAvg = true, bool fillZ=true)
+double TrackletVertexUnbin(vector<RecoHit> layer1, vector<RecoHit> layer2,double histDeltaZ, double dPhiCut, bool redoAvg = true, bool fillZ=true)
 {
 
     double maxNz=0;
@@ -297,16 +295,16 @@ double TrackletVertexUnbin(Parameters par,double histDeltaZ, double dPhiCut, boo
  
     vector<double> vectorZ;
     
-    for(int ihit = 0; ihit< (int)par.nhits1; ++ihit) {
-       double r1 = par.r1[ihit];
-       double phi1 = par.phi1[ihit];
-       double z1 = par.r1[ihit]/tan(atan(exp(-par.eta1[ihit]))*2);
+    for(int ihit = 0; ihit< (int)layer1.size(); ++ihit) {
+       double r1 = layer1[ihit].r;
+       double phi1 = layer1[ihit].phi;
+       double z1 = r1/tan(atan(exp(-layer1[ihit].eta))*2);
        
-       for(int ihit2 = 0; ihit2< (int)par.nhits2; ++ihit2) {
-          double r2 = par.r2[ihit2];
-          double phi2 = par.phi2[ihit2];
+       for(int ihit2 = 0; ihit2< (int)layer2.size(); ++ihit2) {
+          double r2 = layer2[ihit2].r;
+          double phi2 = layer2[ihit2].phi;
 	  if (fabs(calcDphi(phi1,phi2))>dPhiCut) continue;
-          double z2 = par.r2[ihit2]/tan(atan(exp(-par.eta2[ihit2]))*2);
+          double z2 = r2/tan(atan(exp(-layer2[ihit2].eta))*2);
 	  
 	  double z = z1-(z2-z1)/(r2-r1)*r1;
 	   if (fabs(z)<20) {
@@ -356,7 +354,6 @@ double TrackletVertexUnbin(Parameters par,double histDeltaZ, double dPhiCut, boo
 //    cout <<maxTotalZ<<" "<<maxNz<<endl;
    if (maxNz==0||nRecoZ==0) return -99; else return maxTotalZ/maxNz;
 }
-
 
 
 
