@@ -13,7 +13,7 @@ using namespace std;
 
 void analyze_trackletTree(char * infile, char * outfile = "output.root", int makeVzCut = 0,
                           int addL1Bck = 0, int addL2Bck = 0, double
-			  splitProb = 0, double dropProb = 0, int nPileUp = 0, int putPixelTree = 1)
+			  splitProb = 0, double dropProb = 0, int nPileUp = 0, int putPixelTree = 0)
 {
 
   // Input file =======================================================================================
@@ -206,7 +206,13 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
   // Main loop ===========================================================================================
   for(int i =0;  i<t->GetEntries()&&i<1000000000 ; i = i + 1 + nPileUp){    
     t->GetEntry(i);
-    if (i % 1000 == 0) cout <<"Event "<<i<<endl;    
+    if (i % 1000 == 0) {
+       cout <<"Event "<<i<<" "
+            <<trackletTree12->GetEntries()<<" "
+            <<trackletTree23->GetEntries()<<" "
+            <<trackletTree13->GetEntries()<<" "
+            <<endl;    
+    }       
     // Selection on Events
     
     // Fill vertex information
@@ -283,10 +289,8 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     if (par.nhits1> vertexHitRegion) trackletVertex = par.vz[1]; else trackletVertex = TrackletVertexUnbin(layerRaw1,layerRaw2,0.14,0.08);
     
     // For particle gun =========
-    /*
-    if (i % 1000 == 0) cout <<"!!! USE GEN VERTEX (FOR PARTICLE GUN)"<<endl;
-    trackletVertex = par.vz[0];
-    */
+//    if (i % 1000 == 0) cout <<"!!! USE GEN VERTEX (FOR PARTICLE GUN)"<<endl;
+//    trackletVertex = par.vz[0];
     //===========================
 
     tdata12.vz[tdata12.nv] = trackletVertex;
@@ -382,6 +386,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     for(int j=0;j<par.npart;j++)
     {
         if (fabs(par.eta[j])>3||par.chg[j]==0) continue;
+//        if (fabs(par.eta[j])>3) continue;
 	tdata12.eta[tdata12.npart]=par.eta[j];
 	tdata12.phi[tdata12.npart]=par.phi[j];
 	tdata12.chg[tdata12.npart]=par.chg[j];
@@ -423,6 +428,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     for(int j=0;j<par.npart;j++)
     {
         if (fabs(par.eta[j])>3||par.chg[j]==0) continue;
+//        if (fabs(par.eta[j])>3) continue;
 	tdata13.eta[tdata13.npart]=par.eta[j];
 	tdata13.phi[tdata13.npart]=par.phi[j];
 	tdata13.chg[tdata13.npart]=par.chg[j];
@@ -464,6 +470,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     for(int j=0;j<par.npart;j++)
     {
         if (fabs(par.eta[j])>3||par.chg[j]==0) continue;
+//        if (fabs(par.eta[j])>3) continue;
 	tdata23.eta[tdata23.npart]=par.eta[j];
 	tdata23.phi[tdata23.npart]=par.phi[j];
 	tdata23.chg[tdata23.npart]=par.chg[j];

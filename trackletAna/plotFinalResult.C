@@ -11,14 +11,15 @@
 #include <TCanvas.h>
 #include <TNtuple.h>
 #include <TTree.h>
-#include <iostream.h>
 #include <TLine.h>
-#include <math.h>
 #include <TF1.h>
 #include <TCut.h>
 #include <TPad.h>
 #include <TText.h>
 
+#include <math.h>
+#include <iostream.h>
+#include <fstream>
 #include "GraphErrorsBand.h"
 
 #define nEtaBin 12
@@ -222,14 +223,12 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
    h2->Sumw2();
 
    // Charged Hadrons ========================================================================================================
-
    hHadron->SetXTitle("#eta");
    hHadron->SetYTitle("N_{hit}^{Layer1} |#eta|<1");
    TrackletTree->Project("hHadron","vz[3]:nhit1:eta","abs(eta)<3"&&vzCut,"",nentries,firstentry);
    TrackletTree->Project("hHadronWOSelection","vz[3]:nhit1:eta","","",nentries,firstentry);
    hHadronAccepted = (TH3F*) hHadron->Clone();
    hHadronAccepted->SetName("hHadronAccepted");
-
 
    // Beta calculation ============================================================================================================
    for (int x=1;x<=nEtaBin;x++) {
@@ -459,6 +458,28 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
 
    // Apply correction ===============================================================================
 
+   ofstream alphaCode;
+   alphaCode.open("alpha.C");
+   
+   alphaCode <<"  const int nEtaBin = 12;"<<endl;
+   alphaCode <<"  const int nHitBin = 14;"<<endl;
+   alphaCode <<"  const int nVzBin  = 10;"<<endl;
+   alphaCode <<endl;
+   alphaCode <<"  double HitBins[nHitBin+1] = {0,5,10,15,20,25,30,35,40,50,60,80,100,200,700};"<<endl;
+   alphaCode <<endl;
+   alphaCode <<"  double EtaBins[nEtaBin+1];"<<endl;
+   alphaCode <<"  for (int i=0;i<=nEtaBin;i++)"<<endl;
+   alphaCode <<"    EtaBins[i] = (double)i*6.0/(double)nEtaBin-3.0;"<<endl;
+   alphaCode <<"  double VzBins[nVzBin+1];"<<endl;
+   alphaCode <<"  for (int i=0;i<=nVzBin;i++)"<<endl;
+   alphaCode <<"    VzBins[i] = (double)i*20.0/(double)nVzBin-10.0;"<<endl;
+   alphaCode <<endl;
+   alphaCode <<"  double alpha[nEtaBin][nHitBin][nVzBin];"<<endl;
+   alphaCode <<endl;
+   alphaCode <<"  AlphaTracklets12_ = new TH3F(\"hAlphaTracklets12\",\"\",nEtaBin, EtaBins, nHitBin, HitBins, nVzBin, VzBins);"<<endl;
+   alphaCode <<"  AlphaTracklets12_->SetDirectory(0);"<<endl;
+   alphaCode <<endl;
+   
    for (int x=1;x<=nEtaBin;x++) {
    
       double totalN=0;
@@ -475,6 +496,8 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
             double alpha,alphaErr;
 	    alpha = alphaPlots[x-1][z-1]->GetBinContent(y);
             alphaErr = alphaPlots[x-1][z-1]->GetBinError(y);
+	    //alphaCode <<" alpha["<<x-1<<"]["<<y-1<<"]["<<z-1<<"]="<<alpha<<";"<<endl;
+            alphaCode <<"  AlphaTracklets12_->SetBinContent("<<x<<","<<y<<","<<z<<","<<alpha<<");"<<endl;
 
             // use extrapolated value if alpha is not available
  	    if (alpha==0) {
@@ -512,6 +535,8 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
       hCorrectedEtaBin->SetBinError(x,sqrt(totalNErr));
       
    }
+   
+   alphaCode.close();
    
    TCanvas *cDNdEtaC = new TCanvas("cDNdEtaC","Before Acceptance correction",400,400);
    double nevent = TrackletTree->Draw("vz[3]",vzCut,"",nentries,firstentry);
