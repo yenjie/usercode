@@ -52,6 +52,8 @@ class Parameters {
  public:
 
   float eta1[maxEntry],phi1[maxEntry],r1[maxEntry],eta2[maxEntry],phi2[maxEntry],r2[maxEntry],eta3[maxEntry],phi3[maxEntry],r3[maxEntry],vz[maxEntry];
+  float cs1[maxEntry],cs2[maxEntry],cs3[maxEntry];
+  float ch1[maxEntry],ch2[maxEntry],ch3[maxEntry];
   float eta[maxEntry],phi[maxEntry],chg[maxEntry],pdg[maxEntry],pt[maxEntry];
   int nhits1,nhits2,nhits3,mult,nv,npart,evtType;
 };
