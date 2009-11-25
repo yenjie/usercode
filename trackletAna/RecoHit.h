@@ -30,6 +30,8 @@ class RecoHit {
       double phi;
       double r;
       double layer;
+      double cs;   // cluster size
+      double ch;   // cluster charge
 };
 
 class SelectionCriteria {

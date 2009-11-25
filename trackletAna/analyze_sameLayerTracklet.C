@@ -106,12 +106,18 @@ void analyze_sameLayerTracklet(char * infile, char * outfile = "outputSameLayer.
 
   t->SetBranchAddress("eta1",par.eta1);
   t->SetBranchAddress("phi1",par.phi1);
+  t->SetBranchAddress("ch1",par.ch1);
+  t->SetBranchAddress("cs1",par.cs1);
   t->SetBranchAddress("r1",par.r1);
   t->SetBranchAddress("eta2",par.eta2);
   t->SetBranchAddress("phi2",par.phi2);
+  t->SetBranchAddress("ch2",par.ch2);
+  t->SetBranchAddress("cs2",par.cs2);
   t->SetBranchAddress("r2",par.r2);
   t->SetBranchAddress("eta3",par.eta3);
   t->SetBranchAddress("phi3",par.phi3);
+  t->SetBranchAddress("ch3",par.ch3);
+  t->SetBranchAddress("cs3",par.cs3);
   t->SetBranchAddress("r3",par.r3);
   t->SetBranchAddress("nhits1",&par.nhits1);
   t->SetBranchAddress("nhits2",&par.nhits2);
