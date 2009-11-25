@@ -42,6 +42,7 @@ class SelectionCriteria {
 
   bool verbose_ ;
   bool useDeltaPhi_;
+  bool useDeltaRho_;
   bool checkSecondLayer_;
 };
 

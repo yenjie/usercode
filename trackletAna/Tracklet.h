@@ -1,5 +1,6 @@
 #include <vector>
 #include <iostream>
+#include <TH1F.h>
 
 #include "RecoHit.h"
 using namespace std;
@@ -64,6 +65,10 @@ class Tracklet
       int id1_;
       int id2_;
       
+      double dphi_;
+      double deta_;
+      double dR2_;
+      
 };
 
 Tracklet::Tracklet(double eta1, double eta2, double phi1, double phi2, double r1, double r2) {
@@ -79,10 +84,17 @@ Tracklet::Tracklet(double eta1, double eta2, double phi1, double phi2, double r1
 
    r1_ = r1;
    r2_ = r2;
+   
+   dphi_=-10000;
+   deta_=-10000;
+   dR2_=-10000;
+   
+   dR2_=dR2();
 }
 
 double Tracklet::dphi() 
 {
+   if (dphi_!=-10000) return dphi_;
    double dphi=phi1_-phi2_;
 
    if (dphi>0){
@@ -93,24 +105,35 @@ double Tracklet::dphi()
       if (dphi<-PI) dphi=-2*PI-dphi;
    }
 
-
+   dphi_=dphi;
    return dphi; 
 }
 
 double Tracklet::dR() 
 {
+   if (dR2_!=-10000) return sqrt(dR2_);
+
    return sqrt(dR2());
 }
 
 double Tracklet::dR2() 
 {
+   if (dR2_!=-10000) return dR2_;
    double dPhi=dphi();
    double dEta=deta();
-
-   return dPhi*dPhi+dEta*dEta;
+   dR2_ = dPhi*dPhi+dEta*dEta;
+//   cout <<"aaaaaaaaa"<<dR2_<<"\r";
+   return dR2_;
 }
 
-bool compareDeltaR(Tracklet a,Tracklet b) { return fabs(a.dR2())<fabs(b.dR2());}
+bool compareDeltaRWithRhoCut(Tracklet a,Tracklet b)   {
+   double aWeight = a.dR2();
+   if (fabs(a.r1()-a.r2()>0.2)) aWeight+=10000; // avoid double hit 
+   double bWeight = b.dR2();
+   if (fabs(b.r1()-b.r2()>0.2)) bWeight+=10000; // avoid double hit
+   return aWeight<bWeight;   
+}
+bool compareDeltaR(Tracklet a,Tracklet b)   {return fabs(a.dR2())<fabs(b.dR2());}
 bool compareDeltaEta(Tracklet a,Tracklet b) {return fabs(a.deta())<fabs(b.deta());}
 
 vector<Tracklet> cleanTracklets(vector<Tracklet> input, int matchNumber, SelectionCriteria cuts);
@@ -127,7 +150,8 @@ vector<Tracklet> recoProtoTracklets(vector<RecoHit> hits1, vector<RecoHit> hits2
 	  Tracklet mytracklet(hits1[i].eta,hits2[j].eta,hits1[i].phi,hits2[j].phi,hits1[i].r,hits2[j].r);
 	  mytracklet.setIt1(i);
 	  mytracklet.setIt2(j);
-	  protoTracklets.push_back(mytracklet);
+	  // prevent self-match in same layer tracklet
+	  if (hits1[i].eta!=hits2[j].eta) protoTracklets.push_back(mytracklet);
 	}
     }
 
@@ -221,12 +245,28 @@ vector<Tracklet> recoFastTracklets(vector<RecoHit> hits,int verbose_ = 0)
 vector<Tracklet> cleanTracklets(vector<Tracklet> input, int matchNumber,SelectionCriteria cuts)
 {
   vector<Tracklet> output;
-
-  if(cuts.useDeltaPhi_)
-    sort( input.begin() , input.end() , compareDeltaR);
-  else
-    sort( input.begin() , input.end() , compareDeltaEta);
-
+  /*
+  for (int i=0;i<input.size();i++)
+  {
+     double a=input[i].dR2();
+  }
+  */
+ 
+  if(cuts.useDeltaPhi_) {
+    if (cuts.useDeltaRho_) { 
+       sort( input.begin() , input.end() , compareDeltaRWithRhoCut);
+    } else {
+       sort( input.begin() , input.end() , compareDeltaR);
+    }
+  } else {
+    if (cuts.useDeltaRho_) { 
+       cout <<"Not supported option!!"<<endl;
+       //sort( input.begin() , input.end() , compareDeltaEtaRho);
+    } else {
+       sort( input.begin() , input.end() , compareDeltaEta);
+    }
+  }
+  
   if (cuts.verbose_) {
     for (unsigned int i = 0; i < input.size(); i++)
       {
@@ -242,7 +282,6 @@ vector<Tracklet> cleanTracklets(vector<Tracklet> input, int matchNumber,Selectio
     used2[i]=0;
   }
   if (cuts.verbose_) cout<<"Printing Hits"<<endl;
-
   for (unsigned int i = 0; i < input.size(); i++){
 
 
@@ -268,10 +307,9 @@ vector<Tracklet> cleanTracklets(vector<Tracklet> input, int matchNumber,Selectio
     cout <<"Output:"<<endl;
     for (unsigned int i = 0; i < output.size(); i++)
       {
-	cout <<output[i].deta()<<" "<<output[i].getIt1()<<" "<<output[i].getIt2()<<endl;
+	//cout <<output[i].deta()<<" "<<output[i].getIt1()<<" "<<output[i].getIt2()<<endl;
       }
   }
-
   return output;
 }
 
@@ -366,4 +404,38 @@ double TrackletVertexUnbin(vector<RecoHit> layer1, vector<RecoHit> layer2,double
 }
 
 
+void setTrackletTreeBranch(TTree* trackletTree,TrackletData &tdata)
+{
+  trackletTree->Branch("nTracklets",&tdata.nTracklet,"nTracklets/I");
+  trackletTree->Branch("nhit1",&tdata.nhit1,"nhit1/I");
+  trackletTree->Branch("nhit2",&tdata.nhit2,"nhit2/I");
+  trackletTree->Branch("mult",&tdata.mult,"mult/I");
+  trackletTree->Branch("nv",&tdata.nv,"nv/I");
+  trackletTree->Branch("vz",tdata.vz,"vz[nv]/F");
+  trackletTree->Branch("eta1",tdata.eta1,"eta1[nTracklets]/F");
+  trackletTree->Branch("phi1",tdata.phi1,"phi1[nTracklets]/F");
+  trackletTree->Branch("r1",tdata.r1,"r1[nTracklets]/F");
+  trackletTree->Branch("eta2",tdata.eta2,"eta2[nTracklets]/F");
+  trackletTree->Branch("phi2",tdata.phi2,"phi2[nTracklets]/F");
+  trackletTree->Branch("r2",tdata.r2,"r2[nTracklets]/F");
+  trackletTree->Branch("deta",tdata.deta,"deta[nTracklets]/F");
+  trackletTree->Branch("dphi",tdata.dphi,"dphi[nTracklets]/F");
+  
+  trackletTree->Branch("npart",&tdata.npart,"npart/I");
+  trackletTree->Branch("eta",tdata.eta,"eta[npart]/F");
+  trackletTree->Branch("phi",tdata.phi,"phi[npart]/F");
+  trackletTree->Branch("pdg",tdata.pdg,"pdg[npart]/I");
+  trackletTree->Branch("chg",tdata.chg,"chg[npart]/I");
+  trackletTree->Branch("nhad",tdata.nhad,"nhad[12]/F");
+  trackletTree->Branch("pt",tdata.pt,"pt[npart]/F");
+  trackletTree->Branch("evtType",&tdata.evtType,"evtType/I");
 
+  trackletTree->SetAlias("dR","sqrt(deta*deta+dphi*dphi)");
+  trackletTree->SetAlias("dRR","sqrt(deta*deta+dphi*dphi+(r1-r2)*(r1-r2))") ;
+  trackletTree->SetAlias("z1","r1/tan(atan(exp(-eta1))*2)+vz[3]");
+  trackletTree->SetAlias("z2","r2/tan(atan(exp(-eta2))*2)+vz[3]");
+  trackletTree->SetAlias("x1","r1*cos(phi1)");
+  trackletTree->SetAlias("x2","r2*cos(phi2)");
+  trackletTree->SetAlias("y1","r1*sin(phi1)");
+  trackletTree->SetAlias("y2","r2*sin(phi2)");
+}

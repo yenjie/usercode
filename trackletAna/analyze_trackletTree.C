@@ -50,6 +50,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
   // Settings =========================================================================================
   cuts.verbose_ = false;
   cuts.useDeltaPhi_ = false;
+  cuts.useDeltaRho_ = false;
   cuts.checkSecondLayer_ = true;
   
   // Tracklet Tree data format ========================================================================
