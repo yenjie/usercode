@@ -19,7 +19,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
   // Input file =======================================================================================
   TFile* inf = new  TFile(infile);
 
-  TTree* t = dynamic_cast<TTree*>(inf->Get("ana/PixelTree"));
+  TTree* t = dynamic_cast<TTree*>(inf->FindObjectAny("PixelTree"));
 
   // Output file =======================================================================================
   TFile* outf = new TFile(outfile,"recreate");
@@ -216,15 +216,19 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     }       
     // Selection on Events
     
-    // Fill vertex information
-    tdata12.nv = par.nv;  
-    tdata23.nv = par.nv;  
-    tdata13.nv = par.nv;  
-    for(int j = 0; j<par.nv;j++) {
-       tdata12.vz[j] = par.vz[j];
-       tdata23.vz[j] = par.vz[j];
-       tdata13.vz[j] = par.vz[j];
+    // Fill reco vertex information
+    tdata12.nv = par.nv+1;  
+    tdata23.nv = par.nv+1;  
+    tdata13.nv = par.nv+1;  
+    for(int j = 1; j<par.nv;j++) {
+       tdata12.vz[j+1] = par.vz[j];
+       tdata23.vz[j+1] = par.vz[j];
+       tdata13.vz[j+1] = par.vz[j];
     }
+    // Fill MC vertex
+    tdata12.vz[0] = par.vz[0];
+    tdata23.vz[0] = par.vz[0];
+    tdata13.vz[0] = par.vz[0];
     
     // add background 
     if (addL1Bck!=0) {
@@ -266,9 +270,11 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 
     
     // add trackletVertex
+    /*
     if (tdata12.nv == 2) tdata12.nv=3;
     if (tdata23.nv == 2) tdata23.nv=3;
     if (tdata13.nv == 2) tdata13.nv=3;
+    */
     
     vector<RecoHit> layerRaw1;
     prepareHits(layerRaw1,par, cuts, 1, 0, splitProb, dropProb);
@@ -294,31 +300,29 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 //    trackletVertex = par.vz[0];
     //===========================
 
-    tdata12.vz[tdata12.nv] = trackletVertex;
-    tdata23.vz[tdata23.nv] = trackletVertex;
-    tdata13.vz[tdata13.nv] = trackletVertex;
-    tdata12.nv++;
-    tdata23.nv++;
-    tdata13.nv++;
+    // vz[1] is always the selected algorithm
+    tdata12.vz[1] = trackletVertex;
+    tdata23.vz[1] = trackletVertex;
+    tdata13.vz[1] = trackletVertex;
 
     // use trackletVertex
-    if (fabs(tdata12.vz[tdata12.nv-1])>cuts.vzCut && makeVzCut == 1) continue;
+    if (fabs(tdata12.vz[1])>cuts.vzCut && makeVzCut == 1) continue;
     
 
     // Process hits with Vz constraint:
     vector<RecoHit> layer1;
-    prepareHits(layer1,par, cuts, 1, tdata12.vz[tdata12.nv-1], splitProb, dropProb);
+    prepareHits(layer1,par, cuts, 1, tdata12.vz[1], splitProb, dropProb);
     vector<RecoHit> layer2;
-    prepareHits(layer2,par, cuts, 2, tdata12.vz[tdata12.nv-1], splitProb, dropProb);
+    prepareHits(layer2,par, cuts, 2, tdata12.vz[1], splitProb, dropProb);
     vector<RecoHit> layer3;
-    prepareHits(layer3,par, cuts, 3, tdata12.vz[tdata12.nv-1], splitProb, dropProb);
+    prepareHits(layer3,par, cuts, 3, tdata12.vz[1], splitProb, dropProb);
 
     if (nPileUp!=0) {
        for (int j=1;j <= nPileUp ; j++) {
           t->GetEntry(i+j);
-          prepareHits(layer1,par, cuts, 1, tdata12.vz[tdata12.nv-1], splitProb, dropProb);
-          prepareHits(layer2,par, cuts, 2, tdata12.vz[tdata12.nv-1], splitProb, dropProb);
-          prepareHits(layer3,par, cuts, 3, tdata12.vz[tdata12.nv-1], splitProb, dropProb);
+          prepareHits(layer1,par, cuts, 1, tdata12.vz[1], splitProb, dropProb);
+          prepareHits(layer2,par, cuts, 2, tdata12.vz[1], splitProb, dropProb);
+          prepareHits(layer3,par, cuts, 3, tdata12.vz[1], splitProb, dropProb);
        }
        t->GetEntry(i);
     }

@@ -16,7 +16,7 @@ void analyze_sameLayerTracklet(char * infile, char * outfile = "outputSameLayer.
 			  splitProb = 0, double dropProb = 0, int nPileUp = 0)
 {
   TFile* inf = new  TFile(infile);
-  TTree* t = dynamic_cast<TTree*>(inf->Get("ana/PixelTree"));
+  TTree* t = dynamic_cast<TTree*>(inf->FindObjectAny("PixelTree"));
 
   int zbins = 1;
   int hitbins = 100;
