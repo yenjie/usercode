@@ -13,7 +13,7 @@
 //
 // Original Author:  Yen-Jie LEE
 //         Created:  Tue Sep 15 13:14:46 CEST 2009
-// $Id: TrackletVertexProducer.cc,v 1.2 2009/11/29 13:37:54 yjlee Exp $
+// $Id: TrackletVertexProducer.cc,v 1.3 2009/11/29 13:45:17 yjlee Exp $
 //
 //
 
@@ -70,7 +70,8 @@ class TrackletVertexProducer : public edm::EDProducer {
       virtual void endJob() ;
       
       // ----------member data ---------------------------
-     const TrackerGeometry* geo_;
+      edm::InputTag pixelHitSrc_;
+
         
 };
 
@@ -88,6 +89,7 @@ class TrackletVertexProducer : public edm::EDProducer {
 //
 TrackletVertexProducer::TrackletVertexProducer(const edm::ParameterSet& iConfig)
 {
+  pixelHitSrc_ = iConfig.getParameter<edm::InputTag>("siPixelRecHits");
   produces<reco::VertexCollection>();
 }
 
@@ -114,14 +116,21 @@ TrackletVertexProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
    std::auto_ptr<reco::VertexCollection> vertices(new reco::VertexCollection);
    const SiPixelRecHitCollection* rechits;
    Handle<SiPixelRecHitCollection> rchts;
-   iEvent.getByLabel("siPixelRecHits",rchts);
+   iEvent.getByLabel(pixelHitSrc_,rchts);
    rechits = rchts.product();
    
+   
+   // RecoHit lite object collection
    vector<RecoHit> layer1Hits;
    vector<RecoHit> layer2Hits;
    
-   float trackletVertexPos = -100;
+   float trackletVertexPos = -9999;
 
+   // Get Geometry
+   edm::ESHandle<TrackerGeometry> tGeo;
+   iSetup.get<TrackerDigiGeometryRecord>().get(tGeo);
+   const TrackerGeometry* geo = tGeo.product();
+     
    for (SiPixelRecHitCollection::const_iterator it = rechits->begin(); it!=rechits->end();it++)
    {
       SiPixelRecHitCollection::DetSet hits = *it;
@@ -139,7 +148,7 @@ TrackletVertexProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
 	 recHitIterator != recHitRange.end(); ++recHitIterator) {
          const SiPixelRecHit * recHit = &(*recHitIterator);
 
-         const PixelGeomDetUnit* pixelLayer = dynamic_cast<const PixelGeomDetUnit*> (geo_->idToDet(recHit->geographicalId()));
+         const PixelGeomDetUnit* pixelLayer = dynamic_cast<const PixelGeomDetUnit*> (geo->idToDet(recHit->geographicalId()));
          GlobalPoint gpos = pixelLayer->toGlobal(recHit->localPosition());
          math::XYZVector rechitPos(gpos.x(),gpos.y(),gpos.z());
 
@@ -158,6 +167,8 @@ TrackletVertexProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
 
    trackletVertexPos = TrackletVertexUnbin(layer1Hits,layer2Hits,0.14,0.08);
    
+   
+   // Dummy error!!!
    reco::Vertex::Error err;
    err(2,2) = 0.1 * 0.1;
    reco::Vertex ver(reco::Vertex::Point(0,0,trackletVertexPos), err, 0, 1, 1);
