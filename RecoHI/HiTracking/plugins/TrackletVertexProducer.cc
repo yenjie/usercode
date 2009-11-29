@@ -13,7 +13,7 @@
 //
 // Original Author:  Yen-Jie LEE
 //         Created:  Tue Sep 15 13:14:46 CEST 2009
-// $Id$
+// $Id: TrackletVertexProducer.cc,v 1.1 2009/09/17 10:08:48 yjlee Exp $
 //
 //
 
@@ -44,17 +44,16 @@
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingVertexContainer.h"
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingParticle.h"
 #include "SimDataFormats/TrackingHit/interface/PSimHit.h"
-#include "SimGeneral/HepPDTRecord/interface/ParticleDataTable.h"
+//#include "SimGeneral/HepPDTRecord/interface/ParticleDataTable.h"
 #include "SimTracker/TrackerHitAssociation/interface/TrackerHitAssociator.h"
 
 // my lite objects
-#include "RecoHI/HiTracking/plugins/RecoHit.h"
+//#include "RecoHI/HiTracking/plugins/RecoHit.h"
 #include "RecoHI/HiTracking/plugins/Tracklet.h"
 
 using namespace std;
 using namespace edm;
 using namespace reco;
-
 
 //
 // class decleration
@@ -72,7 +71,7 @@ class TrackletVertexProducer : public edm::EDProducer {
       
       // ----------member data ---------------------------
      const TrackerGeometry* geo_;
-     edm::ESHandle < ParticleDataTable > pdt;
+//     edm::ESHandle < ParticleDataTable > pdt;
         
 };
 
@@ -121,7 +120,6 @@ TrackletVertexProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
    
    vector<RecoHit> layer1Hits;
    vector<RecoHit> layer2Hits;
-   //vector<RecoHit> layer3Hits;
    
    float trackletVertexPos = -100;
 
@@ -156,8 +154,6 @@ TrackletVertexProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
 	 
          if (layer==1)      layer1Hits.push_back(tmp);
 	 else if (layer==2) layer2Hits.push_back(tmp);
-	 //else if (layer==3) layer3Hits.push_back(tmp);
-	 
       }
    }
 

@@ -1,4 +1,5 @@
 #include <vector>
+#include <algorithm>
 #include "Math/Vector3D.h"
 #include <TRandom.h>
 
@@ -29,6 +30,8 @@ class RecoHit {
       double phi;
       double r;
       double layer;
+      double cs;   // cluster size
+      double ch;   // cluster charge
 };
 
 class SelectionCriteria {
@@ -41,6 +44,7 @@ class SelectionCriteria {
 
   bool verbose_ ;
   bool useDeltaPhi_;
+  bool useDeltaRho_;
   bool checkSecondLayer_;
 };
 
@@ -48,6 +52,8 @@ class Parameters {
  public:
 
   float eta1[maxEntry],phi1[maxEntry],r1[maxEntry],eta2[maxEntry],phi2[maxEntry],r2[maxEntry],eta3[maxEntry],phi3[maxEntry],r3[maxEntry],vz[maxEntry];
+  float cs1[maxEntry],cs2[maxEntry],cs3[maxEntry];
+  float ch1[maxEntry],ch2[maxEntry],ch3[maxEntry];
   float eta[maxEntry],phi[maxEntry],chg[maxEntry],pdg[maxEntry],pt[maxEntry];
   int nhits1,nhits2,nhits3,mult,nv,npart,evtType;
 };
@@ -56,6 +62,7 @@ class TrackletData {
  public:
 
   float eta1[maxEntry2],phi1[maxEntry2],eta2[maxEntry2],phi2[maxEntry2],vz[maxEntry2];
+  float r1[maxEntry2],r2[maxEntry2];
   float deta[maxEntry2],dphi[maxEntry2];
   float eta[maxEntry2],phi[maxEntry2],chg[maxEntry2],pdg[maxEntry2],nhad[12],pt[maxEntry2];
   int nTracklet,nhit1,nhit2,mult,nv,npart,evtType,trackletType;
@@ -68,7 +75,7 @@ bool compareAbsEta(RecoHit a,RecoHit b) { return fabs(a.eta)<fabs(b.eta);}
 double calcDphi(double phi1,double phi2);
 
 
-void removeDoubleHits(vector<RecoHit> &cleanedHits, Parameters par, SelectionCriteria cuts,Int_t
+void prepareHits(vector<RecoHit> &cleanedHits, Parameters par, SelectionCriteria cuts,Int_t
 layer, double vz, double splitProb = 0, double dropProb = 0)
 {
   vector<RecoHit> hits;
@@ -80,7 +87,6 @@ layer, double vz, double splitProb = 0, double dropProb = 0)
       hits.push_back(tmp);
       // put artifical split hits
       if (gRandom->Rndm()<splitProb) hits.push_back(tmp);
-
     }
   } else if (layer == 2){
     for(int ihit = 0; ihit < par.nhits2; ++ihit){
