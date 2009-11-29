@@ -13,7 +13,7 @@
 //
 // Original Author:  Yen-Jie LEE
 //         Created:  Tue Sep 15 13:14:46 CEST 2009
-// $Id: TrackletVertexProducer.cc,v 1.1 2009/09/17 10:08:48 yjlee Exp $
+// $Id: TrackletVertexProducer.cc,v 1.2 2009/11/29 13:37:54 yjlee Exp $
 //
 //
 
@@ -71,7 +71,6 @@ class TrackletVertexProducer : public edm::EDProducer {
       
       // ----------member data ---------------------------
      const TrackerGeometry* geo_;
-//     edm::ESHandle < ParticleDataTable > pdt;
         
 };
 
