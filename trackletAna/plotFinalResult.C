@@ -99,7 +99,7 @@ TFile* getTriggerCorrectionFile(int useCorrectionFile){
 //===========================================================================
 int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",int
 useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
-0,int verbose = 0,int makePlot = 0)
+0,int verbose = 0,int makePlot = 0,int mcTruth = 1)
 {
    FILE *logFile = fopen("correction.log","w");
    
@@ -728,6 +728,7 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
    leg1->AddEntry(hMeasured,"Reconstructed","pl");
 
    leg1->Draw();
+   
    TText *   tex = new TText(-2.6,5,"CMS Preliminary");
    tex->Draw();
 

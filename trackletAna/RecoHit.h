@@ -167,10 +167,10 @@ double calcDphi(double phi1_,double phi2_)
 
 void combineRecHit(vector<RecoHit> &c, vector<RecoHit> a,vector<RecoHit> b)
 {
-   for (int i=0;i<a.size();i++) {
+   for (unsigned int i=0;i<a.size();i++) {
       c.push_back(a[i]);
    }
-   for (int i=0;i<b.size();i++) {
+   for (unsigned int i=0;i<b.size();i++) {
       c.push_back(b[i]);
    }
 }

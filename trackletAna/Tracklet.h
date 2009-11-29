@@ -1,6 +1,7 @@
 #include <vector>
 #include <iostream>
 #include <TH1F.h>
+#include <TTree.h>
 
 #include "RecoHit.h"
 using namespace std;
