@@ -707,7 +707,7 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
    } else {
       gErrorBand = GetErrorBand((TH1F*)hMeasured,systematicError900GeV,systematicError900GeV,0.25); 
    }
-   gErrorBand->Draw("F");
+//   gErrorBand->Draw("F");
    hTruth2->Draw("hist same");
    hTruthWOSelection->Draw("hist same");
    hMeasured->Draw("e same");    

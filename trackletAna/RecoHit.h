@@ -51,6 +51,8 @@ class SelectionCriteria {
 class Parameters {
  public:
 
+  int   nRun,nEv,nLumi,nHltBit;
+  bool hltBit[500];
   float eta1[maxEntry],phi1[maxEntry],r1[maxEntry],eta2[maxEntry],phi2[maxEntry],r2[maxEntry],eta3[maxEntry],phi3[maxEntry],r3[maxEntry],vz[maxEntry];
   float cs1[maxEntry],cs2[maxEntry],cs3[maxEntry];
   float ch1[maxEntry],ch2[maxEntry],ch3[maxEntry];
@@ -60,7 +62,8 @@ class Parameters {
 
 class TrackletData {
  public:
-
+  int   nRun,nEv,nLumi,nHltBit;
+  bool hltBit[500];
   float eta1[maxEntry2],phi1[maxEntry2],eta2[maxEntry2],phi2[maxEntry2],vz[maxEntry2];
   float r1[maxEntry2],r2[maxEntry2];
   float deta[maxEntry2],dphi[maxEntry2];

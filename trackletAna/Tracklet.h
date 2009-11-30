@@ -336,7 +336,6 @@ double sumTrackletVector(vector<Tracklet> x)
 
 double TrackletVertexUnbin(vector<RecoHit> layer1, vector<RecoHit> layer2,double histDeltaZ, double dPhiCut, bool redoAvg = true, bool fillZ=true)
 {
-
     double maxNz=0;
     double maxTotalZ=0;
     double maxRMS=10e10;
@@ -407,6 +406,13 @@ double TrackletVertexUnbin(vector<RecoHit> layer1, vector<RecoHit> layer2,double
 
 void setTrackletTreeBranch(TTree* trackletTree,TrackletData &tdata)
 {
+  trackletTree->Branch("nRun",&tdata.nRun,"nRun/I");
+  trackletTree->Branch("nEv",&tdata.nEv,"nEv/I");
+  trackletTree->Branch("nLumi",&tdata.nLumi,"nLumi/I");
+  
+  trackletTree->Branch("nHltBit",&tdata.nHltBit,"nHltBit/I");
+  trackletTree->Branch("hltBit",tdata.hltBit,"hltBit[nHltBit]/O");
+    
   trackletTree->Branch("nTracklets",&tdata.nTracklet,"nTracklets/I");
   trackletTree->Branch("nhit1",&tdata.nhit1,"nhit1/I");
   trackletTree->Branch("nhit2",&tdata.nhit2,"nhit2/I");

@@ -55,82 +55,12 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
   
   // Tracklet Tree data format ========================================================================
   TrackletData tdata12;
-
-  trackletTree12->Branch("nTracklets",&tdata12.nTracklet,"nTracklets/I");
-  trackletTree12->Branch("nhit1",&tdata12.nhit1,"nhit1/I");
-  trackletTree12->Branch("nhit2",&tdata12.nhit2,"nhit2/I");
-  trackletTree12->Branch("mult",&tdata12.mult,"mult/I");
-  trackletTree12->Branch("nv",&tdata12.nv,"nv/I");
-  trackletTree12->Branch("vz",tdata12.vz,"vz[nv]/F");
-  trackletTree12->Branch("eta1",tdata12.eta1,"eta1[nTracklets]/F");
-  trackletTree12->Branch("phi1",tdata12.phi1,"phi1[nTracklets]/F");
-  trackletTree12->Branch("r1",tdata12.r1,"r1[nTracklets]/F");
-  trackletTree12->Branch("eta2",tdata12.eta2,"eta2[nTracklets]/F");
-  trackletTree12->Branch("phi2",tdata12.phi2,"phi2[nTracklets]/F");
-  trackletTree12->Branch("r2",tdata12.r2,"r2[nTracklets]/F");
-  trackletTree12->Branch("deta",tdata12.deta,"deta[nTracklets]/F");
-  trackletTree12->Branch("dphi",tdata12.dphi,"dphi[nTracklets]/F");
-  trackletTree12->Branch("npart",&tdata12.npart,"npart/I");
-  trackletTree12->Branch("eta",tdata12.eta,"eta[npart]/F");
-  trackletTree12->Branch("phi",tdata12.phi,"phi[npart]/F");
-  trackletTree12->Branch("pdg",tdata12.pdg,"pdg[npart]/I");
-  trackletTree12->Branch("chg",tdata12.chg,"chg[npart]/I");
-  trackletTree12->Branch("nhad",tdata12.nhad,"nhad[12]/F");
-  trackletTree12->Branch("pt",tdata12.pt,"pt[npart]/F");
-  trackletTree12->Branch("evtType",&tdata12.evtType,"evtType/I");
-
   TrackletData tdata13;
-
-  trackletTree13->Branch("nTracklets",&tdata13.nTracklet,"nTracklets/I");
-  trackletTree13->Branch("nhit1",&tdata13.nhit1,"nhit1/I");
-  trackletTree13->Branch("nhit2",&tdata13.nhit2,"nhit2/I");
-  trackletTree13->Branch("mult",&tdata13.mult,"mult/I");
-  trackletTree13->Branch("nv",&tdata13.nv,"nv/I");
-  trackletTree13->Branch("vz",tdata13.vz,"vz[nv]/F");
-  trackletTree13->Branch("eta1",tdata13.eta1,"eta1[nTracklets]/F");
-  trackletTree13->Branch("phi1",tdata13.phi1,"phi1[nTracklets]/F");
-  trackletTree13->Branch("r1",tdata13.r1,"r1[nTracklets]/F");
-  trackletTree13->Branch("eta2",tdata13.eta2,"eta2[nTracklets]/F");
-  trackletTree13->Branch("phi2",tdata13.phi2,"phi2[nTracklets]/F");
-  trackletTree13->Branch("r2",tdata13.r2,"r2[nTracklets]/F");
-  trackletTree13->Branch("deta",tdata13.deta,"deta[nTracklets]/F");
-  trackletTree13->Branch("dphi",tdata13.dphi,"dphi[nTracklets]/F");
-  
-  trackletTree13->Branch("npart",&tdata13.npart,"npart/I");
-  trackletTree13->Branch("eta",tdata13.eta,"eta[npart]/F");
-  trackletTree13->Branch("phi",tdata13.phi,"phi[npart]/F");
-  trackletTree13->Branch("pdg",tdata13.pdg,"pdg[npart]/I");
-  trackletTree13->Branch("chg",tdata13.chg,"chg[npart]/I");
-  trackletTree13->Branch("nhad",tdata13.nhad,"nhad[12]/F");
-  trackletTree13->Branch("pt",tdata13.pt,"pt[npart]/F");
-  trackletTree13->Branch("evtType",&tdata13.evtType,"evtType/I");
-
   TrackletData tdata23;
 
-  trackletTree23->Branch("nTracklets",&tdata23.nTracklet,"nTracklets/I");
-  trackletTree23->Branch("nhit1",&tdata23.nhit1,"nhit1/I");
-  trackletTree23->Branch("nhit2",&tdata23.nhit2,"nhit2/I");
-  trackletTree23->Branch("mult",&tdata23.mult,"mult/I");
-  trackletTree23->Branch("nv",&tdata23.nv,"nv/I");
-  trackletTree23->Branch("vz",tdata23.vz,"vz[nv]/F");
-  trackletTree23->Branch("eta1",tdata23.eta1,"eta1[nTracklets]/F");
-  trackletTree23->Branch("phi1",tdata23.phi1,"phi1[nTracklets]/F");
-  trackletTree23->Branch("r1",tdata23.r1,"r1[nTracklets]/F");
-  trackletTree23->Branch("eta2",tdata23.eta2,"eta2[nTracklets]/F");
-  trackletTree23->Branch("phi2",tdata23.phi2,"phi2[nTracklets]/F");
-  trackletTree23->Branch("r2",tdata23.r2,"r2[nTracklets]/F");
-  trackletTree23->Branch("deta",tdata23.deta,"deta[nTracklets]/F");
-  trackletTree23->Branch("dphi",tdata23.dphi,"dphi[nTracklets]/F");
-  
-  trackletTree23->Branch("npart",&tdata23.npart,"npart/I");
-  trackletTree23->Branch("eta",tdata23.eta,"eta[npart]/F");
-  trackletTree23->Branch("phi",tdata23.phi,"phi[npart]/F");
-  trackletTree23->Branch("pdg",tdata23.pdg,"pdg[npart]/I");
-  trackletTree23->Branch("chg",tdata23.chg,"chg[npart]/I");
-  trackletTree23->Branch("nhad",tdata23.nhad,"nhad[12]/F");
-  trackletTree23->Branch("pt",tdata23.pt,"pt[npart]/F");
-  trackletTree23->Branch("evtType",&tdata23.evtType,"evtType/I");
-
+  setTrackletTreeBranch(trackletTree12,tdata12);
+  setTrackletTreeBranch(trackletTree13,tdata13);
+  setTrackletTreeBranch(trackletTree23,tdata23);
 
   // Hit vectors & pdfs ===================================================================================
   vector<TH1D*> layer1HitEta;
@@ -179,6 +109,13 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
   // Parameters for the tree =============================================================================
   Parameters par;  
 
+  t->SetBranchAddress("nRun",&par.nRun);
+  t->SetBranchAddress("nEv",&par.nEv);
+  t->SetBranchAddress("nLumi",&par.nLumi);
+
+  t->SetBranchAddress("nHltBit",&par.nHltBit);
+  t->SetBranchAddress("hltBit",par.hltBit);
+
   t->SetBranchAddress("eta1",par.eta1);
   t->SetBranchAddress("phi1",par.phi1);
   t->SetBranchAddress("r1",par.r1);
@@ -200,6 +137,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
   t->SetBranchAddress("pt",&par.pt);
   t->SetBranchAddress("chg",&par.chg);
   t->SetBranchAddress("pdg",&par.pdg);
+  
 
   if(!makeVzCut) t->SetBranchAddress("evtType",&par.evtType);
   cout <<"Number of Events: "<<t->GetEntries()<<endl;
@@ -368,9 +306,17 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 
     // Fill Ntuple
     tdata12.nTracklet = recoTracklets12.size();
-    tdata12.nhit1 = layer1.size();
-    tdata12.nhit2 = layer2.size();
+    tdata12.nhit1   = layer1.size();
+    tdata12.nhit2   = layer2.size();
+    tdata12.nRun    = par.nRun;
+    tdata12.nEv     = par.nEv;
+    tdata12.nLumi   = par.nLumi;
+    tdata12.nHltBit = par.nHltBit;
 
+    for (int j=0;j<(int)par.nHltBit;j++)
+    {
+       tdata12.hltBit[j]= par.hltBit[j];
+    }
     
     for (int j=0;j<(int)tdata12.nTracklet;j++)
     {
@@ -412,6 +358,15 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     tdata13.nTracklet = recoTracklets13.size();
     tdata13.nhit1 = layer1.size();
     tdata13.nhit2 = layer3.size();
+    tdata13.nRun    = par.nRun;
+    tdata13.nEv     = par.nEv;
+    tdata13.nLumi   = par.nLumi;
+    tdata13.nHltBit = par.nHltBit;
+
+    for (int j=0;j<(int)par.nHltBit;j++)
+    {
+       tdata13.hltBit[j]= par.hltBit[j];
+    }
 
     
     for (int j=0;j<(int)tdata13.nTracklet;j++)
@@ -454,6 +409,15 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     tdata23.nTracklet = recoTracklets23.size();
     tdata23.nhit1 = layer2.size();
     tdata23.nhit2 = layer3.size();
+    tdata23.nRun    = par.nRun;
+    tdata23.nEv     = par.nEv;
+    tdata23.nLumi   = par.nLumi;
+    tdata23.nHltBit = par.nHltBit;
+
+    for (int j=0;j<(int)par.nHltBit;j++)
+    {
+       tdata23.hltBit[j]= par.hltBit[j];
+    }
 
     
     for (int j=0;j<(int)tdata23.nTracklet;j++)
