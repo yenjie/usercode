@@ -1,5 +1,11 @@
 // Plot final results
 
+// Standard library
+#include <math.h>
+#include <iostream.h>
+#include <fstream>
+
+// ROOT Library
 #include <TROOT.h>
 #include <TStyle.h>
 #include <TLegend.h>
@@ -17,9 +23,8 @@
 #include <TPad.h>
 #include <TText.h>
 
-#include <math.h>
-#include <iostream.h>
-#include <fstream>
+
+// For plotting
 #include "GraphErrorsBand.h"
 
 #define nEtaBin 12
@@ -111,6 +116,7 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
    TFile *fCorrection = getCorrectionFile(useCorrectionFile,TrackletType);
    TFile *fTriggerCorrection = getTriggerCorrectionFile(useCorrectionFile);
    
+   // Definition of Vz, Eta, Hit bins
    double HitBins[nHitBin+1] = {0,5,10,15,20,25,30,35,40,50,60,80,100,200,700};
    double EtaBins[nEtaBin+1];
    double VzBins[nVzBin+1];
@@ -120,7 +126,6 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
 
 
    // Signal and Sideband regions ==================================================================================================
-
    double signalRegionCut = 1.5;      //delta phi cut for signal region
    double sideBandRegionCut = 3;    //delta phi cut for sideband
 
@@ -134,7 +139,6 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
    TCut vzCut = "abs(vz[1])<10";   // cut on Z position 
 
    // Output file =================================================================================================================
-
    TFile *outf = new TFile ("correction.root","recreate");
 
    TNtuple * betas = new TNtuple("betas","","bin:nhit:vz:beta:betaErr");
@@ -171,6 +175,18 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
    TH1F *hDEtaBck[nEtaBin][nVzBin];
    TH1F *hTriggerCorrection;   
 
+   // Prepare histograms ==========================================================================================================
+   for (int i=0;i<nEtaBin;i++) {
+      for (int j=0;j<nVzBin;j++) {
+         alphaPlots[i][j] = new TH1F(Form("alpha%dVz%d",i,j),"",nHitBin,HitBins);
+         alphaErrPlots[i][j] = new TH1F(Form("alphaErr%dVz%d",i,j),"",nHitBin,HitBins);
+         betaPlots[i][j] = new TH1F(Form("beta%dVz%d",i,j),"",nHitBin,HitBins);
+         betaErrPlots[i][j] = new TH1F(Form("betaErr%dVz%d",i,j),"",nHitBin,HitBins);
+         hDEtaAll[i][j] = new TH1F(Form("hDEtaAll%dVz%d",i,j),"",nDEtaBin,0,4);
+         hDEtaBck[i][j] = new TH1F(Form("hDEtaBck%dVz%d",i,j),"",nDEtaBin,0,4);
+      }
+   }
+
    // Fit functions of Beta and Alpha =============================================================================================
    TF1 *funBeta[nEtaBin][nVzBin];
    TF1 *funAlpha[nEtaBin][nVzBin];
@@ -191,13 +207,12 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
    hVz->Scale(1./hVz->GetEntries());
    hVz->Fit("gaus");
    TF1 *fVz = hVz->GetFunction("gaus");
+   hVz->SetXTitle("v_{z} (cm)");
    hVz->Draw();
    cVz->SaveAs(Form("plot/vz/plotVz-%s-%d.gif",myPlotTitle,TrackletType));
    cVz->SaveAs(Form("plot/vz/plotVz-%s-%d.eps",myPlotTitle,TrackletType));
    cVz->SaveAs(Form("plot/vz/plotVz-%s-%d.C",myPlotTitle,TrackletType));
-    
-
-   cout <<"Nevents: "<<nevent;
+   cout <<"Number of Nevents: "<<nevent;
 
    // Determine the acceptance region to avoid large correction factors
    double rho2 = 7.6;  // second layer rho (cm)
@@ -228,20 +243,6 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
       }
    }
    
-   // Prepare histograms ==========================================================================================================
-
-   for (int i=0;i<nEtaBin;i++) {
-      for (int j=0;j<nVzBin;j++) {
-         alphaPlots[i][j] = new TH1F(Form("alpha%dVz%d",i,j),"",nHitBin,HitBins);
-         alphaErrPlots[i][j] = new TH1F(Form("alphaErr%dVz%d",i,j),"",nHitBin,HitBins);
-         betaPlots[i][j] = new TH1F(Form("beta%dVz%d",i,j),"",nHitBin,HitBins);
-         betaErrPlots[i][j] = new TH1F(Form("betaErr%dVz%d",i,j),"",nHitBin,HitBins);
-         hDEtaAll[i][j] = new TH1F(Form("hDEtaAll%dVz%d",i,j),"",nDEtaBin,0,4);
-         hDEtaBck[i][j] = new TH1F(Form("hDEtaBck%dVz%d",i,j),"",nDEtaBin,0,4);
-      }
-   }
- 
-
    // Charged Hadrons =============================================================================================================
    hHadron->SetXTitle("#eta");
    hHadron->SetYTitle("N_{hit}^{Layer1} |#eta|<1");
@@ -258,8 +259,6 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
    // deltaPhi sideband region (with eta signal region cut) && vzCut //
    TrackletTree->Project("hReproducedBackground","vz[1]:nhit1:eta1",sideBandRegionEtaSignalRegion&&vzCut,"",nentries,firstentry);   
    hReproducedBackground->Sumw2();
-
-
      
    // Beta calculation ============================================================================================================
    for (int x=1;x<=nEtaBin;x++) {
@@ -389,7 +388,7 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
       }  
    }
 
-   // make plot 
+   // make beta and alpha plot 
    if (makePlot) {
 
       // Beta plot
@@ -723,8 +722,8 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
    leg1->SetFillColor(0); 
    leg1->SetBorderSize(0);
    //leg1->SetTextSize(0.045);
-   leg1->AddEntry(hTruth,Form("PYTHIA %s",myPlotTitle),"");
-   leg1->AddEntry(hTruth,"MC Truth","l");
+   leg1->AddEntry(hTruth,Form("%s",myPlotTitle),"");
+   //leg1->AddEntry(hTruth,"MC Truth","l");
    leg1->AddEntry(hMeasured,"Reconstructed","pl");
 
    leg1->Draw();
