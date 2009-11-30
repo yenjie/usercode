@@ -27,9 +27,11 @@
 // For plotting
 #include "GraphErrorsBand.h"
 
+#include "selectionCut.h"
+
+
 #define nEtaBin 12
 #define nHitBin 14
-#define nDEtaBin 80
 #define nVzBin 10
 
 #define canvasSizeX 400
@@ -129,6 +131,8 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
    double signalRegionCut = 1.5;      //delta phi cut for signal region
    double sideBandRegionCut = 3;    //delta phi cut for sideband
 
+   selectionCut myCut;
+   
    TCut signalRegion                  = Form("abs(dphi)<%f&&abs(deta)<0.1",signalRegionCut);
    TCut signalRegionInEta             = Form("abs(dphi)<%f&&abs(deta)<0.1",signalRegionCut);
    TCut signalRegionInPhi             = Form("abs(dphi)<%f",signalRegionCut);
@@ -136,7 +140,7 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
    TCut sideBandRegion                =  Form("abs(dphi)>%f&&abs(dphi)<%f&&abs(deta)<0.1",signalRegionCut,sideBandRegionCut);
    TCut sideBandRegionEta          = Form("abs(dphi)>%f&&abs(dphi)<%f&&abs(deta)>1",signalRegionCut,sideBandRegionCut);
    TCut sideBandRegionEtaSignalRegion = Form("abs(dphi)>%f&&abs(dphi)<%f&&abs(deta)<0.1",signalRegionCut,sideBandRegionCut);
-   TCut vzCut = "abs(vz[1])<10";   // cut on Z position 
+   TCut vzCut = myCut.Cut;   // cut on Z position 
 
    // Output file =================================================================================================================
    TFile *outf = new TFile ("correction.root","recreate");
@@ -171,8 +175,6 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
    TH1F *betaPlots[nEtaBin][nVzBin];
    TH1F *alphaErrPlots[nEtaBin][nVzBin];
    TH1F *betaErrPlots[nEtaBin][nVzBin];
-   TH1F *hDEtaAll[nEtaBin][nVzBin];
-   TH1F *hDEtaBck[nEtaBin][nVzBin];
    TH1F *hTriggerCorrection;   
 
    // Prepare histograms ==========================================================================================================
@@ -182,8 +184,6 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
          alphaErrPlots[i][j] = new TH1F(Form("alphaErr%dVz%d",i,j),"",nHitBin,HitBins);
          betaPlots[i][j] = new TH1F(Form("beta%dVz%d",i,j),"",nHitBin,HitBins);
          betaErrPlots[i][j] = new TH1F(Form("betaErr%dVz%d",i,j),"",nHitBin,HitBins);
-         hDEtaAll[i][j] = new TH1F(Form("hDEtaAll%dVz%d",i,j),"",nDEtaBin,0,4);
-         hDEtaBck[i][j] = new TH1F(Form("hDEtaBck%dVz%d",i,j),"",nDEtaBin,0,4);
       }
    }
 

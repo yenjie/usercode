@@ -1,21 +1,19 @@
 #include <TFile.h>
-#include <TNtuple.h>
+#include <TTree.h>
 #include <TH1F.h>
 #include <TCanvas.h>
 #include <TProfile.h>
 #include <TLegend.h>
 #include <TText.h>
 
-void plotVtxEff(){
-   TFile *a = new TFile("sample/TrackletTree-10TeV-TV-2.4M.root");
-   TNtuple *t10TeV = (TNtuple*) a->FindObjectAny("TrackletTree12");
-   TFile *b = new TFile("sample/TrackletTree-900GeV-TV-3.2M.root");   
-   TNtuple *t900GeV = (TNtuple*) b->FindObjectAny("TrackletTree12");
+#include "selectionCut.h"
 
-   // Vz distribution plot
-   TCanvas *c1 = new TCanvas("c1","",400,400);
-   TH1F *hVz900GeV = new TH1F("hVz900GeV","",100,-10,10);
-   TH1F *hVz10TeV = new TH1F("hVz10TeV","",100,-10,10);
+void plotVtxEff(infile = "sampleYetkin/TrackletTree-900GeV-D6T.root"){
+   TFile *inf = new TFile(infile);
+   TTree *t10TeV = (TTree*) a->FindObjectAny("TrackletTree12");
+
+   selectionCut myCut;
+   TCut dataCut = myCut.Cut;
    
    int norm900GeV = t900GeV->GetEntries("vz[3]>-9999&&abs(vz[0])<20");
    int norm10TeV = t10TeV->GetEntries("vz[3]>-9999&&abs(vz[0])<20");
