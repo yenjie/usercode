@@ -355,7 +355,7 @@ double TrackletVertexUnbin(vector<RecoHit> layer1, vector<RecoHit> layer2,double
           double z2 = r2/tan(atan(exp(-layer2[ihit2].eta))*2);
 	  
 	  double z = z1-(z2-z1)/(r2-r1)*r1;
-	   if (fabs(z)<20) {
+	   if (fabs(z)<200) {
              if (fillZ){
 	        nRecoZ++;
 		vectorZ.push_back(z);

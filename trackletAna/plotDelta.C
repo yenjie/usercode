@@ -7,6 +7,8 @@
 #include <iostream.h>
 #include <TText.h>
 
+#include "selectionCut.h"
+
 void plotDelta(char* infile,int type = 1)
 {
    cout <<infile<<endl;
@@ -14,10 +16,13 @@ void plotDelta(char* infile,int type = 1)
    TTree * myTree = (TTree *)(f->FindObjectAny("TrackletTree12"));
    TNtuple * myNtuple = (TNtuple *)(f->FindObjectAny("ntmatched"));
 
+   selectionCut myCut;
+   TCut dataCut = myCut.Cut;
+   
    TCanvas *c = new TCanvas("c","#Delta#eta",400,400);
    c->SetLogy();
    TH1F *h = new TH1F("h","",200,-5,5);
-   if (type) myTree->Draw("deta>>h"); else myNtuple->Draw("deta>>h");
+   if (type) myTree->Draw("deta>>h",dataCut); else myNtuple->Draw("deta>>h");
    h->Scale(1./h->GetEntries());
    if (type) h->SetXTitle("#Delta#eta"); else h->SetXTitle("#Delta#eta (ToyMC)");
    h->SetTitleOffset(1.4,"Y");

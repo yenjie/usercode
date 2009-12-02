@@ -16,7 +16,7 @@ void unfoldPt(int mode=0)
    TNtuple *nt = (TNtuple*)inf->FindObjectAny("nt");
 
    // Test sample
-   TFile *infTest = new TFile("TrackletTree-7TeV-Herwig-Test.root");
+   TFile *infTest = new TFile("../output.root");
    TNtuple *ntTest = (TNtuple*)infTest->FindObjectAny("TrackletTree12");
    
    TFile *pdfFile;

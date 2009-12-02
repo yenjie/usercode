@@ -29,17 +29,12 @@
 
 #include "selectionCut.h"
 
-
-#define nEtaBin 12
-#define nHitBin 14
-#define nVzBin 10
-
 #define canvasSizeX 400
 #define canvasSizeY 400
 
 #define plotDEta true
 
-
+#define dndetaRange 5.5
 
 void formatHist(TH1* h, int col = 1, double norm = 1,double msize = 1);
 
@@ -119,19 +114,23 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
    TFile *fTriggerCorrection = getTriggerCorrectionFile(useCorrectionFile);
    
    // Definition of Vz, Eta, Hit bins
-   double HitBins[nHitBin+1] = {0,5,10,15,20,25,30,35,40,50,60,80,100,200,700};
+   selectionCut myCut;
+   const int nHitBin =14;// myCut.nHitBin;
+   const int nEtaBin =12;// myCut.nEtaBin;
+   const int nVzBin  =10;// myCut.nVzBin;
+   const int VzRange =10;
+   double HitBins[nHitBin+1] = {0,5,10,15,20,25,30,35,40,50,60,80,100,200,1500};
    double EtaBins[nEtaBin+1];
    double VzBins[nVzBin+1];
    
    for (int i=0;i<=nEtaBin;i++) EtaBins[i] = (double)i*6.0/(double)nEtaBin-3.0;;
-   for (int i=0;i<=nVzBin;i++) VzBins[i] = (double)i*20.0/(double)nVzBin-10.0;
+   for (int i=0;i<=nVzBin;i++) VzBins[i] = (double)i*2.0*VzRange/(double)nVzBin-VzRange;
 
 
    // Signal and Sideband regions ==================================================================================================
    double signalRegionCut = 1.5;      //delta phi cut for signal region
-   double sideBandRegionCut = 3;    //delta phi cut for sideband
+   double sideBandRegionCut = 3.0;    //delta phi cut for sideband
 
-   selectionCut myCut;
    
    TCut signalRegion                  = Form("abs(dphi)<%f&&abs(deta)<0.1",signalRegionCut);
    TCut signalRegionInEta             = Form("abs(dphi)<%f&&abs(deta)<0.1",signalRegionCut);
@@ -654,7 +653,7 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
   
    formatHist(hTruthAccepted,1,nevent/nEtaBin*6);
    formatHist(hCorrectedEtaBin,2,nevent/nEtaBin*6,1.5);
-   hTruthAccepted->SetAxisRange(0,5.5,"y");
+   hTruthAccepted->SetAxisRange(0,dndetaRange,"y");
    hTruthAccepted->SetXTitle("#eta (Calculated Hand)");
    hTruthAccepted->SetYTitle("dN/d#eta");
    hTruthAccepted->Draw("hist");
@@ -689,7 +688,7 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
    hTruth2->Multiply(hTriggerCorrection);
    hMeasured->Multiply(hTriggerCorrection);
 
-   hTruth2->SetAxisRange(0,5.5,"y");
+   hTruth2->SetAxisRange(0,dndetaRange,"y");
    hTruth2->SetXTitle("#eta");
    hTruth2->SetYTitle("dN/d#eta");
    hTruth2->Draw("hist");
@@ -777,7 +776,7 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
    
    formatHist(hTruthHit,1,nevent);
    formatHist(hMeasuredHit,2,nevent,1.5);
-   hTruthHit->SetAxisRange(0,5.5,"y");
+   hTruthHit->SetAxisRange(0,dndetaRange,"y");
    hTruthHit->SetXTitle("N_{Hit1} |#eta|<1");
    hTruthHit->SetYTitle("dN/dN_{Hit1}");
    hTruthHit->Draw("hist");

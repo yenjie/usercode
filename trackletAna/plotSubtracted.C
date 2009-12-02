@@ -14,6 +14,7 @@
 #include <TF1.h>
 #include <TCut.h>
 #include <TLatex.h>
+#include "selectionCut.h"
 
 void formatHist(TH1* h, int col = 1, double norm = 1);
 void plotSubtracted(char* filename,char *title="",char *mycut= "",bool useMC = false)
@@ -28,14 +29,16 @@ void plotSubtracted(char* filename,char *title="",char *mycut= "",bool useMC = f
    TH2F *h2MC = new TH2F("h2MC","",12,-3,3,50,0,5);
    TH2F *h3 = new TH2F("h3","",12,-3,3,50,0,5);
  
-   TCut cut = mycut;
+   selectionCut cut1;
+   
+   TCut cut = cut1.Cut && TCut(mycut);
    TCanvas *c = new TCanvas ("c","",400,400);
-   TrackletTree->Draw("abs(deta):eta1>>h1","abs(dphi)<1"&&cut);
+   TrackletTree->Draw("abs(deta):eta1>>h1","abs(dphi)<1.5"&&cut);
 
    h3->SetXTitle("#eta");
    h3->SetYTitle("#Delta#eta");
 
-   TrackletTree->Draw("abs(deta):eta1>>h2","abs(dphi)>1&&abs(dphi)<2"&&cut);   
+   TrackletTree->Draw("abs(deta):eta1>>h2","abs(dphi)>1.5&&abs(dphi)<3"&&cut);   
 
    h1->Sumw2();
    h2->Sumw2();
