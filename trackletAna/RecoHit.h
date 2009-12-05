@@ -53,11 +53,13 @@ class Parameters {
 
   int   nRun,nEv,nLumi,nHltBit;
   bool hltBit[500];
-  float eta1[maxEntry],phi1[maxEntry],r1[maxEntry],eta2[maxEntry],phi2[maxEntry],r2[maxEntry],eta3[maxEntry],phi3[maxEntry],r3[maxEntry],vz[maxEntry];
-  float cs1[maxEntry],cs2[maxEntry],cs3[maxEntry];
-  float ch1[maxEntry],ch2[maxEntry],ch3[maxEntry];
+  float vz[maxEntry];
+  float eta1[maxEntry],phi1[maxEntry],r1[maxEntry],cs1[maxEntry],ch1[maxEntry];
+  float eta2[maxEntry],phi2[maxEntry],r2[maxEntry],cs2[maxEntry],ch2[maxEntry];
+  float eta3[maxEntry],phi3[maxEntry],r3[maxEntry],cs3[maxEntry],ch3[maxEntry];
+  float etaF2[maxEntry],phiF2[maxEntry],rF2[maxEntry],csF2[maxEntry],chF2[maxEntry];
   float eta[maxEntry],phi[maxEntry],chg[maxEntry],pdg[maxEntry],pt[maxEntry];
-  int nhits1,nhits2,nhits3,mult,nv,npart,evtType;
+  int nhits1,nhits2,nhits3,nhitsF2,mult,nv,npart,evtType;
 };
 
 class TrackletData {
@@ -176,4 +178,42 @@ void combineRecHit(vector<RecoHit> &c, vector<RecoHit> a,vector<RecoHit> b)
    for (unsigned int i=0;i<b.size();i++) {
       c.push_back(b[i]);
    }
+}
+
+void getPixelTreeBranch(TTree *t, Parameters &par)
+{
+  t->SetBranchAddress("nRun",&par.nRun);
+  t->SetBranchAddress("nEv",&par.nEv);
+  t->SetBranchAddress("nLumi",&par.nLumi);
+
+  t->SetBranchAddress("nHltBit",&par.nHltBit);
+  t->SetBranchAddress("hltBit",par.hltBit);
+
+  t->SetBranchAddress("eta1",par.eta1);
+  t->SetBranchAddress("phi1",par.phi1);
+  t->SetBranchAddress("r1",par.r1);
+  t->SetBranchAddress("eta2",par.eta2);
+  t->SetBranchAddress("phi2",par.phi2);
+  t->SetBranchAddress("r2",par.r2);
+  t->SetBranchAddress("eta3",par.eta3);
+  t->SetBranchAddress("phi3",par.phi3);
+  t->SetBranchAddress("r3",par.r3);
+  t->SetBranchAddress("nhits1",&par.nhits1);
+  t->SetBranchAddress("nhits2",&par.nhits2);
+  t->SetBranchAddress("nhits3",&par.nhits3);
+
+  // pixel froward  
+  t->SetBranchAddress("etaF2",par.etaF2);
+  t->SetBranchAddress("phiF2",par.phiF2);
+  t->SetBranchAddress("rF2",par.rF2);
+  t->SetBranchAddress("nhitsF2",&par.nhitsF2);
+
+  t->SetBranchAddress("vz",par.vz);
+  t->SetBranchAddress("nv",&par.nv);
+  t->SetBranchAddress("npart",&par.npart);
+  t->SetBranchAddress("eta",&par.eta);
+  t->SetBranchAddress("phi",&par.phi);
+  t->SetBranchAddress("pt",&par.pt);
+  t->SetBranchAddress("chg",&par.chg);
+  t->SetBranchAddress("pdg",&par.pdg); 
 }

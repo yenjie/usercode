@@ -12,15 +12,29 @@
 using namespace std;
 
 void analyze_trackletTree(char * infile, char * outfile = "output.root", int makeVzCut = 0,
-                          int addL1Bck = 0, int addL2Bck = 0, double
-			  splitProb = 0, double dropProb = 0, int nPileUp = 0, int putPixelTree = 0)
+                          int addL1Bck = 0, int addL2Bck = 0, 
+			  double splitProb = 0, double dropProb = 0, 
+			  int nPileUp = 0, 
+			  double beamHaloRatio = 0.2,
+			  bool putBeamHalo = false, char * beamHaloFile =
+    			             "DataSample/PixelTree-Run123151-Full.root",
+			  int putPixelTree = 0
+			 )
 {
 
   // Input file =======================================================================================
   TFile* inf = new  TFile(infile);
-
   TTree* t = dynamic_cast<TTree*>(inf->FindObjectAny("PixelTree"));
-
+  TFile* beamHaloInf;
+  TTree* beamHaloTree;
+  if (putBeamHalo) {
+      cout <<"Add Beam Halo Background!!!!"<<endl;
+      cout <<"Ratio = "<<beamHaloRatio<<endl;
+      cout <<"File = "<<beamHaloFile<<endl;
+      beamHaloInf = new TFile(beamHaloFile);
+      beamHaloTree = dynamic_cast<TTree*>(beamHaloInf->FindObjectAny("PixelTree"));
+  }
+  
   // Output file =======================================================================================
   TFile* outf = new TFile(outfile,"recreate");
   TNtuple *ntmult = new TNtuple("ntmult","","mult:nhit1:nhit2");
@@ -108,48 +122,37 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
   
   // Parameters for the tree =============================================================================
   Parameters par;  
-
-  t->SetBranchAddress("nRun",&par.nRun);
-  t->SetBranchAddress("nEv",&par.nEv);
-  t->SetBranchAddress("nLumi",&par.nLumi);
-
-  t->SetBranchAddress("nHltBit",&par.nHltBit);
-  t->SetBranchAddress("hltBit",par.hltBit);
-
-  t->SetBranchAddress("eta1",par.eta1);
-  t->SetBranchAddress("phi1",par.phi1);
-  t->SetBranchAddress("r1",par.r1);
-  t->SetBranchAddress("eta2",par.eta2);
-  t->SetBranchAddress("phi2",par.phi2);
-  t->SetBranchAddress("r2",par.r2);
-  t->SetBranchAddress("eta3",par.eta3);
-  t->SetBranchAddress("phi3",par.phi3);
-  t->SetBranchAddress("r3",par.r3);
-  t->SetBranchAddress("nhits1",&par.nhits1);
-  t->SetBranchAddress("nhits2",&par.nhits2);
-  t->SetBranchAddress("nhits3",&par.nhits3);
-  t->SetBranchAddress("mult",&par.mult);
-  t->SetBranchAddress("vz",par.vz);
-  t->SetBranchAddress("nv",&par.nv);
-  t->SetBranchAddress("npart",&par.npart);
-  t->SetBranchAddress("eta",&par.eta);
-  t->SetBranchAddress("phi",&par.phi);
-  t->SetBranchAddress("pt",&par.pt);
-  t->SetBranchAddress("chg",&par.chg);
-  t->SetBranchAddress("pdg",&par.pdg);
+//  Parameters beamHaloPar;
+  if (putBeamHalo) getPixelTreeBranch(beamHaloTree,par);  
+  getPixelTreeBranch(t,par);
   
-
   if(!makeVzCut) t->SetBranchAddress("evtType",&par.evtType);
   cout <<"Number of Events: "<<t->GetEntries()<<endl;
 
+  int nBeamHalo = 0;
+
   // Main loop ===========================================================================================
-  for(int i =0;  i<t->GetEntries()&&i<1000000000 ; i = i + 1 + nPileUp){    
+  for(int i =0;  i<t->GetEntries()&&i<40000 ; i = i + 1 + nPileUp){    
     t->GetEntry(i);
+    bool beamHaloFlag = false;
+    
+    if ( gRandom->Rndm() < beamHaloRatio && putBeamHalo ) {
+       nBeamHalo++;
+       beamHaloFlag = true;
+       bool selectFlag = false;
+       while (!selectFlag) {
+          int nEntry = beamHaloTree->GetEntries();
+          beamHaloTree->GetEntry(nEntry*gRandom->Rndm());
+	  if (par.hltBit[67]==1) selectFlag=true;
+       }
+    }
+    
     if (i % 1000 == 0) {
        cout <<"Event "<<i<<" "
             <<trackletTree12->GetEntries()<<" "
             <<trackletTree23->GetEntries()<<" "
-            <<trackletTree13->GetEntries()<<" "
+            <<trackletTree13->GetEntries()<<" Beam Halo: "
+	    <<nBeamHalo<<" "<<nBeamHalo/(double)i
             <<endl;    
     }       
     // Selection on Events

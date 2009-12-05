@@ -24,7 +24,8 @@ selectionCut::selectionCut()
    // hltBit[71]==1   SingleTrack
    // hltBit[72]==1   DoubleTrack
       
-   myCut      = "abs(vz[1])<10"; 
+   myCut      = "abs(vz[1])<10";
+//   &&(hltBit[66]*0.872+hltBit[67]*0.392+hltBit[71]*0.295+hltBit[72]*0.146-1.09)>0.4"; 
 
    if (1==0) {
    myCut +="&&";

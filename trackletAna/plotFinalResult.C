@@ -49,58 +49,28 @@ void formatHist(TH1* h, int col = 1, double norm = 1,double msize = 1);
 // 4 = 10 TeV (half of the ample)
 
 
-TFile* getCorrectionFile(int useCorrectionFile,int TrackletType){
+TFile* getCorrectionFile(string correctionFileName,int TrackletType){
    TFile *fCorrection;
-   if (useCorrectionFile == 1) {
-      fCorrection = new TFile(Form("correction/correction-%d-900GeV.root",TrackletType));
-   } else if (useCorrectionFile == 2) {
-      fCorrection = new TFile(Form("correction/correction-%d-10TeV.root",TrackletType));
-   } else if (useCorrectionFile == 3) {
-      fCorrection = new TFile(Form("correction/correction-%d-900GeV-half.root",TrackletType));
-   } else if (useCorrectionFile == 4) {
-      fCorrection = new TFile(Form("correction/correction-%d-10TeV-half.root",TrackletType));
-   } else if (useCorrectionFile == 5) {
-      fCorrection = new TFile(Form("correction/correction-%d-10TeV.root",TrackletType));
-   } else if (useCorrectionFile == 11) {
-      fCorrection = new TFile(Form("correction/correction-%d-900GeV-0Tesla.root",TrackletType));
-   } else if (useCorrectionFile == 227) {
-      fCorrection = new TFile(Form("correction/correction-%d-10TeV-227Generic.root",TrackletType));
-   } else if (useCorrectionFile == 228) {
-      fCorrection = new TFile(Form("correction/correction-%d-10TeV-227GenericWithoutDead.root",TrackletType));
-   }
+   char * filename = Form("correction/correction-%d-%s.root",TrackletType,correctionFileName.data());
+   fCorrection = new TFile(filename);
+   cout <<"Use correction file : "<<filename<<endl;
    return fCorrection;  
 }
 
 
-TFile* getTriggerCorrectionFile(int useCorrectionFile){
+TFile* getTriggerCorrectionFile(string correctionFileName){
    TFile *fCorrection;
-   if (useCorrectionFile == 1) {
-      fCorrection = new TFile("correction/TriggerCorrection-900GeV.root");
-   } else if (useCorrectionFile == 2) {
-      fCorrection = new TFile("correction/TriggerCorrection-10TeV.root");
-   } else if (useCorrectionFile == 3) {
-      fCorrection = new TFile("correction/TriggerCorrection-900GeV.root");
-   } else if (useCorrectionFile == 4) {
-      fCorrection = new TFile("correction/TriggerCorrection-10TeV.root");
-   } else if (useCorrectionFile == 5) {
-      fCorrection = new TFile("");
-   } else if (useCorrectionFile == 11) {
-      fCorrection = new TFile("correction/TriggerCorrection-900GeV-0Tesla.root");
-   } else if (useCorrectionFile ==227){
-      fCorrection = new TFile("");
-   } else {
-      fCorrection = new TFile("");
-   }
+   char *filename = Form("correction/TriggerCorrection-%s.root",correctionFileName.data());
+   fCorrection = new TFile(filename);
+   cout <<"Use trigger correction file : "<<filename;
    return fCorrection;  
-   
 }
 
 
 //===========================================================================
 // Main Routine
 //===========================================================================
-int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",int
-useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
+int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",bool useCorrectionFile = 0,string correctionName = "900GeV-D6T",  Long64_t nentries = 1000000000, Long64_t firstentry =
 0,int verbose = 0,int makePlot = 0,int mcTruth = 1)
 {
    FILE *logFile = fopen("correction.log","w");
@@ -110,8 +80,10 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
    TTree * TrackletTree= dynamic_cast<TTree*>(f->Get(Form("TrackletTree%d",TrackletType)));
 
    // Read alpha, beta, geometry correction from file.
-   TFile *fCorrection = getCorrectionFile(useCorrectionFile,TrackletType);
-   TFile *fTriggerCorrection = getTriggerCorrectionFile(useCorrectionFile);
+   TFile *fCorrection(0);
+   TFile *fTriggerCorrection(0);
+   if (useCorrectionFile) fCorrection = getCorrectionFile(correctionName,TrackletType);
+   if (useCorrectionFile) fTriggerCorrection = getTriggerCorrectionFile(correctionName);
    
    // Definition of Vz, Eta, Hit bins
    selectionCut myCut;
@@ -211,7 +183,7 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
    cVz->SaveAs(Form("plot/vz/plotVz-%s-%d.gif",myPlotTitle,TrackletType));
    cVz->SaveAs(Form("plot/vz/plotVz-%s-%d.eps",myPlotTitle,TrackletType));
    cVz->SaveAs(Form("plot/vz/plotVz-%s-%d.C",myPlotTitle,TrackletType));
-   cout <<"Number of Nevents: "<<nevent;
+   cout <<"Number of events: "<<nevent;
 
    // Determine the acceptance region to avoid large correction factors
    double rho2 = 7.6;  // second layer rho (cm)
@@ -241,7 +213,7 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
 	 if (verbose) cout <<" "<<endl;
       }
    }
-   
+ 
    // Charged Hadrons =============================================================================================================
    hHadron->SetXTitle("#eta");
    hHadron->SetYTitle("N_{hit}^{Layer1} |#eta|<1");
@@ -314,7 +286,7 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
 
 
    // alpha calculation ===================================================================================
-   if (useCorrectionFile == 0) {   
+   if (!useCorrectionFile) {   
       for (int x=1;x<=nEtaBin;x++) {
          for (int y=1;y<=nHitBin;y++) {
             for (int z=1;z<=nVzBin;z++) {
@@ -346,9 +318,9 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
    }
 
    // Alpha correction calculation =======================================================================
-   hTriggerCorrection = (TH1F*)fTriggerCorrection->FindObjectAny("h");
 
-   if (useCorrectionFile != 0) {
+   if (useCorrectionFile) {
+      hTriggerCorrection = (TH1F*)fTriggerCorrection->FindObjectAny("h");
       // use the alpha value obtained from the Correction file.
       for (int i=0;i<nEtaBin;i++)
       {
@@ -701,12 +673,10 @@ useCorrectionFile = 0,  Long64_t nentries = 1000000000, Long64_t firstentry =
 
 
    TGraph *gErrorBand;
-   if (useCorrectionFile == 2 || useCorrectionFile == 4){ 
-      gErrorBand = GetErrorBand((TH1F*)hMeasured,systematicError10TeV,systematicError10TeV,0.25); 
-   } else {
-      gErrorBand = GetErrorBand((TH1F*)hMeasured,systematicError900GeV,systematicError900GeV,0.25); 
-   }
-//   gErrorBand->Draw("F");
+
+   gErrorBand = GetErrorBand((TH1F*)hMeasured,systematicError900GeV,systematicError900GeV,0.25); 
+
+   gErrorBand->Draw("F");
    hTruth2->Draw("hist same");
    hTruthWOSelection->Draw("hist same");
    hMeasured->Draw("e same");    
