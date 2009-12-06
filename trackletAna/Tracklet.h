@@ -355,7 +355,7 @@ double TrackletVertexUnbin(vector<RecoHit> layer1, vector<RecoHit> layer2,double
           double z2 = r2/tan(atan(exp(-layer2[ihit2].eta))*2);
 	  
 	  double z = z1-(z2-z1)/(r2-r1)*r1;
-	   if (fabs(z)<200) {
+	   if (fabs(z)<20) {
              if (fillZ){
 	        nRecoZ++;
 		vectorZ.push_back(z);
@@ -412,6 +412,12 @@ void setTrackletTreeBranch(TTree* trackletTree,TrackletData &tdata)
   
   trackletTree->Branch("nHltBit",&tdata.nHltBit,"nHltBit/I");
   trackletTree->Branch("hltBit",tdata.hltBit,"hltBit[nHltBit]/O");
+
+  trackletTree->Branch("nL1ABit",&tdata.nL1ABit,"nL1ABit/I");
+  trackletTree->Branch("l1ABit",tdata.l1ABit,"l1ABit[nL1ABit]/O");
+  trackletTree->Branch("nL1TBit",&tdata.nL1TBit,"nL1TBit/I");
+  trackletTree->Branch("l1TBit",tdata.l1TBit,"l1TBit[nL1TBit]/O");
+
     
   trackletTree->Branch("nTracklets",&tdata.nTracklet,"nTracklets/I");
   trackletTree->Branch("nhit1",&tdata.nhit1,"nhit1/I");

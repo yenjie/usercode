@@ -315,10 +315,22 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     tdata12.nEv     = par.nEv;
     tdata12.nLumi   = par.nLumi;
     tdata12.nHltBit = par.nHltBit;
+    tdata12.nL1ABit = par.nL1ABit;
+    tdata12.nL1TBit = par.nL1TBit;
 
     for (int j=0;j<(int)par.nHltBit;j++)
     {
        tdata12.hltBit[j]= par.hltBit[j];
+    }
+
+    for (int j=0;j<(int)par.nL1ABit;j++)
+    {
+       tdata12.l1ABit[j]= par.l1ABit[j];
+    }
+
+    for (int j=0;j<(int)par.nL1TBit;j++)
+    {
+       tdata12.l1TBit[j]= par.l1TBit[j];
     }
     
     for (int j=0;j<(int)tdata12.nTracklet;j++)
@@ -365,10 +377,22 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     tdata13.nEv     = par.nEv;
     tdata13.nLumi   = par.nLumi;
     tdata13.nHltBit = par.nHltBit;
+    tdata13.nL1ABit = par.nL1ABit;
+    tdata13.nL1TBit = par.nL1TBit;
 
     for (int j=0;j<(int)par.nHltBit;j++)
     {
        tdata13.hltBit[j]= par.hltBit[j];
+    }
+
+    for (int j=0;j<(int)par.nL1ABit;j++)
+    {
+       tdata13.l1ABit[j]= par.l1ABit[j];
+    }
+
+    for (int j=0;j<(int)par.nL1TBit;j++)
+    {
+       tdata13.l1TBit[j]= par.l1TBit[j];
     }
 
     
@@ -416,10 +440,22 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     tdata23.nEv     = par.nEv;
     tdata23.nLumi   = par.nLumi;
     tdata23.nHltBit = par.nHltBit;
+    tdata23.nL1ABit = par.nL1ABit;
+    tdata23.nL1TBit = par.nL1TBit;
 
     for (int j=0;j<(int)par.nHltBit;j++)
     {
        tdata23.hltBit[j]= par.hltBit[j];
+    }
+
+    for (int j=0;j<(int)par.nL1ABit;j++)
+    {
+       tdata23.l1ABit[j]= par.l1ABit[j];
+    }
+
+    for (int j=0;j<(int)par.nL1TBit;j++)
+    {
+       tdata23.l1TBit[j]= par.l1TBit[j];
     }
 
     

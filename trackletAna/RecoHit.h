@@ -51,8 +51,13 @@ class SelectionCriteria {
 class Parameters {
  public:
 
-  int   nRun,nEv,nLumi,nHltBit;
+  int   nRun,nEv,nLumi,nHltBit,nL1ABit,nL1TBit;
   bool hltBit[500];
+  bool l1ABit[500];
+  bool l1TBit[500];
+  bool l1ABitVsBx[500][5];
+  bool l1TBitVsBx[500][5];
+
   float vz[maxEntry];
   float eta1[maxEntry],phi1[maxEntry],r1[maxEntry],cs1[maxEntry],ch1[maxEntry];
   float eta2[maxEntry],phi2[maxEntry],r2[maxEntry],cs2[maxEntry],ch2[maxEntry];
@@ -64,8 +69,10 @@ class Parameters {
 
 class TrackletData {
  public:
-  int   nRun,nEv,nLumi,nHltBit;
+  int   nRun,nEv,nLumi,nHltBit,nL1ABit,nL1TBit;
   bool hltBit[500];
+  bool l1ABit[500];
+  bool l1TBit[500];
   float eta1[maxEntry2],phi1[maxEntry2],eta2[maxEntry2],phi2[maxEntry2],vz[maxEntry2];
   float r1[maxEntry2],r2[maxEntry2];
   float deta[maxEntry2],dphi[maxEntry2];
@@ -188,6 +195,16 @@ void getPixelTreeBranch(TTree *t, Parameters &par)
 
   t->SetBranchAddress("nHltBit",&par.nHltBit);
   t->SetBranchAddress("hltBit",par.hltBit);
+
+  t->SetBranchAddress("nL1A",&par.nL1ABit);
+  t->SetBranchAddress("L1A",par.l1ABit);
+
+  t->SetBranchAddress("nL1T",&par.nL1TBit);
+  t->SetBranchAddress("L1T",par.l1TBit);
+
+//  t->SetBranchAddress("L1AVsBX",par.l1ABitVsBX);
+//  t->SetBranchAddress("L1TVsBX",par.l1TBitVsBX);
+
 
   t->SetBranchAddress("eta1",par.eta1);
   t->SetBranchAddress("phi1",par.phi1);

@@ -90,7 +90,7 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
    const int nHitBin =14;// myCut.nHitBin;
    const int nEtaBin =12;// myCut.nEtaBin;
    const int nVzBin  =10;// myCut.nVzBin;
-   const int VzRange =10;
+   int VzRange =myCut.VzRange;
    double HitBins[nHitBin+1] = {0,5,10,15,20,25,30,35,40,50,60,80,100,200,1500};
    double EtaBins[nEtaBin+1];
    double VzBins[nVzBin+1];
