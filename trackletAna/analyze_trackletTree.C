@@ -20,7 +20,8 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     			             "DataSample/PixelTree-Run123151-Full.root",
                           double smearVertex = 0,
 			  bool putPixelTree = 0,
-			  bool useKKVertex = 1
+			  bool useKKVertex = 1,
+			  bool useNSD = 1
 			 )
 {
 
@@ -136,6 +137,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
   // Main loop ===========================================================================================
   for(int i =0;  i<t->GetEntries()&&i<10000000 ; i = i + 1 + nPileUp){    
     t->GetEntry(i);
+    if ((par.evtType==92||par.evtType==93)&&useNSD) continue;
     bool beamHaloFlag = false;
     
     if ( gRandom->Rndm() < beamHaloRatio && putBeamHalo ) {
