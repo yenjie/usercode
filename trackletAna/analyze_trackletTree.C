@@ -268,7 +268,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
        if (i==1) cout <<"Vertex smeared!"<<endl;
        while (smear!=0) {
           double x = gRandom->Rndm()*2-1;
-          if (gRandom->Rndm()<TMath::Gaus(x,0,0.1,1)) {
+          if (gRandom->Rndm()<TMath::Gaus(x,0,smearVertex,1)) {
              smear = x;
           }
        }
