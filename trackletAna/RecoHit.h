@@ -51,13 +51,15 @@ class SelectionCriteria {
 class Parameters {
  public:
 
-  int   nRun,nEv,nLumi,nHltBit,nL1ABit,nL1TBit;
+  int   nRun,nEv,nLumi,nHltBit,nL1ABit,nL1TBit,nBX;
   bool hltBit[500];
   bool l1ABit[500];
   bool l1TBit[500];
   bool l1ABitVsBx[500][5];
   bool l1TBitVsBx[500][5];
 
+  float vx[maxEntry];
+  float vy[maxEntry];
   float vz[maxEntry];
   float eta1[maxEntry],phi1[maxEntry],r1[maxEntry],cs1[maxEntry],ch1[maxEntry];
   float eta2[maxEntry],phi2[maxEntry],r2[maxEntry],cs2[maxEntry],ch2[maxEntry];
@@ -69,11 +71,14 @@ class Parameters {
 
 class TrackletData {
  public:
-  int   nRun,nEv,nLumi,nHltBit,nL1ABit,nL1TBit;
+  int   nRun,nEv,nLumi,nHltBit,nL1ABit,nL1TBit,nBX;
   bool hltBit[500];
   bool l1ABit[500];
   bool l1TBit[500];
-  float eta1[maxEntry2],phi1[maxEntry2],eta2[maxEntry2],phi2[maxEntry2],vz[maxEntry2];
+  float eta1[maxEntry2],phi1[maxEntry2],eta2[maxEntry2],phi2[maxEntry2];
+  float vx[maxEntry2];
+  float vy[maxEntry2];
+  float vz[maxEntry2];
   float r1[maxEntry2],r2[maxEntry2];
   float deta[maxEntry2],dphi[maxEntry2];
   float eta[maxEntry2],phi[maxEntry2],chg[maxEntry2],pdg[maxEntry2],nhad[12],pt[maxEntry2];
@@ -88,7 +93,7 @@ double calcDphi(double phi1,double phi2);
 
 
 void prepareHits(vector<RecoHit> &cleanedHits, Parameters par, SelectionCriteria cuts,Int_t
-layer, double vz, double splitProb = 0, double dropProb = 0)
+layer, double vx, double vy, double vz, double splitProb = 0, double dropProb = 0)
 {
   vector<RecoHit> hits;
 
@@ -144,7 +149,7 @@ layer, double vz, double splitProb = 0, double dropProb = 0)
     double y = hits[ihit].r*sin(hits[ihit].phi);
     double z = hits[ihit].r/tan(atan(exp(-hits[ihit].eta))*2);
 
-    ROOT::Math::XYZVector tmpVector(x,y,z-vz);
+    ROOT::Math::XYZVector tmpVector(x-vx,y-vy,z-vz);
     RecoHit tmpHit(tmpVector.eta(),tmpVector.phi(),tmpVector.rho());
     cleanedHits.push_back(tmpHit);      
   }
@@ -192,6 +197,7 @@ void getPixelTreeBranch(TTree *t, Parameters &par)
   t->SetBranchAddress("nRun",&par.nRun);
   t->SetBranchAddress("nEv",&par.nEv);
   t->SetBranchAddress("nLumi",&par.nLumi);
+  t->SetBranchAddress("nBX",&par.nBX);
 
   t->SetBranchAddress("nHltBit",&par.nHltBit);
   t->SetBranchAddress("hltBit",par.hltBit);

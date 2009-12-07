@@ -8,7 +8,7 @@
 #include "TNtuple.h"
 #include "Tracklet.h"
 #include "Math/Vector3D.h"
-
+#include "TMath.h"
 using namespace std;
 
 void analyze_trackletTree(char * infile, char * outfile = "output.root", int makeVzCut = 0,
@@ -18,7 +18,9 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 			  double beamHaloRatio = 0.2,
 			  bool putBeamHalo = false, char * beamHaloFile =
     			             "DataSample/PixelTree-Run123151-Full.root",
-			  int putPixelTree = 0
+                          double smearVertex = 0,
+			  bool putPixelTree = 0,
+			  bool useKKVertex = 1
 			 )
 {
 
@@ -132,7 +134,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
   int nBeamHalo = 0;
 
   // Main loop ===========================================================================================
-  for(int i =0;  i<t->GetEntries()&&i<40000000 ; i = i + 1 + nPileUp){    
+  for(int i =0;  i<t->GetEntries()&&i<10000000 ; i = i + 1 + nPileUp){    
     t->GetEntry(i);
     bool beamHaloFlag = false;
     
@@ -165,8 +167,20 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
        tdata12.vz[j+1] = par.vz[j];
        tdata23.vz[j+1] = par.vz[j];
        tdata13.vz[j+1] = par.vz[j];
+       tdata12.vx[j+1] = par.vx[j];
+       tdata23.vx[j+1] = par.vx[j];
+       tdata13.vx[j+1] = par.vx[j];
+       tdata12.vy[j+1] = par.vy[j];
+       tdata23.vy[j+1] = par.vy[j];
+       tdata13.vy[j+1] = par.vy[j];
     }
     // Fill MC vertex
+    tdata12.vx[0] = par.vx[0];
+    tdata23.vx[0] = par.vx[0];
+    tdata13.vx[0] = par.vx[0];
+    tdata12.vy[0] = par.vy[0];
+    tdata23.vy[0] = par.vy[0];
+    tdata13.vy[0] = par.vy[0];
     tdata12.vz[0] = par.vz[0];
     tdata23.vz[0] = par.vz[0];
     tdata13.vz[0] = par.vz[0];
@@ -234,17 +248,46 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 
     
     double trackletVertex = 0;
-    if (par.nhits1> vertexHitRegion) trackletVertex = par.vz[1]; else trackletVertex = TrackletVertexUnbin(layerRaw1,layerRaw2,0.14,0.08);
+    if (par.nhits1> vertexHitRegion|| useKKVertex) 
+    { 
+       // actually use pixel3vertex
+       trackletVertex = par.vz[1]; 
+    } else {
+       trackletVertex = TrackletVertexUnbin(layerRaw1,layerRaw2,0.14,0.08);
+    }
     
     // For particle gun =========
-//    if (i % 1000 == 0) cout <<"!!! USE GEN VERTEX (FOR PARTICLE GUN)"<<endl;
-//    trackletVertex = par.vz[0];
+    //    if (i % 1000 == 0) cout <<"!!! USE GEN VERTEX (FOR PARTICLE GUN)"<<endl;
+    //    trackletVertex = par.vz[0];
     //===========================
 
     // vz[1] is always the selected algorithm
+    
+   double smear =0;
+   if (smearVertex!=0) {
+       if (i==1) cout <<"Vertex smeared!"<<endl;
+       while (smear!=0) {
+          double x = gRandom->Rndm()*2-1;
+          if (gRandom->Rndm()<TMath::Gaus(x,0,0.1,1)) {
+             smear = x;
+          }
+       }
+       trackletVertex += smear;
+    }
+    
     tdata12.vz[1] = trackletVertex;
     tdata23.vz[1] = trackletVertex;
     tdata13.vz[1] = trackletVertex;
+    
+    if(useKKVertex) {
+       if (i==1) cout <<"Use KK Vertex "<<endl;
+       tdata12.vx[1] = par.vx[1];
+       tdata12.vy[1] = par.vy[1];
+       tdata13.vx[1] = par.vx[1];
+       tdata13.vy[1] = par.vy[1];
+       tdata23.vx[1] = par.vx[1];
+       tdata23.vy[1] = par.vy[1];
+    }
 
     // use trackletVertex
     if (fabs(tdata12.vz[1])>cuts.vzCut && makeVzCut == 1) continue;
@@ -252,18 +295,18 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 
     // Process hits with Vz constraint:
     vector<RecoHit> layer1;
-    prepareHits(layer1,par, cuts, 1, tdata12.vz[1], splitProb, dropProb);
+    prepareHits(layer1,par, cuts, 1, tdata12.vx[1], tdata12.vy[1], tdata12.vz[1], splitProb, dropProb);
     vector<RecoHit> layer2;
-    prepareHits(layer2,par, cuts, 2, tdata12.vz[1], splitProb, dropProb);
+    prepareHits(layer2,par, cuts, 2, tdata12.vx[1], tdata12.vy[1], tdata12.vz[1], splitProb, dropProb);
     vector<RecoHit> layer3;
-    prepareHits(layer3,par, cuts, 3, tdata12.vz[1], splitProb, dropProb);
+    prepareHits(layer3,par, cuts, 3, tdata12.vx[1], tdata12.vy[1], tdata12.vz[1], splitProb, dropProb);
 
     if (nPileUp!=0) {
        for (int j=1;j <= nPileUp ; j++) {
           t->GetEntry(i+j);
-          prepareHits(layer1,par, cuts, 1, tdata12.vz[1], splitProb, dropProb);
-          prepareHits(layer2,par, cuts, 2, tdata12.vz[1], splitProb, dropProb);
-          prepareHits(layer3,par, cuts, 3, tdata12.vz[1], splitProb, dropProb);
+          prepareHits(layer1,par, cuts, 1,tdata12.vx[1], tdata12.vy[1],  tdata12.vz[1], splitProb, dropProb);
+          prepareHits(layer2,par, cuts, 2,tdata12.vx[1], tdata12.vy[1],  tdata12.vz[1], splitProb, dropProb);
+          prepareHits(layer3,par, cuts, 3,tdata12.vx[1], tdata12.vy[1],  tdata12.vz[1], splitProb, dropProb);
        }
        t->GetEntry(i);
     }
@@ -306,6 +349,14 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 
     vector<Tracklet> protoTracklets23 = recoProtoTracklets(layer2,layer3);
     vector<Tracklet> recoTracklets23 = cleanTracklets(protoTracklets23,0,cuts);
+
+    // Move the Vertex back
+    if (smearVertex!=0)
+    {
+       tdata12.vz[1] = trackletVertex-smear;
+       tdata23.vz[1] = trackletVertex-smear;
+       tdata13.vz[1] = trackletVertex-smear;
+    }
 
     // Fill Ntuple
     tdata12.nTracklet = recoTracklets12.size();

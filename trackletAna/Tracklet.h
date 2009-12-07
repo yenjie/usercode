@@ -409,6 +409,7 @@ void setTrackletTreeBranch(TTree* trackletTree,TrackletData &tdata)
   trackletTree->Branch("nRun",&tdata.nRun,"nRun/I");
   trackletTree->Branch("nEv",&tdata.nEv,"nEv/I");
   trackletTree->Branch("nLumi",&tdata.nLumi,"nLumi/I");
+  trackletTree->Branch("nBX",&tdata.nLumi,"nBX/I");
   
   trackletTree->Branch("nHltBit",&tdata.nHltBit,"nHltBit/I");
   trackletTree->Branch("hltBit",tdata.hltBit,"hltBit[nHltBit]/O");
@@ -424,6 +425,8 @@ void setTrackletTreeBranch(TTree* trackletTree,TrackletData &tdata)
   trackletTree->Branch("nhit2",&tdata.nhit2,"nhit2/I");
   trackletTree->Branch("mult",&tdata.mult,"mult/I");
   trackletTree->Branch("nv",&tdata.nv,"nv/I");
+  trackletTree->Branch("vx",tdata.vx,"vx[nv]/F");
+  trackletTree->Branch("vy",tdata.vy,"vy[nv]/F");
   trackletTree->Branch("vz",tdata.vz,"vz[nv]/F");
   trackletTree->Branch("eta1",tdata.eta1,"eta1[nTracklets]/F");
   trackletTree->Branch("phi1",tdata.phi1,"phi1[nTracklets]/F");
