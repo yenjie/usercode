@@ -26,8 +26,11 @@ selectionCut::selectionCut()
    // hltBit[72]==1   DoubleTrack
    
    VzRange = 20;   
-   myCut      = Form("abs(vz[1])<%d&&hltBit[71]==1",VzRange);
+  // myCut      = Form("abs(vz[1])<%d&&hltBit[67]==1&&vz[1]<10",VzRange);
+   myCut      = Form("abs(vz[1])<%d&&l1TBit[41]==1&&l1TBit[36]!=1&&l1TBit[37]!=1&&l1TBit[38]!=1&&l1TBit[39]!=1",VzRange);
 //   &&(hltBit[66]*0.872+hltBit[67]*0.392+hltBit[71]*0.295+hltBit[72]*0.146-1.09)>0.4"; 
+
+   myCut += "&&nLumi>130&&nLumi<143&&l1TBit[0]==1";
 
    if (1==0) {
    myCut +="&&";
@@ -66,5 +69,5 @@ selectionCut::selectionCut()
 
    nEtaBin  = 12;
    nHitBin  = 14;
-   nVzBin   = 10;
+   nVzBin   = 20;
 }

@@ -132,7 +132,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
   int nBeamHalo = 0;
 
   // Main loop ===========================================================================================
-  for(int i =0;  i<t->GetEntries()&&i<40000 ; i = i + 1 + nPileUp){    
+  for(int i =0;  i<t->GetEntries()&&i<40000000 ; i = i + 1 + nPileUp){    
     t->GetEntry(i);
     bool beamHaloFlag = false;
     

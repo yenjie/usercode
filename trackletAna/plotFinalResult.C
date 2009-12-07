@@ -676,7 +676,7 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
 
    gErrorBand = GetErrorBand((TH1F*)hMeasured,systematicError900GeV,systematicError900GeV,0.25); 
 
-   gErrorBand->Draw("F");
+//   gErrorBand->Draw("F");
    hTruth2->Draw("hist same");
    hTruthWOSelection->Draw("hist same");
    hMeasured->Draw("e same");    
