@@ -20,7 +20,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     			             "DataSample/PixelTree-Run123151-Full.root",
                           double smearVertex = 0,
 			  bool putPixelTree = 0,
-			  bool useKKVertex = 1,
+			  bool useKKVertex = 0,
 			  bool useNSD = 1
 			 )
 {
@@ -137,7 +137,23 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
   // Main loop ===========================================================================================
   for(int i =0;  i<t->GetEntries()&&i<10000000 ; i = i + 1 + nPileUp){    
     t->GetEntry(i);
+    if (i % 1000 == 0) {
+       cout <<"Event "<<i<<" "
+            <<trackletTree12->GetEntries()<<" "
+            <<trackletTree23->GetEntries()<<" "
+            <<trackletTree13->GetEntries()<<" Beam Halo: "
+	    <<nBeamHalo<<" "<<nBeamHalo/(double)i
+            <<endl;    
+    }       
+
+
+    /*
+    if (par.l1TBit[40]==0&&par.l1TBit[41]==0) continue;
+    if (par.l1TBit[0]==0) continue;
+    if (par.nLumi<69||par.nLumi>144) continue;
+    */
     if ((par.evtType==92||par.evtType==93)&&useNSD) continue;
+    
     bool beamHaloFlag = false;
     
     if ( gRandom->Rndm() < beamHaloRatio && putBeamHalo ) {
@@ -151,14 +167,6 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
        }
     }
     
-    if (i % 1000 == 0) {
-       cout <<"Event "<<i<<" "
-            <<trackletTree12->GetEntries()<<" "
-            <<trackletTree23->GetEntries()<<" "
-            <<trackletTree13->GetEntries()<<" Beam Halo: "
-	    <<nBeamHalo<<" "<<nBeamHalo/(double)i
-            <<endl;    
-    }       
     // Selection on Events
     
     // Fill reco vertex information
@@ -289,6 +297,8 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
        tdata13.vy[1] = par.vy[1];
        tdata23.vx[1] = par.vx[1];
        tdata23.vy[1] = par.vy[1];
+    } else {
+       if (i==1)cout <<"Use Tracklet Vertex "<<endl;
     }
 
     // use trackletVertex
@@ -367,6 +377,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     tdata12.nRun    = par.nRun;
     tdata12.nEv     = par.nEv;
     tdata12.nLumi   = par.nLumi;
+    tdata12.nBX     = par.nBX;
     tdata12.nHltBit = par.nHltBit;
     tdata12.nL1ABit = par.nL1ABit;
     tdata12.nL1TBit = par.nL1TBit;
@@ -429,6 +440,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     tdata13.nRun    = par.nRun;
     tdata13.nEv     = par.nEv;
     tdata13.nLumi   = par.nLumi;
+    tdata13.nBX     = par.nBX;
     tdata13.nHltBit = par.nHltBit;
     tdata13.nL1ABit = par.nL1ABit;
     tdata13.nL1TBit = par.nL1TBit;
@@ -492,6 +504,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     tdata23.nRun    = par.nRun;
     tdata23.nEv     = par.nEv;
     tdata23.nLumi   = par.nLumi;
+    tdata23.nBX     = par.nBX;
     tdata23.nHltBit = par.nHltBit;
     tdata23.nL1ABit = par.nL1ABit;
     tdata23.nL1TBit = par.nL1TBit;

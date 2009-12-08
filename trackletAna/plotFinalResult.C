@@ -88,8 +88,8 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
    }
    
    // Read alpha, beta, geometry correction from file.
-   TFile *fCorrection(0);
-   TFile *fTriggerCorrection(0);
+   TFile *fCorrection;
+   TFile *fTriggerCorrection;
    if (useCorrectionFile) fCorrection = getCorrectionFile(correctionName,TrackletType);
    if (useCorrectionFile) fTriggerCorrection = getTriggerCorrectionFile(correctionName);
    
@@ -97,10 +97,10 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
    selectionCut myCut(isMC);
    const int nHitBin =14;// myCut.nHitBin;
    const int nEtaBin =12;// myCut.nEtaBin;
-   const int nVzBin  =10;// myCut.nVzBin;
+   const int nVzBin  =20;// myCut.nVzBin;
    int VzRangeL =myCut.VzRangeL;
    int VzRangeH =myCut.VzRangeH;
-   double HitBins[nHitBin+1] = {0,5,10,15,20,25,30,35,40,50,60,80,100,200,1500};
+   double HitBins[nHitBin+1] = {0,5,10,15,20,25,30,35,40,50,60,80,100,150,200};
    double EtaBins[nEtaBin+1];
    double VzBins[nVzBin+1];
    
@@ -374,7 +374,7 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
 
       // vtx and event selection efficiency
       TCanvas *cVtxEff = new TCanvas("cVtxEff","VtxEff",400,400);
-      TrackletTree->Project("hVtxEff","nhit1",myCut.Cut&&"vz[1]!=-99","",nentries,firstentry);   
+      TrackletTree->Project("hVtxEff","nhit1",TCut(myCut.evtSelection)&&"vz[1]!=-99","",nentries,firstentry);   
       TrackletTree->Project("hVtxEffNoCut","nhit1","","",nentries,firstentry);   
       hVtxEff->Sumw2();
       hVtxEffNoCut->Sumw2();
@@ -724,19 +724,21 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
       for (int x=1;x<=nEtaBin;x++) {
          hEmptyEvtCorrection->SetBinError(x,0);
       }
+   } else {
+      hEmptyEvtCorrection = (TH1F*) fCorrection->FindObjectAny("hEmptyEvtCorrection");
    }
    TH1F *hMeasuredFinal = (TH1F*) hMeasuredVtxEffCorrected->Clone();
    
    hMeasuredFinal->SetName("hMeasuredFinal");
    hMeasuredFinal->Multiply(hEmptyEvtCorrection);
-   formatHist(hMeasuredFinal,1,1,1.5);
+   formatHist(hMeasuredFinal,2,1,1.5);
 
    //=======================//
    
 
    
-   hTruth2->Multiply(hTriggerCorrection);
-   hMeasured->Multiply(hTriggerCorrection);
+   if (useCorrectionFile) hTruth2->Multiply(hTriggerCorrection);
+   if (useCorrectionFile) hMeasured->Multiply(hTriggerCorrection);
 
    hTruth2->SetAxisRange(0,dndetaRange,"y");
    hTruth2->SetXTitle("#eta");
@@ -752,7 +754,7 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
 
    TGraph *gErrorBand;
 
-   gErrorBand = GetErrorBand((TH1F*)hMeasuredFinal,systematicError900GeV,systematicError900GeV,0.25); 
+   gErrorBand = GetErrorBand((TH1F*)hMeasuredFinal,systematicError10TeV,systematicError10TeV,0.25); 
 
 //   gErrorBand->Draw("F");
    hTruth2->Draw("hist same");
@@ -766,7 +768,7 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
    hMeasuredStat->Draw("e same");
    
    if (putUA5) {
-      TH1F *hUA5 = getUA5();
+      TH1F *hUA5 = getUA5NSD();
       hUA5->Draw("p same");
    }
    TLegend * leg1 = new TLegend(0.30,0.18,1,0.3);
