@@ -13,5 +13,6 @@ grep hMeasuredFinal $f2|replace hMeasuredFinal hMeasuredFinal2 |replace 'Color(2
 grep hMeasuredFinal $f3|replace hMeasuredFinal hMeasuredFinal3 |replace 'Color(2)' 'Color(4)'|replace 'Style(20)' 'Style(25)'|replace 'Reconstructed' 'Reconstructed (2nd+3rd layers)' >>merged/merged-$1.C
 
 
-echo "cDNdEta->SaveAs(\"result-$1-merged.eps\");">>merged/merged-$1.C
+echo "cDNdEta->SaveAs(\"merged/plot/result-$1-merged.eps\");">>merged/merged-$1.C
+echo "cDNdEta->SaveAs(\"merged/plot/result-$1-merged.gif\");">>merged/merged-$1.C
 echo '}' >>merged/merged-$1.C
