@@ -152,6 +152,8 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     if (par.l1TBit[0]==0) continue;
     if (par.nLumi<69||par.nLumi>144) continue;
     */
+
+    // Filter NSD events
     if ((par.evtType==92||par.evtType==93)&&useNSD) continue;
     
     bool beamHaloFlag = false;

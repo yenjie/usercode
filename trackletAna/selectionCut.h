@@ -26,7 +26,6 @@ selectionCut::selectionCut(bool isMC)
    vtxCut = Form("vz[1]<%d&&vz[1]>%d",VzRangeH,VzRangeL);
    evtSelection      = ("l1TBit[41]==1&&l1TBit[36]!=1&&l1TBit[37]!=1&&l1TBit[38]!=1&&l1TBit[39]!=1");
 
-//   if (!isMC) evtSelection += "&&nLumi>68&&nLumi<145&&l1ABit[0]==0&&l1ABit[82]==1&&-10<vz[1]&&vz[1]<5";
    if (!isMC) evtSelection += "&&nLumi>68&&nLumi<145&&l1ABit[0]==1&&l1ABit[82]==1&&-10<vz[1]&&vz[1]<5";
 
    myCut = vtxCut + "&&" + evtSelection;
