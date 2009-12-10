@@ -9,6 +9,7 @@
 #include "Tracklet.h"
 #include "Math/Vector3D.h"
 #include "TMath.h"
+#include "TF1.h"
 using namespace std;
 
 void analyze_trackletTree(char * infile, char * outfile = "output.root", int makeVzCut = 0,
@@ -20,8 +21,9 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     			             "DataSample/PixelTree-Run123151-Full.root",
                           double smearVertex = 0,
 			  bool putPixelTree = 0,
-			  bool useKKVertex = 0,
-			  bool useNSD = 1
+			  bool useKKVertex = 1,
+			  bool useNSD = 0,
+			  bool reWeight = 1
 			 )
 {
 
@@ -135,27 +137,51 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
   int nBeamHalo = 0;
 
   // Main loop ===========================================================================================
-  for(int i =0;  i<t->GetEntries()&&i<10000000 ; i = i + 1 + nPileUp){    
+  for(int i =0;  i<t->GetEntries()&&i<1000000000 ; i = i + 1 + nPileUp){    
     t->GetEntry(i);
+    
     if (i % 1000 == 0) {
        cout <<"Event "<<i<<" "
             <<trackletTree12->GetEntries()<<" "
             <<trackletTree23->GetEntries()<<" "
-            <<trackletTree13->GetEntries()<<" Beam Halo: "
+            <<trackletTree13->GetEntries()<<" Add Beam Halo: "
 	    <<nBeamHalo<<" "<<nBeamHalo/(double)i
-            <<endl;    
+            <<endl;
+       if (reWeight) cout <<"Reweighted!!!!!!!"<<endl;    
     }       
 
+    bool reWeightDropFlag = 0;
+    if (reWeight) {
+       reWeightDropFlag = 0;
+       double myVz = par.vz[1];
+       if (myVz<-90) {
+          TF1 *f = new TF1("f","gaus",-30,30);
+          f->SetParameters(1,-2.709,4.551);
+          myVz = f->GetRandom();
+       }
+       double MCPdf = TMath::Gaus(myVz,-2.709,4.551,1);
+       double DataPdf = TMath::Gaus(myVz,-2.702,3.627,1);
+       double Ratio = DataPdf / MCPdf;
+       //cout <<MCPdf<<" "<<DataPdf<<" "<<Ratio<<endl;
+       double x=gRandom->Rndm()*2;
 
+       if (x> Ratio) reWeightDropFlag=1;
+       //cout <<x<<" "<<Ratio<<" "<<reWeightDropFlag<<endl;
+    }
+    
+    if (reWeightDropFlag) continue;
     /*
+    // Filter by evt selection cut //
     if (par.l1TBit[40]==0&&par.l1TBit[41]==0) continue;
     if (par.l1TBit[0]==0) continue;
     if (par.nLumi<69||par.nLumi>144) continue;
     */
 
-    // Filter NSD events
+    // Filter NSD events ==========================================================
     if ((par.evtType==92||par.evtType==93)&&useNSD) continue;
     
+    
+    // Beam Halo ==================================================================
     bool beamHaloFlag = false;
     
     if ( gRandom->Rndm() < beamHaloRatio && putBeamHalo ) {
@@ -260,6 +286,8 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 
     
     double trackletVertex = 0;
+
+    // Choose KK Vertex if specified =============================================
     if (par.nhits1> vertexHitRegion|| useKKVertex) 
     { 
        // actually use pixel3vertex
@@ -267,6 +295,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     } else {
        trackletVertex = TrackletVertexUnbin(layerRaw1,layerRaw2,0.14,0.08);
     }
+    // ===========================================================================
     
     // For particle gun =========
     //    if (i % 1000 == 0) cout <<"!!! USE GEN VERTEX (FOR PARTICLE GUN)"<<endl;

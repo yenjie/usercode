@@ -32,6 +32,10 @@ hEta_UA5->SetBinContent(hEta_UA5->FindBin(-2.375),3.4);
 hEta_UA5->SetBinContent(hEta_UA5->FindBin(-2.625),3.3);
 hEta_UA5->SetBinContent(hEta_UA5->FindBin(-2.875),3.05);
 hEta_UA5->SetBinContent(hEta_UA5->FindBin(-3.125),2.9);
+hEta_UA5->SetMarkerColor(kGreen-2);
+hEta_UA5->SetMarkerSize(0.5);
+hEta_UA5->SetLineColor(2);
+hEta_UA5->SetMarkerStyle(4);
 
 hEta_UA5->SetLineColor(2);
 hEta_UA5->SetMarkerStyle(4);

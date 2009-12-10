@@ -29,7 +29,7 @@ void plotSubtracted(char* filename,char *title="",char *mycut= "",bool useMC = f
    TH2F *h2MC = new TH2F("h2MC","",12,-3,3,50,0,5);
    TH2F *h3 = new TH2F("h3","",12,-3,3,50,0,5);
  
-   selectionCut cut1;
+   selectionCut cut1(0);
    
    TCut cut = cut1.Cut && TCut(mycut);
    TCanvas *c = new TCanvas ("c","",400,400);

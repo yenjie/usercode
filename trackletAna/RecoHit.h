@@ -150,7 +150,9 @@ layer, double vx, double vy, double vz, double splitProb = 0, double dropProb = 
     double z = hits[ihit].r/tan(atan(exp(-hits[ihit].eta))*2);
 
 //    ROOT::Math::XYZVector tmpVector(x-vx,y-vy,z-vz);
+//   ROOT::Math::XYZVector tmpVector(x-0.192598,y-0.150772,z-vz);
    ROOT::Math::XYZVector tmpVector(x-0.174562,y-0.144887,z-vz);
+//  ROOT::Math::XYZVector tmpVector(x,y,z-vz);
     RecoHit tmpHit(tmpVector.eta(),tmpVector.phi(),tmpVector.rho());
     cleanedHits.push_back(tmpHit);      
   }
