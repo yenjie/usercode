@@ -19,7 +19,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 			  double beamHaloRatio = 0.2,
 			  bool putBeamHalo = false, char * beamHaloFile =
     			             "DataSample/PixelTree-Run123151-Full.root",
-                          double smearVertex = 0,
+                          double smearVertex = 0.1,
 			  bool putPixelTree = 0,
 			  bool useKKVertex = 1,
 			  bool useNSD = 0,
@@ -136,8 +136,8 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 
   int nBeamHalo = 0;
 
-  // Main loop ===========================================================================================
-  for(int i =0;  i<t->GetEntries()&&i<1000000000 ; i = i + 1 + nPileUp){    
+  // Main loop ==========================================================================================
+  for(int i =0;  i<t->GetEntries()&&i<100000 ; i = i + 1 + nPileUp){    
     t->GetEntry(i);
     
     if (i % 1000 == 0) {
@@ -158,6 +158,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
           TF1 *f = new TF1("f","gaus",-30,30);
           f->SetParameters(1,-2.709,4.551);
           myVz = f->GetRandom();
+	  delete f;
        }
        double MCPdf = TMath::Gaus(myVz,-2.709,4.551,1);
        double DataPdf = TMath::Gaus(myVz,-2.702,3.627,1);

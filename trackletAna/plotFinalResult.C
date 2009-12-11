@@ -73,7 +73,7 @@ TFile* getTriggerCorrectionFile(string correctionFileName){
 // Main Routine
 //===========================================================================
 int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",bool useCorrectionFile = 0,string correctionName = "900GeV-D6T",  Long64_t nentries = 1000000000, Long64_t firstentry =
-0,int verbose = 0,int makePlot = 0,int mcTruth = 1,bool putUA5 = 1,bool putPYTHIA = 1)
+0,int verbose = 0,int makePlot = 0,int mcTruth = 1,bool putUA5 = 1,bool putPYTHIA = 0)
 {
    FILE *logFile = fopen("correction.log","w");
    
@@ -124,7 +124,7 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
 
    TCut evtSelection = myCut.Cut;   // cut on Z position 
    TCut NSDCut = "evtType!=92&&evtType!=93";
-   if (1) evtSelection+=NSDCut;
+   //if (1) evtSelection+=NSDCut;
    // Output file =================================================================================================================
    TFile *outf = new TFile ("correction.root","recreate");
 
@@ -154,10 +154,12 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
    TH1F *hCorrectedEtaBin = new TH1F("hCorrectedEtaBin","Corrected",nEtaBin,-3,3);
    TH1F *hVtxEff = new TH1F("hVtxEff","",nHitBin,HitBins);
    TH1F *hVtxEffNoCut = new TH1F("hVtxEffNoCut","",nHitBin,HitBins);
+   TH1F *hSD = new TH1F("hSD","",nHitBin,HitBins);
+   TH1F *hSDFrac = new TH1F("hSDFrac","",nHitBin,HitBins);
    TH1F *hTruthRatio;
    TH1F *hVz = new TH1F("hVz","",nVzBin,VzBins);
    TH1F *hNhit = new TH1F("hNhit","",nHitBin,HitBins);
-//   TH1F *hMeasuredVtxEffCorrected = new TH1F("hMeasuredVtxEffCorrected","",nEtaBin,EtaBins);
+
    TH1F *alphaPlots[nEtaBin][nVzBin];
    TH1F *betaPlots[nEtaBin][nVzBin];
    TH1F *alphaErrPlots[nEtaBin][nVzBin];
@@ -185,8 +187,8 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
    TCanvas *cVz = new TCanvas("cVz","Vz distribution",canvasSizeX,canvasSizeY);
 
    // Number of events //
-   double nevent = TrackletTree->Draw("vz[1]",evtSelection,"",nentries,firstentry);
-   double neventWOSelection = TrackletTree->Draw("vz[1]","","",nentries,firstentry);
+   double nevent = TrackletTree->Draw("vz[1]",evtSelection&&NSDCut,"",nentries,firstentry);
+   double neventWOSelection = TrackletTree->Draw("vz[1]",NSDCut,"",nentries,firstentry);
 
    TrackletTree->Project("hNhit","nhit1",evtSelection,"",nentries,firstentry);   
 
@@ -201,8 +203,6 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
    cVz->SaveAs(Form("plot/vz/plotVz-%s-%d.eps",myPlotTitle,TrackletType));
    cVz->SaveAs(Form("plot/vz/plotVz-%s-%d.C",myPlotTitle,TrackletType));
    cout <<"Number of events: "<<nevent;
-
-
 
    // Determine the acceptance region to avoid large correction factors
    double rho2 = 7.6;  // second layer rho (cm)
@@ -236,9 +236,12 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
    // Charged Hadrons =============================================================================================================
    hHadron->SetXTitle("#eta");
    hHadron->SetYTitle("N_{hit}^{Layer1} |#eta|<1");
-  
+   
    TrackletTree->Project("hHadron","vz[1]:nhit1:eta","abs(eta)<3"&&evtSelection&&NSDCut,"",nentries,firstentry);
    TrackletTree->Project("hHadronWOSelection","vz[1]:nhit1:eta",NSDCut,"",nentries,firstentry);
+   hHadron->Sumw2();
+   hHadronWOSelection->Sumw2();
+   
    hHadronAccepted = (TH3F*) hHadron->Clone();
    hHadronAccepted->SetName("hHadronAccepted");
  
@@ -286,7 +289,6 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
 	 }      
       }
    }
-   
    
    for (int j=0;j<nVzBin;j++) 
    {
@@ -361,41 +363,65 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
       }
       hTruthRatio = (TH1F*) fCorrection->FindObjectAny("hTruthRatio");
       hVtxEff = (TH1F*) fCorrection->FindObjectAny("hVtxEff");
+      hSDFrac = (TH1F*) fCorrection->FindObjectAny("hSDFrac");
+      hEmptyEvtCorrection = (TH1F*) fCorrection->FindObjectAny("hEmptyEvtCorrection");
    } else {
       for (int j=0;j<nVzBin;j++) 
       {
          for (int i=0;i<nEtaBin;i++) 
          {
-         // c[i]= new TCanvas (Form("c%d",i),"",canvasSizeX,canvasSizeY);
-         // p2->cd(i+1);
-         formatHist(alphaPlots[i][j],2,1);
-         funAlpha[i][j] = new TF1(Form("funAlpha%dVz%d",i,j),"[1]/(x+[3]+0.5)+[2]/(x+0.5)/(x+0.5)+[0]",0,100);
-         funAlphaErr[i][j] = new TF1(Form("funAlphaErr%dVz%d",i,j),"[0]+[1]/(x+0.5)+[2]*exp([3]*x)",0,100);
-         double etaMin = i*0.5 -3;
-         double etaMax = i*0.5 -3+0.5;
-         alphaPlots[i][j]->Fit(Form("funAlpha%dVz%d",i,j),"m E Q","",0,200);
-         alphaPlots[i][j]->SetXTitle("N_{Hits}");
-         alphaPlots[i][j]->SetYTitle(Form("#alpha %.1f < #eta < %.1f",etaMin,etaMax)); 
-         alphaPlots[i][j]->SetAxisRange(0.9,2.0,"y");
-         alphaPlots[i][j]->SetAxisRange(0,100,"X");
-	 if (i <2 || i >9) alphaPlots[i][j]->SetAxisRange(4,10,"y");
+            // c[i]= new TCanvas (Form("c%d",i),"",canvasSizeX,canvasSizeY);
+            // p2->cd(i+1);
+            formatHist(alphaPlots[i][j],2,1);
+            funAlpha[i][j] = new TF1(Form("funAlpha%dVz%d",i,j),"[1]/(x+[3]+0.5)+[2]/(x+0.5)/(x+0.5)+[0]",0,100);
+            funAlphaErr[i][j] = new TF1(Form("funAlphaErr%dVz%d",i,j),"[0]+[1]/(x+0.5)+[2]*exp([3]*x)",0,100);
+            double etaMin = i*0.5-3;
+            double etaMax = i*0.5-3+0.5;
+            alphaPlots[i][j]->Fit(Form("funAlpha%dVz%d",i,j),"m E Q","",0,200);
+            alphaPlots[i][j]->SetXTitle("N_{Hits}");
+            alphaPlots[i][j]->SetYTitle(Form("#alpha %.1f < #eta < %.1f",etaMin,etaMax)); 
+            alphaPlots[i][j]->SetAxisRange(0.9,2.0,"y");
+            alphaPlots[i][j]->SetAxisRange(0,100,"X");
+  	    if (i <2 || i >9) alphaPlots[i][j]->SetAxisRange(4,10,"y");
 	 
-	 alphaErrPlots[i][j]->Fit(Form("funAlphaErr%dVz%d",i,j),"m E Q","",0,200);
-         alphaPlots[i][j]->Draw("p");
-         fAlpha[i][j] = alphaPlots[i][j]->GetFunction(Form("funAlpha%dVz%d",i,j));  
-         fAlphaErr[i][j] = alphaErrPlots[i][j]->GetFunction(Form("funAlphaErr%dVz%d",i,j));  
+   	    alphaErrPlots[i][j]->Fit(Form("funAlphaErr%dVz%d",i,j),"m E Q","",0,200);
+            alphaPlots[i][j]->Draw("p");
+            fAlpha[i][j] = alphaPlots[i][j]->GetFunction(Form("funAlpha%dVz%d",i,j));  
+            fAlphaErr[i][j] = alphaErrPlots[i][j]->GetFunction(Form("funAlphaErr%dVz%d",i,j));  
          }
       }  
 
       // vtx and event selection efficiency
       TCanvas *cVtxEff = new TCanvas("cVtxEff","VtxEff",400,400);
-      TrackletTree->Project("hVtxEff","nhit1",TCut(myCut.evtSelection)&&"vz[1]!=-99"&&NSDCut,"",nentries,firstentry);   
-      TrackletTree->Project("hVtxEffNoCut","nhit1",NSDCut,"",nentries,firstentry);   
+      TrackletTree->Project("hVtxEff","nhit1",TCut(myCut.evtSelection)&&"vz[1]>-99"&&NSDCut,"",nentries,firstentry);   
+      TrackletTree->Project("hVtxEffNoCut","nhit1",NSDCut&&"vz[1]>-99","",nentries,firstentry);   
       hVtxEff->Sumw2();
       hVtxEffNoCut->Sumw2();
       hVtxEff->Divide(hVtxEffNoCut);
       hVtxEff->Draw();
       cVtxEff->SaveAs(Form("plot/vtxEff-%s-%d.gif",myPlotTitle,TrackletType));
+
+      // Calculate SD'/IN'
+      TCanvas *cSDFrac = new TCanvas("cSDFrac","SD Fraction After Cut",400,400);
+      TrackletTree->Project("hSDFrac","nhit1",TCut(myCut.evtSelection)&&!(NSDCut),"",nentries,firstentry);   
+      TrackletTree->Project("hSD","nhit1",TCut(myCut.evtSelection),"",nentries,firstentry);   
+      hSDFrac->Sumw2();
+      hSD->Sumw2();
+      hSDFrac->Divide(hSD);
+      hSDFrac->Draw();
+      cSDFrac->SaveAs(Form("plot/SDFrac-%s-%d.gif",myPlotTitle,TrackletType));
+
+      // Calculate Empty Event Correction
+      /*
+      hEmptyEvtCorrection = new TH1F("hEmptyEvtCorrection","",1,0,2);
+      TH1F *hNonEmptyEvt = new TH1F("hNonEmptyEvt","",1,0,2);
+      TrackletTree->Project("hEmptyEvtCorrection","1",NSDCut,"",nentries,firstentry);   
+      TrackletTree->Project("hNonEmptyEvt","1",NSDCut&&"nhit1>0","",nentries,firstentry);   
+      hEmptyEvtCorrection->Sumw2();
+      hNonEmptyEvt->Sumw2();
+      hEmptyEvtCorrection->Divide(hNonEmptyEvt);
+      cout <<"EmptyEvent Ratio : "<<hEmptyEvtCorrection->GetBinContent(1)<<endl;
+      */
    }
 
    // make beta and alpha plot 
@@ -556,8 +582,6 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
 	    double valErr = sqrt(alpha*(1-beta)*alpha*hEverything->GetBinContent(x,y,z)*(1-beta)
 	                  + betaErr*betaErr*alpha*hEverything->GetBinContent(x,y,z)*alpha*hEverything->GetBinContent(x,y,z));
 	    
-	 
-
             hCorrected->SetBinError(x,y,z, valErr);
 	    correction->Fill(x,y,nCorrected,hHadronAccepted->GetBinContent(x,y,z),valErr);
             totalN +=nCorrected;
@@ -718,17 +742,19 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
    double nEvt=0;
    for (int y=1;y<=nHitBin;y++)
    { 
+      double SDFrac = hSDFrac->GetBinContent(y);
       double vtxEff = hVtxEff->GetBinContent(y);
-      if (vtxEff!=0)nEvt += hNhit->GetBinContent(y)/vtxEff;
+      if (vtxEff!=0)nEvt += hNhit->GetBinContent(y)/vtxEff*(1-SDFrac);
    } 
    
    for (int x=1;x<=nEtaBin;x++) {
       for (int y=1;y<=nHitBin;y++) {
          double vtxEff = hVtxEff->GetBinContent(y);
+         double SDFrac = hSDFrac->GetBinContent(y);
          if (vtxEff!=0) {
 	    
-	    hMeasuredEtaNhit->SetBinContent(x,y,hMeasuredEtaNhit->GetBinContent(x,y)/ vtxEff);
-	    hMeasuredEtaNhit->SetBinError(x,y,hMeasuredEtaNhit->GetBinError(x,y)/ vtxEff);
+	    hMeasuredEtaNhit->SetBinContent(x,y,hMeasuredEtaNhit->GetBinContent(x,y)/ vtxEff*(1-SDFrac));
+	    hMeasuredEtaNhit->SetBinError(x,y,hMeasuredEtaNhit->GetBinError(x,y)/ vtxEff*(1-SDFrac));
 	 }
       }
    }      
@@ -740,7 +766,8 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
    hMeasuredVtxEffCorrected->Divide(hAcceptance->ProjectionX());  // calibrate the acceptance
    hMeasuredVtxEffCorrected->SetMarkerStyle(4);
    
-   if (!useCorrectionFile) {   
+   
+   if (!useCorrectionFile) { 
       hEmptyEvtCorrection = (TH1F*) hTruthWOSelection->Clone();
       hEmptyEvtCorrection ->SetName("hEmptyEvtCorrection");
       hEmptyEvtCorrection -> Divide(hMeasuredVtxEffCorrected);
@@ -754,7 +781,15 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
 
    hMeasuredFinal->SetName("hMeasuredFinal");
    hMeasuredFinal->SetMarkerStyle(20);
-   hMeasuredFinal->Multiply(hEmptyEvtCorrection);
+   
+   for (int x=1;x<nEtaBin;x++){
+      double emptyCorrection = hEmptyEvtCorrection->GetBinContent(x);
+      double val = hMeasuredFinal->GetBinContent(x)*emptyCorrection;
+      double valerr = hMeasuredFinal->GetBinError(x)*emptyCorrection;
+      
+      hMeasuredFinal->SetBinContent(x,val);
+      hMeasuredFinal->SetBinError(x,valerr);
+   }
    formatHist(hMeasuredFinal,2,1,1.5);
 
    //=======================//
@@ -764,10 +799,14 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
    if (useCorrectionFile) hTruth2->Multiply(hTriggerCorrection);
    if (useCorrectionFile) hMeasured->Multiply(hTriggerCorrection);
 
+   hTruthWOSelection->Draw("hist");
+   hTruthWOSelection->SetAxisRange(0,dndetaRange,"y");
+   hTruthWOSelection->SetXTitle("#eta");
+   hTruthWOSelection->SetYTitle("dN/d#eta");
    hTruth2->SetAxisRange(0,dndetaRange,"y");
    hTruth2->SetXTitle("#eta");
    hTruth2->SetYTitle("dN/d#eta");
-   hTruth2->Draw("hist");
+//   hTruth2->Draw("hist");
    
    double systematicError900GeV[12] = 
                   {0.129,0.129,0.088,0.082,0.082,0.079,0.079,0.082,0.082,0.088,0.129,0.129};
@@ -781,7 +820,7 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
    gErrorBand = GetErrorBand((TH1F*)hMeasuredFinal,systematicError10TeV,systematicError10TeV,0.25); 
 
 //   gErrorBand->Draw("F");
-   hTruth2->Draw("hist same");
+//   hTruth2->Draw("hist same");
    hTruthWOSelection->Draw("hist same");
 //   hMeasured->Draw("e same");    
 //   hMeasuredVtxEffCorrected->Draw("e same");    
@@ -820,6 +859,7 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
    cDNdEta->SaveAs(Form("plot/result/result-%s-%d.eps",myPlotTitle,TrackletType));
    cDNdEta->SaveAs(Form("plot/result/result-%s-%d.C",myPlotTitle,TrackletType));
 
+  // Compare with Truth ===========================================================================================    
    TCanvas *cDNdEtaCompare = new TCanvas("cDNdEtaCompare","Compare",canvasSizeX,canvasSizeY);
    hTruth2->Draw("hist");
    hTruth2->Draw("hist same");
@@ -839,6 +879,7 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
    leg11->SetBorderSize(0);
    leg11->AddEntry(hTruth,Form("%s",myPlotTitle),"");
    leg11->AddEntry(hTruth2,"MC Truth","l");
+   leg11->AddEntry(hTruthWOSelection,"MC Truth W/O selection","l");
    leg11->AddEntry(hMeasured,"xi correction","pl");
    leg11->AddEntry(hMeasuredVtxEffCorrected,"vtx","pl");
    leg11->AddEntry(hMeasuredFinal,"vtxEff+Empty correction","pl");
@@ -851,11 +892,12 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
 
    TH1F *hRatio = (TH1F*)hMeasuredFinal->Clone();
    hRatio->SetName("hRatio");
-   hRatio->Divide(hTruth2);
+   hRatio->Divide(hTruthWOSelection);
    hRatio->SetXTitle("#eta");
    hRatio->SetYTitle("Ratio");
    hRatio->SetAxisRange(0.8,1.2,"y");
    hRatio->Draw();
+   
    TH1F *hRatioStat = (TH1F*)hRatio->Clone();
    hRatioStat->SetName("hRatioStat");
    hRatioStat->SetMarkerSize(0);

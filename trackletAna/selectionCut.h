@@ -10,6 +10,7 @@ class selectionCut
     
     TCut Cut;  
     TString evtSelection;
+    TCut CutWOVtxCut;
     TString vtxCut;
     TString myCut;
     int nEtaBin;
@@ -28,6 +29,7 @@ selectionCut::selectionCut(bool isMC)
 
    if (!isMC) evtSelection += "&&nLumi>68&&nLumi<145&&l1ABit[0]==1&&l1ABit[82]==1";
 
+   CutWOVtxCut = TCut(evtSelection);
    myCut = vtxCut + "&&" + evtSelection;
 
    cout <<myCut<<endl;
