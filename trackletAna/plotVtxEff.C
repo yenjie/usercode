@@ -17,8 +17,8 @@ void plotVtxEff(){
    TH1F *hVz900GeV = new TH1F("hVz900GeV","",100,-10,10);
    TH1F *hVz10TeV = new TH1F("hVz10TeV","",100,-10,10);
    
-   int norm900GeV = t900GeV->GetEntries("vz[3]>-9999&&abs(vz[0])<20");
-   int norm10TeV = t10TeV->GetEntries("vz[3]>-9999&&abs(vz[0])<20");
+   int norm900GeV = t900GeV->GetEntries("vz[3]>-99&&abs(vz[0])<20");
+   int norm10TeV = t10TeV->GetEntries("vz[3]>-99&&abs(vz[0])<20");
    t900GeV->Draw("vz[3]>>hVz900GeV","abs(vz[0])<20");
    t10TeV->Draw("vz[3]>>hVz10TeV","abs(vz[0])<20");
 
@@ -59,10 +59,10 @@ void plotVtxEff(){
    TProfile *hPV10TeV = new TProfile("hPV10TeV","",20,0,20);
 
    TCanvas *c2 = new TCanvas("c2","",400,400);
-   t900GeV->Draw("vz[3]!=-9999:nhit1>>hTV900GeV");
-   t900GeV->Draw("vz[1]!=-9999:nhit1>>hPV900GeV");
-   t10TeV->Draw("vz[3]!=-9999:nhit1>>hTV10TeV");
-   t10TeV->Draw("vz[1]!=-9999:nhit1>>hPV10TeV");
+   t900GeV->Draw("vz[3]!=-99:nhit1>>hTV900GeV");
+   t900GeV->Draw("vz[1]!=-99:nhit1>>hPV900GeV");
+   t10TeV->Draw("vz[3]!=-99:nhit1>>hTV10TeV");
+   t10TeV->Draw("vz[1]!=-99:nhit1>>hPV10TeV");
  
    hTV900GeV->SetMarkerColor(2);
    hTV900GeV->SetMarkerStyle(4);

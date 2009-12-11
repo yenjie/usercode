@@ -16,7 +16,7 @@ void unfoldPt(int mode=0)
    TNtuple *nt = (TNtuple*)inf->FindObjectAny("nt");
 
    // Test sample
-   TFile *infTest = new TFile("./TrackletTree-Run123596.root");
+   TFile *infTest = new TFile("TrackletTree-7TeV-Herwig-Test.root");
    TNtuple *ntTest = (TNtuple*)infTest->FindObjectAny("TrackletTree12");
    
    TFile *pdfFile;
@@ -29,8 +29,8 @@ void unfoldPt(int mode=0)
    double nDphiBin=600;
    double maxDphi=0.4;
    
-   char* mycut = Form("abs(eta)<2&&log(pt)>%f&&log(pt)<%f",minPt,maxPt);
-   char* mycut1=Form("abs(eta)<2&&log(pt)>%f&&log(pt)<%f&&abs(eta-eta1)<0.01&&abs(deta)<0.01",minPt,maxPt);
+   char* mycut = Form("abs(eta)<2&&pt>%f&&pt<%f",minPt,maxPt);
+   char* mycut1=Form("abs(eta)<2&&pt>%f&&pt<%f&&abs(eta-eta1)<0.01&&abs(deta)<0.01",minPt,maxPt);
 
    TH2F *h;
    TH1F *hdphi = new TH1F("hdphi","",nDphiBin,0,maxDphi);
@@ -146,7 +146,7 @@ void unfoldPt(int mode=0)
    hptCorrected->SetMarkerStyle(20);
 
    hpt->Scale(1./hpt->GetEntries());
-   if (hptH->GetEntries())hptH->Scale(1./hptH->GetEntries());
+   hptH->Scale(1./hptH->GetEntries());
 
    hptTemp->SetXTitle("ln(P_{T}) GeV/c");
    hptTemp->SetYTitle("Arbitrary Normalization");
@@ -165,12 +165,12 @@ void unfoldPt(int mode=0)
    TH1F *hptUnfoldRatio = (TH1F*)hptUnfold->Clone();
    hptUnfoldRatio->SetName("hptUnfoldRatio");
    hptUnfoldRatio->Scale(1./hptUnfoldRatio->GetSum());
-   //hptUnfoldRatio->Divide(hptH);
+   hptUnfoldRatio->Divide(hptH);
 
    TH1F *hptCorrectedRatio = (TH1F*)hptCorrected->Clone();
    hptCorrectedRatio->SetName("hptCorrectedRatio");
    hptCorrectedRatio->SetMarkerColor(2);
-   //hptCorrectedRatio->Divide(hptH);
+   hptCorrectedRatio->Divide(hptH);
 
    TCanvas *c4 = new TCanvas("c4","",600,600);
    TLine *l = new TLine(-2.5,1,2.5,1);

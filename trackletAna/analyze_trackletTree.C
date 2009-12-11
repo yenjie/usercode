@@ -8,38 +8,19 @@
 #include "TNtuple.h"
 #include "Tracklet.h"
 #include "Math/Vector3D.h"
-#include "TMath.h"
-#include "TF1.h"
+
 using namespace std;
 
 void analyze_trackletTree(char * infile, char * outfile = "output.root", int makeVzCut = 0,
-                          int addL1Bck = 0, int addL2Bck = 0, 
-			  double splitProb = 0, double dropProb = 0, 
-			  int nPileUp = 0, 
-			  double beamHaloRatio = 0.2,
-			  bool putBeamHalo = false, char * beamHaloFile =
-    			             "DataSample/PixelTree-Run123151-Full.root",
-                          double smearVertex = 0.1,
-			  bool putPixelTree = 0,
-			  bool useKKVertex = 1,
-			  bool useNSD = 0,
-			  bool reWeight = 1
-			 )
+                          int addL1Bck = 0, int addL2Bck = 0, double
+			  splitProb = 0, double dropProb = 0, int nPileUp = 0, int putPixelTree = 0)
 {
 
   // Input file =======================================================================================
   TFile* inf = new  TFile(infile);
+
   TTree* t = dynamic_cast<TTree*>(inf->FindObjectAny("PixelTree"));
-  TFile* beamHaloInf;
-  TTree* beamHaloTree;
-  if (putBeamHalo) {
-      cout <<"Add Beam Halo Background!!!!"<<endl;
-      cout <<"Ratio = "<<beamHaloRatio<<endl;
-      cout <<"File = "<<beamHaloFile<<endl;
-      beamHaloInf = new TFile(beamHaloFile);
-      beamHaloTree = dynamic_cast<TTree*>(beamHaloInf->FindObjectAny("PixelTree"));
-  }
-  
+
   // Output file =======================================================================================
   TFile* outf = new TFile(outfile,"recreate");
   TNtuple *ntmult = new TNtuple("ntmult","","mult:nhit1:nhit2");
@@ -127,75 +108,50 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
   
   // Parameters for the tree =============================================================================
   Parameters par;  
-//  Parameters beamHaloPar;
-  if (putBeamHalo) getPixelTreeBranch(beamHaloTree,par);  
-  getPixelTreeBranch(t,par);
+
+  t->SetBranchAddress("nRun",&par.nRun);
+  t->SetBranchAddress("nEv",&par.nEv);
+  t->SetBranchAddress("nLumi",&par.nLumi);
+
+  t->SetBranchAddress("nHltBit",&par.nHltBit);
+  t->SetBranchAddress("hltBit",par.hltBit);
+
+  t->SetBranchAddress("eta1",par.eta1);
+  t->SetBranchAddress("phi1",par.phi1);
+  t->SetBranchAddress("r1",par.r1);
+  t->SetBranchAddress("eta2",par.eta2);
+  t->SetBranchAddress("phi2",par.phi2);
+  t->SetBranchAddress("r2",par.r2);
+  t->SetBranchAddress("eta3",par.eta3);
+  t->SetBranchAddress("phi3",par.phi3);
+  t->SetBranchAddress("r3",par.r3);
+  t->SetBranchAddress("nhits1",&par.nhits1);
+  t->SetBranchAddress("nhits2",&par.nhits2);
+  t->SetBranchAddress("nhits3",&par.nhits3);
+  t->SetBranchAddress("mult",&par.mult);
+  t->SetBranchAddress("vz",par.vz);
+  t->SetBranchAddress("nv",&par.nv);
+  t->SetBranchAddress("npart",&par.npart);
+  t->SetBranchAddress("eta",&par.eta);
+  t->SetBranchAddress("phi",&par.phi);
+  t->SetBranchAddress("pt",&par.pt);
+  t->SetBranchAddress("chg",&par.chg);
+  t->SetBranchAddress("pdg",&par.pdg);
   
+
   if(!makeVzCut) t->SetBranchAddress("evtType",&par.evtType);
   cout <<"Number of Events: "<<t->GetEntries()<<endl;
 
-  int nBeamHalo = 0;
-
-  // Main loop ==========================================================================================
-  for(int i =0;  i<t->GetEntries()&&i<100000 ; i = i + 1 + nPileUp){    
+  // Main loop ===========================================================================================
+  for(int i =0;  i<t->GetEntries()&&i<1000000000 ; i = i + 1 + nPileUp){    
     t->GetEntry(i);
-    
     if (i % 1000 == 0) {
        cout <<"Event "<<i<<" "
             <<trackletTree12->GetEntries()<<" "
             <<trackletTree23->GetEntries()<<" "
-            <<trackletTree13->GetEntries()<<" Add Beam Halo: "
-	    <<nBeamHalo<<" "<<nBeamHalo/(double)i
-            <<endl;
-       if (reWeight) cout <<"Reweighted!!!!!!!"<<endl;    
+            <<trackletTree13->GetEntries()<<" "
+            <<endl;    
     }       
-
-    bool reWeightDropFlag = 0;
-    if (reWeight) {
-       reWeightDropFlag = 0;
-       double myVz = par.vz[1];
-       if (myVz<-90) {
-          TF1 *f = new TF1("f","gaus",-30,30);
-          f->SetParameters(1,-2.709,4.551);
-          myVz = f->GetRandom();
-	  delete f;
-       }
-       double MCPdf = TMath::Gaus(myVz,-2.709,4.551,1);
-       double DataPdf = TMath::Gaus(myVz,-2.702,3.627,1);
-       double Ratio = DataPdf / MCPdf;
-       //cout <<MCPdf<<" "<<DataPdf<<" "<<Ratio<<endl;
-       double x=gRandom->Rndm()*2;
-
-       if (x> Ratio) reWeightDropFlag=1;
-       //cout <<x<<" "<<Ratio<<" "<<reWeightDropFlag<<endl;
-    }
-    
-    if (reWeightDropFlag) continue;
-    /*
-    // Filter by evt selection cut //
-    if (par.l1TBit[40]==0&&par.l1TBit[41]==0) continue;
-    if (par.l1TBit[0]==0) continue;
-    if (par.nLumi<69||par.nLumi>144) continue;
-    */
-
-    // Filter NSD events ==========================================================
-    if ((par.evtType==92||par.evtType==93)&&useNSD) continue;
-    
-    
-    // Beam Halo ==================================================================
-    bool beamHaloFlag = false;
-    
-    if ( gRandom->Rndm() < beamHaloRatio && putBeamHalo ) {
-       nBeamHalo++;
-       beamHaloFlag = true;
-       bool selectFlag = false;
-       while (!selectFlag) {
-          int nEntry = beamHaloTree->GetEntries();
-          beamHaloTree->GetEntry(nEntry*gRandom->Rndm());
-	  if (par.hltBit[67]==1) selectFlag=true;
-       }
-    }
-    
     // Selection on Events
     
     // Fill reco vertex information
@@ -206,20 +162,8 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
        tdata12.vz[j+1] = par.vz[j];
        tdata23.vz[j+1] = par.vz[j];
        tdata13.vz[j+1] = par.vz[j];
-       tdata12.vx[j+1] = par.vx[j];
-       tdata23.vx[j+1] = par.vx[j];
-       tdata13.vx[j+1] = par.vx[j];
-       tdata12.vy[j+1] = par.vy[j];
-       tdata23.vy[j+1] = par.vy[j];
-       tdata13.vy[j+1] = par.vy[j];
     }
     // Fill MC vertex
-    tdata12.vx[0] = par.vx[0];
-    tdata23.vx[0] = par.vx[0];
-    tdata13.vx[0] = par.vx[0];
-    tdata12.vy[0] = par.vy[0];
-    tdata23.vy[0] = par.vy[0];
-    tdata13.vy[0] = par.vy[0];
     tdata12.vz[0] = par.vz[0];
     tdata23.vz[0] = par.vz[0];
     tdata13.vz[0] = par.vz[0];
@@ -287,51 +231,17 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 
     
     double trackletVertex = 0;
-
-    // Choose KK Vertex if specified =============================================
-    if (par.nhits1> vertexHitRegion|| useKKVertex) 
-    { 
-       // actually use pixel3vertex
-       trackletVertex = par.vz[1]; 
-    } else {
-       trackletVertex = TrackletVertexUnbin(layerRaw1,layerRaw2,0.14,0.08);
-    }
-    // ===========================================================================
+    if (par.nhits1> vertexHitRegion) trackletVertex = par.vz[1]; else trackletVertex = TrackletVertexUnbin(layerRaw1,layerRaw2,0.14,0.08);
     
     // For particle gun =========
-    //    if (i % 1000 == 0) cout <<"!!! USE GEN VERTEX (FOR PARTICLE GUN)"<<endl;
-    //    trackletVertex = par.vz[0];
+//    if (i % 1000 == 0) cout <<"!!! USE GEN VERTEX (FOR PARTICLE GUN)"<<endl;
+//    trackletVertex = par.vz[0];
     //===========================
 
     // vz[1] is always the selected algorithm
-    
-   double smear =0;
-   if (smearVertex!=0) {
-       if (i==1) cout <<"Vertex smeared!"<<endl;
-       while (smear!=0) {
-          double x = gRandom->Rndm()*2-1;
-          if (gRandom->Rndm()<TMath::Gaus(x,0,smearVertex,1)) {
-             smear = x;
-          }
-       }
-       trackletVertex += smear;
-    }
-    
     tdata12.vz[1] = trackletVertex;
     tdata23.vz[1] = trackletVertex;
     tdata13.vz[1] = trackletVertex;
-    
-    if(useKKVertex) {
-       if (i==1) cout <<"Use KK Vertex "<<endl;
-       tdata12.vx[1] = par.vx[1];
-       tdata12.vy[1] = par.vy[1];
-       tdata13.vx[1] = par.vx[1];
-       tdata13.vy[1] = par.vy[1];
-       tdata23.vx[1] = par.vx[1];
-       tdata23.vy[1] = par.vy[1];
-    } else {
-       if (i==1)cout <<"Use Tracklet Vertex "<<endl;
-    }
 
     // use trackletVertex
     if (fabs(tdata12.vz[1])>cuts.vzCut && makeVzCut == 1) continue;
@@ -339,18 +249,18 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 
     // Process hits with Vz constraint:
     vector<RecoHit> layer1;
-    prepareHits(layer1,par, cuts, 1, tdata12.vx[1], tdata12.vy[1], tdata12.vz[1], splitProb, dropProb);
+    prepareHits(layer1,par, cuts, 1, tdata12.vz[1], splitProb, dropProb);
     vector<RecoHit> layer2;
-    prepareHits(layer2,par, cuts, 2, tdata12.vx[1], tdata12.vy[1], tdata12.vz[1], splitProb, dropProb);
+    prepareHits(layer2,par, cuts, 2, tdata12.vz[1], splitProb, dropProb);
     vector<RecoHit> layer3;
-    prepareHits(layer3,par, cuts, 3, tdata12.vx[1], tdata12.vy[1], tdata12.vz[1], splitProb, dropProb);
+    prepareHits(layer3,par, cuts, 3, tdata12.vz[1], splitProb, dropProb);
 
     if (nPileUp!=0) {
        for (int j=1;j <= nPileUp ; j++) {
           t->GetEntry(i+j);
-          prepareHits(layer1,par, cuts, 1,tdata12.vx[1], tdata12.vy[1],  tdata12.vz[1], splitProb, dropProb);
-          prepareHits(layer2,par, cuts, 2,tdata12.vx[1], tdata12.vy[1],  tdata12.vz[1], splitProb, dropProb);
-          prepareHits(layer3,par, cuts, 3,tdata12.vx[1], tdata12.vy[1],  tdata12.vz[1], splitProb, dropProb);
+          prepareHits(layer1,par, cuts, 1, tdata12.vz[1], splitProb, dropProb);
+          prepareHits(layer2,par, cuts, 2, tdata12.vz[1], splitProb, dropProb);
+          prepareHits(layer3,par, cuts, 3, tdata12.vz[1], splitProb, dropProb);
        }
        t->GetEntry(i);
     }
@@ -394,14 +304,6 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     vector<Tracklet> protoTracklets23 = recoProtoTracklets(layer2,layer3);
     vector<Tracklet> recoTracklets23 = cleanTracklets(protoTracklets23,0,cuts);
 
-    // Move the Vertex back
-    if (smearVertex!=0)
-    {
-       tdata12.vz[1] = trackletVertex-smear;
-       tdata23.vz[1] = trackletVertex-smear;
-       tdata13.vz[1] = trackletVertex-smear;
-    }
-
     // Fill Ntuple
     tdata12.nTracklet = recoTracklets12.size();
     tdata12.nhit1   = layer1.size();
@@ -409,24 +311,11 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     tdata12.nRun    = par.nRun;
     tdata12.nEv     = par.nEv;
     tdata12.nLumi   = par.nLumi;
-    tdata12.nBX     = par.nBX;
     tdata12.nHltBit = par.nHltBit;
-    tdata12.nL1ABit = par.nL1ABit;
-    tdata12.nL1TBit = par.nL1TBit;
 
     for (int j=0;j<(int)par.nHltBit;j++)
     {
        tdata12.hltBit[j]= par.hltBit[j];
-    }
-
-    for (int j=0;j<(int)par.nL1ABit;j++)
-    {
-       tdata12.l1ABit[j]= par.l1ABit[j];
-    }
-
-    for (int j=0;j<(int)par.nL1TBit;j++)
-    {
-       tdata12.l1TBit[j]= par.l1TBit[j];
     }
     
     for (int j=0;j<(int)tdata12.nTracklet;j++)
@@ -472,24 +361,11 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     tdata13.nRun    = par.nRun;
     tdata13.nEv     = par.nEv;
     tdata13.nLumi   = par.nLumi;
-    tdata13.nBX     = par.nBX;
     tdata13.nHltBit = par.nHltBit;
-    tdata13.nL1ABit = par.nL1ABit;
-    tdata13.nL1TBit = par.nL1TBit;
 
     for (int j=0;j<(int)par.nHltBit;j++)
     {
        tdata13.hltBit[j]= par.hltBit[j];
-    }
-
-    for (int j=0;j<(int)par.nL1ABit;j++)
-    {
-       tdata13.l1ABit[j]= par.l1ABit[j];
-    }
-
-    for (int j=0;j<(int)par.nL1TBit;j++)
-    {
-       tdata13.l1TBit[j]= par.l1TBit[j];
     }
 
     
@@ -536,24 +412,11 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     tdata23.nRun    = par.nRun;
     tdata23.nEv     = par.nEv;
     tdata23.nLumi   = par.nLumi;
-    tdata23.nBX     = par.nBX;
     tdata23.nHltBit = par.nHltBit;
-    tdata23.nL1ABit = par.nL1ABit;
-    tdata23.nL1TBit = par.nL1TBit;
 
     for (int j=0;j<(int)par.nHltBit;j++)
     {
        tdata23.hltBit[j]= par.hltBit[j];
-    }
-
-    for (int j=0;j<(int)par.nL1ABit;j++)
-    {
-       tdata23.l1ABit[j]= par.l1ABit[j];
-    }
-
-    for (int j=0;j<(int)par.nL1TBit;j++)
-    {
-       tdata23.l1TBit[j]= par.l1TBit[j];
     }
 
     

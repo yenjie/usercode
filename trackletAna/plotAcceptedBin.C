@@ -8,11 +8,11 @@
 
 void plotAcceptedBin()
 {
-   TFile *inputFile = new TFile("correction/correction-12-900GeV-D6T.root","");
-   TFile *inputFile2 = new TFile("./DataSample/TrackletTree-Run123596-some.root");
+   TFile *inputFile = new TFile("correction/correction-12-10TeV.root","");
+   TFile *inputFile2 = new TFile("sample/TrackletTree-10TeV-TV-2.4M.root");
    TTree *TrackletTree = (TTree*)inputFile2->FindObjectAny("TrackletTree12");
    TH2F *h = (TH2F*) inputFile->FindObjectAny("hAcceptance");
-   TH2F *h2 = new TH2F("h2","",200,-3,3,200,-20,20);
+   TH2F *h2 = new TH2F("h2","",200,-3,3,200,-10,10);
    TCanvas *c = new TCanvas("c","",400,400);
    for (int i=0;i<=h->GetNbinsX();i++){
       for (int j=0;j<=h->GetNbinsY();j++) {
@@ -25,7 +25,7 @@ void plotAcceptedBin()
    h->SetFillColor(15);
    h->SetLineColor(2);
    
-   TrackletTree->Draw("vz[1]:eta1>>h2","abs(deta)<0.1");
+   TrackletTree->Draw("vz[3]:eta1>>h2","abs(deta)<0.1");
     
    h->Draw("box");
    c->SaveAs("plot/Acceptance/FigAcceptedBins.C");

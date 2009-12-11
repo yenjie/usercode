@@ -51,34 +51,20 @@ class SelectionCriteria {
 class Parameters {
  public:
 
-  int   nRun,nEv,nLumi,nHltBit,nL1ABit,nL1TBit,nBX;
+  int   nRun,nEv,nLumi,nHltBit;
   bool hltBit[500];
-  bool l1ABit[500];
-  bool l1TBit[500];
-  bool l1ABitVsBx[500][5];
-  bool l1TBitVsBx[500][5];
-
-  float vx[maxEntry];
-  float vy[maxEntry];
-  float vz[maxEntry];
-  float eta1[maxEntry],phi1[maxEntry],r1[maxEntry],cs1[maxEntry],ch1[maxEntry];
-  float eta2[maxEntry],phi2[maxEntry],r2[maxEntry],cs2[maxEntry],ch2[maxEntry];
-  float eta3[maxEntry],phi3[maxEntry],r3[maxEntry],cs3[maxEntry],ch3[maxEntry];
-  float etaF2[maxEntry],phiF2[maxEntry],rF2[maxEntry],csF2[maxEntry],chF2[maxEntry];
+  float eta1[maxEntry],phi1[maxEntry],r1[maxEntry],eta2[maxEntry],phi2[maxEntry],r2[maxEntry],eta3[maxEntry],phi3[maxEntry],r3[maxEntry],vz[maxEntry];
+  float cs1[maxEntry],cs2[maxEntry],cs3[maxEntry];
+  float ch1[maxEntry],ch2[maxEntry],ch3[maxEntry];
   float eta[maxEntry],phi[maxEntry],chg[maxEntry],pdg[maxEntry],pt[maxEntry];
-  int nhits1,nhits2,nhits3,nhitsF2,mult,nv,npart,evtType;
+  int nhits1,nhits2,nhits3,mult,nv,npart,evtType;
 };
 
 class TrackletData {
  public:
-  int   nRun,nEv,nLumi,nHltBit,nL1ABit,nL1TBit,nBX;
+  int   nRun,nEv,nLumi,nHltBit;
   bool hltBit[500];
-  bool l1ABit[500];
-  bool l1TBit[500];
-  float eta1[maxEntry2],phi1[maxEntry2],eta2[maxEntry2],phi2[maxEntry2];
-  float vx[maxEntry2];
-  float vy[maxEntry2];
-  float vz[maxEntry2];
+  float eta1[maxEntry2],phi1[maxEntry2],eta2[maxEntry2],phi2[maxEntry2],vz[maxEntry2];
   float r1[maxEntry2],r2[maxEntry2];
   float deta[maxEntry2],dphi[maxEntry2];
   float eta[maxEntry2],phi[maxEntry2],chg[maxEntry2],pdg[maxEntry2],nhad[12],pt[maxEntry2];
@@ -93,7 +79,7 @@ double calcDphi(double phi1,double phi2);
 
 
 void prepareHits(vector<RecoHit> &cleanedHits, Parameters par, SelectionCriteria cuts,Int_t
-layer, double vx, double vy, double vz, double splitProb = 0, double dropProb = 0)
+layer, double vz, double splitProb = 0, double dropProb = 0)
 {
   vector<RecoHit> hits;
 
@@ -149,10 +135,7 @@ layer, double vx, double vy, double vz, double splitProb = 0, double dropProb = 
     double y = hits[ihit].r*sin(hits[ihit].phi);
     double z = hits[ihit].r/tan(atan(exp(-hits[ihit].eta))*2);
 
-//    ROOT::Math::XYZVector tmpVector(x-vx,y-vy,z-vz);
-//   ROOT::Math::XYZVector tmpVector(x-0.192598,y-0.150772,z-vz);
-   ROOT::Math::XYZVector tmpVector(x-0.174562,y-0.144887,z-vz);
-//  ROOT::Math::XYZVector tmpVector(x,y,z-vz);
+    ROOT::Math::XYZVector tmpVector(x,y,z-vz);
     RecoHit tmpHit(tmpVector.eta(),tmpVector.phi(),tmpVector.rho());
     cleanedHits.push_back(tmpHit);      
   }
@@ -193,53 +176,4 @@ void combineRecHit(vector<RecoHit> &c, vector<RecoHit> a,vector<RecoHit> b)
    for (unsigned int i=0;i<b.size();i++) {
       c.push_back(b[i]);
    }
-}
-
-void getPixelTreeBranch(TTree *t, Parameters &par)
-{
-  t->SetBranchAddress("nRun",&par.nRun);
-  t->SetBranchAddress("nEv",&par.nEv);
-  t->SetBranchAddress("nLumi",&par.nLumi);
-  t->SetBranchAddress("nBX",&par.nBX);
-
-  t->SetBranchAddress("nHltBit",&par.nHltBit);
-  t->SetBranchAddress("hltBit",par.hltBit);
-
-  t->SetBranchAddress("nL1A",&par.nL1ABit);
-  t->SetBranchAddress("L1A",par.l1ABit);
-
-  t->SetBranchAddress("nL1T",&par.nL1TBit);
-  t->SetBranchAddress("L1T",par.l1TBit);
-
-//  t->SetBranchAddress("L1AVsBX",par.l1ABitVsBX);
-//  t->SetBranchAddress("L1TVsBX",par.l1TBitVsBX);
-
-
-  t->SetBranchAddress("eta1",par.eta1);
-  t->SetBranchAddress("phi1",par.phi1);
-  t->SetBranchAddress("r1",par.r1);
-  t->SetBranchAddress("eta2",par.eta2);
-  t->SetBranchAddress("phi2",par.phi2);
-  t->SetBranchAddress("r2",par.r2);
-  t->SetBranchAddress("eta3",par.eta3);
-  t->SetBranchAddress("phi3",par.phi3);
-  t->SetBranchAddress("r3",par.r3);
-  t->SetBranchAddress("nhits1",&par.nhits1);
-  t->SetBranchAddress("nhits2",&par.nhits2);
-  t->SetBranchAddress("nhits3",&par.nhits3);
-
-  // pixel froward  
-  t->SetBranchAddress("etaF2",par.etaF2);
-  t->SetBranchAddress("phiF2",par.phiF2);
-  t->SetBranchAddress("rF2",par.rF2);
-  t->SetBranchAddress("nhitsF2",&par.nhitsF2);
-
-  t->SetBranchAddress("vz",par.vz);
-  t->SetBranchAddress("nv",&par.nv);
-  t->SetBranchAddress("npart",&par.npart);
-  t->SetBranchAddress("eta",&par.eta);
-  t->SetBranchAddress("phi",&par.phi);
-  t->SetBranchAddress("pt",&par.pt);
-  t->SetBranchAddress("chg",&par.chg);
-  t->SetBranchAddress("pdg",&par.pdg); 
 }
