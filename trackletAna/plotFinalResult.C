@@ -102,7 +102,7 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
    const int nVzBin  =20;// myCut.nVzBin;
    int VzRangeL =myCut.VzRangeL;
    int VzRangeH =myCut.VzRangeH;
-   double HitBins[nHitBin+1] = {0,5,10,15,20,25,30,35,40,50,60,80,100,150,200};
+   double HitBins[nHitBin+1] = {-5,5,10,15,20,25,30,35,40,50,60,80,100,150,200};
    double EtaBins[nEtaBin+1];
    double VzBins[nVzBin+1];
    
@@ -191,7 +191,7 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
    double nevent = TrackletTree->Draw("vz[1]",evtSelection&&NSDCut,"",nentries,firstentry);
    double neventWOSelection = TrackletTree->Draw("vz[1]",NSDCut,"",nentries,firstentry);
 
-   TrackletTree->Project("hNhit","nhit1",evtSelection,"",nentries,firstentry);   
+   TrackletTree->Project("hNhit","mult",evtSelection,"",nentries,firstentry);   
 
    TrackletTree->Project("hVz","vz[1]",evtSelection,"",nentries,firstentry);   
    hVz->Sumw2();
@@ -238,8 +238,8 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
    hHadron->SetXTitle("#eta");
    hHadron->SetYTitle("N_{hit}^{Layer1} |#eta|<1");
    
-   TrackletTree->Project("hHadron","vz[1]:nhit1:eta","abs(eta)<3"&&evtSelection&&NSDCut,"",nentries,firstentry);
-   TrackletTree->Project("hHadronWOSelection","vz[1]:nhit1:eta","abs(eta)<3"&&NSDCut,"",nentries,firstentry);
+   TrackletTree->Project("hHadron","vz[1]:mult:eta","abs(eta)<3"&&evtSelection&&NSDCut,"",nentries,firstentry);
+   TrackletTree->Project("hHadronWOSelection","vz[1]:mult:eta","abs(eta)<3"&&NSDCut,"",nentries,firstentry);
    hHadron->Sumw2();
    hHadronWOSelection->Sumw2();
    
@@ -248,11 +248,11 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
  
    // Prepare Tracklet Three-Dimensional Histogram ================================================================================
    // signal region && evtSelection //
-   TrackletTree->Project("hEverything","vz[1]:nhit1:eta1",signalRegion&&evtSelection,"",nentries,firstentry);
+   TrackletTree->Project("hEverything","vz[1]:mult:eta1",signalRegion&&evtSelection,"",nentries,firstentry);
    hEverything->Sumw2();
    
    // deltaPhi sideband region (with eta signal region cut) && evtSelection //
-   TrackletTree->Project("hReproducedBackground","vz[1]:nhit1:eta1",sideBandRegionEtaSignalRegion&&evtSelection,"",nentries,firstentry);   
+   TrackletTree->Project("hReproducedBackground","vz[1]:mult:eta1",sideBandRegionEtaSignalRegion&&evtSelection,"",nentries,firstentry);   
    hReproducedBackground->Sumw2();
      
    // Beta calculation ============================================================================================================
@@ -396,8 +396,8 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
 
       // vtx and event selection efficiency
       TCanvas *cVtxEff = new TCanvas("cVtxEff","VtxEff",400,400);
-      TrackletTree->Project("hVtxEff","nhit1",TCut(myCut.evtSelection)&&"vz[1]>-99"&&NSDCut,"",nentries,firstentry);   
-      TrackletTree->Project("hVtxEffNoCut","nhit1",NSDCut&&"vz[1]>-99","",nentries,firstentry);   
+      TrackletTree->Project("hVtxEff","mult",TCut(myCut.evtSelection)&&"vz[1]>-99"&&NSDCut,"",nentries,firstentry);   
+      TrackletTree->Project("hVtxEffNoCut","mult",NSDCut&&"vz[1]>-99","",nentries,firstentry);   
       hVtxEff->Sumw2();
       hVtxEffNoCut->Sumw2();
       hVtxEff->Divide(hVtxEffNoCut);
@@ -406,8 +406,8 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
 
       // Calculate SD'/IN'
       TCanvas *cSDFrac = new TCanvas("cSDFrac","SD Fraction After Cut",400,400);
-      TrackletTree->Project("hSDFrac","nhit1",TCut(myCut.evtSelection)&&!(NSDCut),"",nentries,firstentry);   
-      TrackletTree->Project("hSD","nhit1",TCut(myCut.evtSelection),"",nentries,firstentry);   
+      TrackletTree->Project("hSDFrac","mult",TCut(myCut.evtSelection)&&!(NSDCut),"",nentries,firstentry);   
+      TrackletTree->Project("hSD","mult",TCut(myCut.evtSelection),"",nentries,firstentry);   
       hSDFrac->Sumw2();
       hSD->Sumw2();
       hSDFrac->Divide(hSD);
@@ -419,7 +419,7 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
       hEmptyEvtCorrection = new TH1F("hEmptyEvtCorrection","",1,0,2);
       TH1F *hNonEmptyEvt = new TH1F("hNonEmptyEvt","",1,0,2);
       TrackletTree->Project("hEmptyEvtCorrection","1",NSDCut,"",nentries,firstentry);   
-      TrackletTree->Project("hNonEmptyEvt","1",NSDCut&&"nhit1>0","",nentries,firstentry);   
+      TrackletTree->Project("hNonEmptyEvt","1",NSDCut&&"mult>0","",nentries,firstentry);   
       hEmptyEvtCorrection->Sumw2();
       hNonEmptyEvt->Sumw2();
       hEmptyEvtCorrection->Divide(hNonEmptyEvt);
