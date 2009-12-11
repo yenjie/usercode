@@ -72,7 +72,8 @@ TFile* getTriggerCorrectionFile(string correctionFileName){
 //===========================================================================
 // Main Routine
 //===========================================================================
-int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",bool useCorrectionFile = 0,string correctionName = "900GeV-D6T",  Long64_t nentries = 1000000000, Long64_t firstentry =
+int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",bool useCorrectionFile =
+1,string correctionName = "D6T-Official-Reweight-RemoveDead",  Long64_t nentries = 1000000000, Long64_t firstentry =
 0,int verbose = 0,int makePlot = 0,int mcTruth = 1,bool putUA5 = 1,bool putPYTHIA = 0)
 {
    FILE *logFile = fopen("correction.log","w");
@@ -110,8 +111,8 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
 
 
    // Signal and Sideband regions ==================================================================================================
-   double signalRegionCut = 1.5;      //delta phi cut for signal region
-   double sideBandRegionCut = 3.0;    //delta phi cut for sideband
+   double signalRegionCut = 1.0;      //delta phi cut for signal region
+   double sideBandRegionCut = 2.0;    //delta phi cut for sideband
 
    
    TCut signalRegion                  = Form("abs(dphi)<%f&&abs(deta)<0.1",signalRegionCut);
@@ -128,8 +129,8 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
    // Output file =================================================================================================================
    TFile *outf = new TFile ("correction.root","recreate");
 
-   TNtuple * betas = new TNtuple("betas","","bin:nhit:vz:beta:betaErr");
-   TNtuple * alphas = new TNtuple("alphas","","bin:nhit:vz:alpha:alphaErr");
+   TNtuple * betas = new TNtuple("betas","","eta:nhit:vz:beta:betaErr");
+   TNtuple * alphas = new TNtuple("alphas","","eta:nhit:vz:alpha:alphaErr");
    TNtuple * correction = new TNtuple("correction","","bin:nhit:obs:gen:err");
    
    TH3F *hEverything =
@@ -238,7 +239,7 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
    hHadron->SetYTitle("N_{hit}^{Layer1} |#eta|<1");
    
    TrackletTree->Project("hHadron","vz[1]:nhit1:eta","abs(eta)<3"&&evtSelection&&NSDCut,"",nentries,firstentry);
-   TrackletTree->Project("hHadronWOSelection","vz[1]:nhit1:eta",NSDCut,"",nentries,firstentry);
+   TrackletTree->Project("hHadronWOSelection","vz[1]:nhit1:eta","abs(eta)<3"&&NSDCut,"",nentries,firstentry);
    hHadron->Sumw2();
    hHadronWOSelection->Sumw2();
    
@@ -272,13 +273,13 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
 	       double e2 = hReproducedBackground->GetBinError(x,y,z)/hReproducedBackground->GetBinContent(x,y,z);
                double betaErr = beta* sqrt(e2*e2);
                if (beta/betaErr>-10) {
-	          betas->Fill(x,y,z,beta,betaErr);
+	          betas->Fill((EtaBins[x]+EtaBins[x-1])/2,(HitBins[y]+HitBins[y-1])/2,(VzBins[z]+VzBins[z-1])/2,beta,betaErr);
 	          betaPlots[x-1][z-1]->SetBinContent(y,beta);
 	          betaPlots[x-1][z-1]->SetBinError(y,betaErr);
 	          betaErrPlots[x-1][z-1]->SetBinContent(y,betaErr);
 	       }  
 	       beta = hEverything->GetBinContent(x,y,z)-hReproducedBackground->GetBinContent(x,y,z);
-               hSubtracted->SetBinContent(x,y,z, beta);
+               hSubtracted->SetBinContent((EtaBins[x]+EtaBins[x-1])/2,(HitBins[y]+HitBins[y-1])/2,(VzBins[z]+VzBins[z-1])/2, beta);
 	       double e3 = hEverything->GetBinError(x,y,z);
 	       double e4 = hReproducedBackground->GetBinError(x,y,z);
                betaErr = sqrt(e1*e1+e2*e2);
@@ -364,6 +365,8 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
       hTruthRatio = (TH1F*) fCorrection->FindObjectAny("hTruthRatio");
       hVtxEff = (TH1F*) fCorrection->FindObjectAny("hVtxEff");
       hSDFrac = (TH1F*) fCorrection->FindObjectAny("hSDFrac");
+      TCanvas *cSDFrac = new TCanvas("cSDFrac","SD Fraction After Cut",400,400);
+      hSDFrac->Draw();
       hEmptyEvtCorrection = (TH1F*) fCorrection->FindObjectAny("hEmptyEvtCorrection");
    } else {
       for (int j=0;j<nVzBin;j++) 
@@ -568,8 +571,8 @@ int plotFinalResult(int TrackletType,char* filename,char *myPlotTitle="Random",b
             // use extrapolated value if alpha is not available
  	    
 	    if (alpha==0) {
-	       //alpha = fAlpha[x-1][z-1]->Eval((HitBins[y]+HitBins[y-1])/2);
-	       //alphaErr = fAlphaErr[x-1][z-1]->Eval((HitBins[y]+HitBins[y-1])/2);
+	//       alpha = fAlpha[x-1][z-1]->Eval((HitBins[y]+HitBins[y-1])/2);
+	//       alphaErr = fAlphaErr[x-1][z-1]->Eval((HitBins[y]+HitBins[y-1])/2);
 	       if (verbose) cout <<x<<" "<<y<<" extrapolate! "<<alpha<<" "<<alphaErr<<endl;
 	       alpha0flag=1;
 	    }

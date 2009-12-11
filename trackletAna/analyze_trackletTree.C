@@ -19,11 +19,11 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 			  double beamHaloRatio = 0.2,
 			  bool putBeamHalo = false, char * beamHaloFile =
     			             "DataSample/PixelTree-Run123151-Full.root",
-                          double smearVertex = 0.1,
+                          double smearVertex = 0.0,
 			  bool putPixelTree = 0,
 			  bool useKKVertex = 1,
 			  bool useNSD = 0,
-			  bool reWeight = 1
+			  bool reWeight =1
 			 )
 {
 
@@ -137,7 +137,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
   int nBeamHalo = 0;
 
   // Main loop ==========================================================================================
-  for(int i =0;  i<t->GetEntries()&&i<100000 ; i = i + 1 + nPileUp){    
+  for(int i =0;  i<t->GetEntries()&&i<200000 ; i = i + 1 + nPileUp){    
     t->GetEntry(i);
     
     if (i % 1000 == 0) {
@@ -429,6 +429,8 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
        tdata12.l1TBit[j]= par.l1TBit[j];
     }
     
+    int ntracklet12s=0;
+    int ntracklet12b=0;
     for (int j=0;j<(int)tdata12.nTracklet;j++)
     {
         tdata12.eta1[j] = recoTracklets12[j].eta1();	
@@ -439,9 +441,15 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
         tdata12.phi2[j] = recoTracklets12[j].phi2();
 	tdata12.deta[j] = recoTracklets12[j].deta();
    	tdata12.dphi[j] = recoTracklets12[j].dphi();
-	tdata12.mult = (int)mult;	
+        if (fabs(tdata12.deta[j])<0.1){
+	   if (fabs(tdata12.dphi[j])>1.5) {
+	      ntracklet12b++;
+	   } else {
+	      ntracklet12s++;
+	   }
+	}
     }
-
+    tdata12.mult=ntracklet12s-ntracklet12b;
     tdata12.npart=0;
     for (int j=0;j<12;j++) tdata12.nhad[j]=0;
 
@@ -492,21 +500,29 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
        tdata13.l1TBit[j]= par.l1TBit[j];
     }
 
-    
+    int ntracklet13s=0;
+    int ntracklet13b=0;
     for (int j=0;j<(int)tdata13.nTracklet;j++)
     {
         tdata13.eta1[j] = recoTracklets13[j].eta1();	
         tdata13.eta2[j] = recoTracklets13[j].eta2();	
-        tdata13.phi1[j] = recoTracklets13[j].phi1();	
-        tdata13.phi2[j] = recoTracklets13[j].phi2();
         tdata13.r1[j] = recoTracklets13[j].r1();	
         tdata13.r2[j] = recoTracklets13[j].r2();	
- 	tdata13.deta[j] = recoTracklets13[j].deta();
+        tdata13.phi1[j] = recoTracklets13[j].phi1();	
+        tdata13.phi2[j] = recoTracklets13[j].phi2();
+	tdata13.deta[j] = recoTracklets13[j].deta();
    	tdata13.dphi[j] = recoTracklets13[j].dphi();
-	tdata13.mult = (int)mult;	
+        if (fabs(tdata13.deta[j])<0.1){
+	   if (fabs(tdata13.dphi[j])>1.5) {
+	      ntracklet13b++;
+	   } else {
+	      ntracklet13s++;
+	   }
+	}
     }
-
+    tdata13.mult=ntracklet13s-ntracklet13b;
     tdata13.npart=0;
+    
     for (int j=0;j<12;j++) tdata13.nhad[j]=0;
 
     for(int j=0;j<par.npart;j++)
@@ -556,20 +572,27 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
        tdata23.l1TBit[j]= par.l1TBit[j];
     }
 
-    
+    int ntracklet23s=0;
+    int ntracklet23b=0;
     for (int j=0;j<(int)tdata23.nTracklet;j++)
     {
         tdata23.eta1[j] = recoTracklets23[j].eta1();	
         tdata23.eta2[j] = recoTracklets23[j].eta2();	
-        tdata23.phi1[j] = recoTracklets23[j].phi1();	
-        tdata23.phi2[j] = recoTracklets23[j].phi2();
         tdata23.r1[j] = recoTracklets23[j].r1();	
         tdata23.r2[j] = recoTracklets23[j].r2();	
- 	tdata23.deta[j] = recoTracklets23[j].deta();
+        tdata23.phi1[j] = recoTracklets23[j].phi1();	
+        tdata23.phi2[j] = recoTracklets23[j].phi2();
+	tdata23.deta[j] = recoTracklets23[j].deta();
    	tdata23.dphi[j] = recoTracklets23[j].dphi();
-	tdata23.mult = (int)mult;	
+        if (fabs(tdata23.deta[j])<0.1){
+	   if (fabs(tdata23.dphi[j])>1.5) {
+	      ntracklet23b++;
+	   } else {
+	      ntracklet23s++;
+	   }
+	}
     }
-
+    tdata23.mult=ntracklet23s-ntracklet23b;
     tdata23.npart=0;
     for (int j=0;j<12;j++) tdata23.nhad[j]=0;
 

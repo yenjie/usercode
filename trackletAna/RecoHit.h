@@ -99,6 +99,11 @@ layer, double vx, double vy, double vz, double splitProb = 0, double dropProb = 
 
   if (layer == 1) {
     for(int ihit = 0; ihit < par.nhits1; ++ihit){
+      // Reject
+      if (par.phi1[ihit]>-1.395&&par.phi1[ihit]<-1.105&&par.eta1[ihit]>1.085&&par.eta1[ihit]<1.725) continue;
+
+      if (par.phi1[ihit]>1.57&&par.phi1[ihit]<1.77&&par.eta1[ihit]>-0.27&&par.eta1[ihit]<-0.02) continue;
+      
       RecoHit tmp(par.eta1[ihit],par.phi1[ihit],par.r1[ihit]);
       if (gRandom->Rndm()<dropProb) continue;
       hits.push_back(tmp);
