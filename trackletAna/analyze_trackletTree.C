@@ -21,9 +21,9 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     			             "DataSample/PixelTree-Run123151-Full.root",
                           double smearVertex = 0.0,
 			  bool putPixelTree = 0,
-			  bool useKKVertex = 1,
+			  bool useKKVertex = 0,
 			  bool useNSD = 0,
-			  bool reWeight =1
+			  bool reWeight = 0
 			 )
 {
 
@@ -137,7 +137,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
   int nBeamHalo = 0;
 
   // Main loop ==========================================================================================
-  for(int i =0;  i<t->GetEntries()&&i<200000 ; i = i + 1 + nPileUp){    
+  for(int i =0;  i<t->GetEntries()&&i<50000000 ; i = i + 1 + nPileUp){    
     t->GetEntry(i);
     
     if (i % 1000 == 0) {
@@ -442,10 +442,11 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 	tdata12.deta[j] = recoTracklets12[j].deta();
    	tdata12.dphi[j] = recoTracklets12[j].dphi();
         if (fabs(tdata12.deta[j])<0.1){
-	   if (fabs(tdata12.dphi[j])>1.5) {
-	      ntracklet12b++;
-	   } else {
+	   if (fabs(tdata12.dphi[j])<1.0) {
 	      ntracklet12s++;
+	   } 
+	   if (fabs(tdata12.dphi[j])>1.0&&fabs(tdata12.dphi[j])<2.0) {
+	      ntracklet12b++;
 	   }
 	}
     }
@@ -513,10 +514,11 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 	tdata13.deta[j] = recoTracklets13[j].deta();
    	tdata13.dphi[j] = recoTracklets13[j].dphi();
         if (fabs(tdata13.deta[j])<0.1){
-	   if (fabs(tdata13.dphi[j])>1.5) {
-	      ntracklet13b++;
-	   } else {
+	   if (fabs(tdata13.dphi[j])<1.0) {
 	      ntracklet13s++;
+	   } 
+	   if (fabs(tdata13.dphi[j])>1.0&&fabs(tdata13.dphi[j])<2.0) {
+	      ntracklet13b++;
 	   }
 	}
     }
@@ -585,10 +587,11 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 	tdata23.deta[j] = recoTracklets23[j].deta();
    	tdata23.dphi[j] = recoTracklets23[j].dphi();
         if (fabs(tdata23.deta[j])<0.1){
-	   if (fabs(tdata23.dphi[j])>1.5) {
-	      ntracklet23b++;
-	   } else {
+	   if (fabs(tdata23.dphi[j])<1.0) {
 	      ntracklet23s++;
+	   } 
+	   if (fabs(tdata23.dphi[j])>1.0&&fabs(tdata23.dphi[j])<2.0) {
+	      ntracklet23b++;
 	   }
 	}
     }

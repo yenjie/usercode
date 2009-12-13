@@ -8,12 +8,23 @@
 #include "TNtuple.h"
 #include "Tracklet.h"
 #include "Math/Vector3D.h"
+#include "TMath.h"
+#include "TF1.h"
 
 using namespace std;
 
 void analyze_sameLayerTracklet(char * infile, char * outfile = "outputSameLayer.root", int makeVzCut = 1,
                           int addL1Bck = 0, int addL2Bck = 0, double
-			  splitProb = 0, double dropProb = 0, int nPileUp = 0)
+			  splitProb = 0, double dropProb = 0, int nPileUp = 0,
+			  double beamHaloRatio = 0.2,
+			  bool putBeamHalo = false, char * beamHaloFile =
+    			             "DataSample/PixelTree-Run123151-Full.root",
+                          double smearVertex = 0.0,
+			  bool putPixelTree = 0,
+			  bool useKKVertex = 1,
+			  bool useNSD = 0,
+			  bool reWeight =1
+			  )
 {
   TFile* inf = new  TFile(infile);
   TTree* t = dynamic_cast<TTree*>(inf->FindObjectAny("PixelTree"));
@@ -134,12 +145,43 @@ void analyze_sameLayerTracklet(char * infile, char * outfile = "outputSameLayer.
   if(!makeVzCut) t->SetBranchAddress("evtType",&par.evtType);
   cout <<"Number of Events: "<<t->GetEntries()<<endl;
 
+  int nBeamHalo = 0;
+
   // Main loop ===========================================================================================
-  for(int i =0;  i<t->GetEntries()&&i<10e10 ; i = i + 1 + nPileUp){    
+  for(int i =0;  i<t->GetEntries()&&i<10000 ; i = i + 1 + nPileUp){    
     t->GetEntry(i);
-    if (i % 1000 == 0) cout <<"Event "<<i<<endl;    
-    // Selection on Events
     
+    if (i % 1000 == 0) {
+       cout <<"Event "<<i<<" "
+            <<trackletTree11->GetEntries()<<" "
+            <<trackletTree22->GetEntries()<<" "
+            <<trackletTree33->GetEntries()<<" Add Beam Halo: "
+	    <<nBeamHalo<<" "<<nBeamHalo/(double)i
+            <<endl;
+       if (reWeight) cout <<"Reweighted!!!!!!!"<<endl;    
+    }       
+
+    // Selection on Events
+     bool reWeightDropFlag = 0;
+    if (reWeight) {
+       reWeightDropFlag = 0;
+       double myVz = par.vz[1];
+       if (myVz<-90) {
+          TF1 *f = new TF1("f","gaus",-30,30);
+          f->SetParameters(1,-2.709,4.551);
+          myVz = f->GetRandom();
+	  delete f;
+       }
+       double MCPdf = TMath::Gaus(myVz,-2.709,4.551,1);
+       double DataPdf = TMath::Gaus(myVz,-2.702,3.627,1);
+       double Ratio = DataPdf / MCPdf;
+       //cout <<MCPdf<<" "<<DataPdf<<" "<<Ratio<<endl;
+       double x=gRandom->Rndm()*2;
+
+       if (x> Ratio) reWeightDropFlag=1;
+       //cout <<x<<" "<<Ratio<<" "<<reWeightDropFlag<<endl;
+    }
+       
     // Fill vertex information
     tdata11.nv = par.nv;  
     tdata33.nv = par.nv;  
@@ -270,12 +312,12 @@ void analyze_sameLayerTracklet(char * infile, char * outfile = "outputSameLayer.
     }
 
     // Form Tracklets        
-/*
+
     vector<Tracklet> recoTracklets11 = recoProtoTracklets(layer1,layer1);
     vector<Tracklet> recoTracklets22 = recoProtoTracklets(layer2,layer2);
     vector<Tracklet> recoTracklets33 = recoProtoTracklets(layer3,layer3);
-*/
 
+/*
     vector<Tracklet> protoTracklets11 = recoProtoTracklets(layer1,layer1);
     vector<Tracklet> protoTracklets22 = recoProtoTracklets(layer2,layer2);
     vector<Tracklet> protoTracklets33 = recoProtoTracklets(layer3,layer3);
@@ -283,7 +325,7 @@ void analyze_sameLayerTracklet(char * infile, char * outfile = "outputSameLayer.
     vector<Tracklet> recoTracklets11 = cleanTracklets(protoTracklets11,0,cuts);
     vector<Tracklet> recoTracklets22 = cleanTracklets(protoTracklets22,0,cuts);
     vector<Tracklet> recoTracklets33 = cleanTracklets(protoTracklets33,0,cuts);
-
+*/
     // Fill Ntuple
     tdata11.nTracklet = recoTracklets11.size();
     tdata11.nhit1 = layer1.size();

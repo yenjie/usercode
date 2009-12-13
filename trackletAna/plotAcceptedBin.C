@@ -8,8 +8,8 @@
 
 void plotAcceptedBin()
 {
-   TFile *inputFile = new TFile("correction/correction-12-900GeV-D6T.root","");
-   TFile *inputFile2 = new TFile("./DataSample/TrackletTree-Run123596-some.root");
+   TFile *inputFile = new TFile("correction/correction-Official.root","");
+   TFile *inputFile2 = new TFile("./newBestDataSample/TrackletTree-Run123596.root");
    TTree *TrackletTree = (TTree*)inputFile2->FindObjectAny("TrackletTree12");
    TH2F *h = (TH2F*) inputFile->FindObjectAny("hAcceptance");
    TH2F *h2 = new TH2F("h2","",200,-3,3,200,-20,20);
