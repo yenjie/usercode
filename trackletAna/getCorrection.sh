@@ -14,4 +14,4 @@ mv correction.root correction/correction-13-$2.root
 
 
 # Get Trigger Correction
-./trig.sh $1 $2
+#./trig.sh $1 $2

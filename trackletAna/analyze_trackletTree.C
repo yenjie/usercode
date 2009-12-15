@@ -21,7 +21,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     			             "DataSample/PixelTree-Run123151-Full.root",
                           double smearVertex = 0.0,
 			  bool putPixelTree = 0,
-			  bool useKKVertex = 0,
+			  bool useKKVertex = 1,
 			  bool useNSD = 0,
 			  bool reWeight = 0
 			 )
