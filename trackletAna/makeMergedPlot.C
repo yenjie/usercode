@@ -3,7 +3,10 @@
 #include <TCanvas.h>
 #include <TH1F.h>
 #include <TLegend.h>
+#include <fstream.h>
+#include <TNtuple.h>
 #include "UA5Plot.h"
+#include "GraphErrorsBand.h"
 
 void clearBin(TH1F* h)
 {
@@ -12,7 +15,8 @@ void clearBin(TH1F* h)
    h->SetBinError(2,0);
    h->SetBinError(11,0);
 }
-TH1F* makeMergedPlot(char *name = "D6T-Official-Reweight",bool UA5=0, double uncert = 3.8)
+TH1F* makeMergedPlot(char *name = "D6T-Official-Reweight",bool UA5=0, double
+uncert = 3.8,int par=0)
 {
    TH1F* hAvg2;
    // layer1+2
@@ -31,8 +35,11 @@ TH1F* makeMergedPlot(char *name = "D6T-Official-Reweight",bool UA5=0, double unc
    TH1F *h23 = (TH1F*)inf23->FindObjectAny("hMeasuredFinal");
    h23->SetName("h23");
    
-   TCanvas *c = new TCanvas("c","",400,400);
+
+   TFile *outfile = new TFile(Form("mergedResult-%d.root",par),"recreate");
+   TCanvas *c = new TCanvas("c","",600,600);
    
+   TNtuple *nt = new TNtuple("nt","","par:eta:val:valerr");
    
    h13->SetMarkerStyle(26);
    h13->SetMarkerColor(1);
@@ -40,6 +47,9 @@ TH1F* makeMergedPlot(char *name = "D6T-Official-Reweight",bool UA5=0, double unc
    h23->SetMarkerStyle(25);
    h23->SetMarkerColor(4);
    h23->SetLineColor(4);
+   h12->SetMarkerSize(1.5);
+   h13->SetMarkerSize(1.5);
+   h23->SetMarkerSize(1.5);
 
    clearBin(h12);
    clearBin(h23);
@@ -54,7 +64,7 @@ TH1F* makeMergedPlot(char *name = "D6T-Official-Reweight",bool UA5=0, double unc
    h13->Draw("same");
    h23->Draw("same");
  
-   TLegend *leg = new TLegend(0.3,0.18,1,0.35,NULL,"brNDC");
+   TLegend *leg = new TLegend(0.2,0.18,1,0.35,NULL,"brNDC");
    leg->SetBorderSize(0);
    leg->SetTextFont(62);
    leg->SetLineColor(1);
@@ -69,9 +79,11 @@ TH1F* makeMergedPlot(char *name = "D6T-Official-Reweight",bool UA5=0, double unc
    leg->Draw();   
 
 
-   TCanvas *c2 = new TCanvas("c2","",400,400);
+   TCanvas *c2 = new TCanvas("c2","",600,600);
    TH1F *hAvg = (TH1F*) h12->Clone();
    hAvg->SetName("hAvg");
+   
+   ofstream of("merged.txt");
    
    for (int i=0;i<13;i++)
    {
@@ -91,6 +103,8 @@ TH1F* makeMergedPlot(char *name = "D6T-Official-Reweight",bool UA5=0, double unc
          hAvg->SetBinError(i,0);
       } else {
          cout <<i<<" "<<avg<<" +- "<<avgErr<<endl;
+         of <<i<<" "<<avg<<" +- "<<avgErr<<endl;
+	 nt->Fill(par,-3.25+0.5*(i),avg,avgErr);
       }
    }
    
@@ -99,7 +113,7 @@ TH1F* makeMergedPlot(char *name = "D6T-Official-Reweight",bool UA5=0, double unc
    hAvg->Draw("same");
 
 
-   TCanvas *c3 = new TCanvas("c3","",400,400);
+   TCanvas *c3 = new TCanvas("c3","",600,600);
    hAvg2 = (TH1F*) h12->Clone();
    hAvg2->SetName("hAvg");
    
@@ -114,26 +128,54 @@ TH1F* makeMergedPlot(char *name = "D6T-Official-Reweight",bool UA5=0, double unc
       avg += h13->GetBinContent(13-i);
       avg += h23->GetBinContent(13-i);
       avg/=6.0;
-      double avgErr = avg*uncert/100.;
+      double avgErr = avg*6.4/100.;
       
       hAvg2->SetBinContent(i,avg);
-      hAvg2->SetBinError(i,avgErr);
+      hAvg2->SetBinError(i,0,avgErr);
       hAvg2->SetBinContent(13-i,avg);
       hAvg2->SetBinError(13-i,avgErr);
       
       if (i<3||i>10) {
          hAvg2->SetBinContent(i,0);
          hAvg2->SetBinError(i,0);
+         hAvg2->SetBinContent(13-i,0);
+         hAvg2->SetBinError(13-i,0);
       } else {
          cout <<i<<" "<<avg<<" +- "<<avgErr<<endl;
       }
    }
    
    hAvg2->Draw();
+
+/*   double systematicError900GeV[12] = 
+                  {0.064,0.064,0.064,0.064,0.064,0.064,0.064,0.064,0.064,0.064,0.064,0.064};
+
+   TGraph *gErrorBand;
+   gErrorBand = GetErrorBand2((TH1F*)hAvg2,systematicError900GeV,systematicError900GeV,0.25); //   inf12->Close();
+   gErrorBand->Draw("F");
+   */
    if (UA5) hUA5->Draw("p same");
-   hAvg2->Draw("same");
-//   inf12->Close();
+   hAvg2->SetLineColor(1);
+   hAvg2->SetMarkerColor(1);
+   hAvg2->Draw("p same");
+
+   TLegend *leg2 = new TLegend(0.2,0.18,0.9,0.35,NULL,"brNDC");
+   leg2->SetBorderSize(0);
+   leg2->SetTextFont(62);
+   leg2->SetLineColor(1);
+   leg2->SetLineStyle(1);
+   leg2->SetLineWidth(1);
+   leg2->SetFillColor(0);
+   leg2->SetFillStyle(0);
+   TLegendEntry *entry2=leg2->AddEntry("hTruth","Run123596","");
+   entry2=leg2->AddEntry(hAvg2,"900 GeV p+p by Tracklet (CMS)","pl");
+   entry2=leg2->AddEntry(hUA5,"900 GeV p+#bar{p} (UA5)","pl");
+   leg2->Draw();   
+
 //   inf13->Close();
 //   inf23->Close();
+   of.close();
+   outfile->Write();
+//   outfile->Close();
    return hAvg2;
 }

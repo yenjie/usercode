@@ -23,10 +23,10 @@
 #include <TPad.h>
 #include <TText.h>
 
-#include "UA5Plot.h"
-#include "PythiaPlot.h"
 
 // For plotting
+#include "UA5Plot.h"
+#include "PythiaPlot.h"
 #include "GraphErrorsBand.h"
 
 #include "selectionCut.h"
@@ -69,6 +69,8 @@ int plotFinalResult(int TrackletType,char* filename,
 		    string correctionName = "Official",                         // Correction file name
 		    Long64_t nentries = 1000000000,                             // Number of entries
 		    Long64_t firstentry = 0,                                    // First Entry
+		    double LumiL = 69,                                          // nLumi Lower cut
+		    double LumiH = 144,                                         // nLumi Higher cut
 		    int verbose = 0,                                            // Set Verbose level
 		    int makePlot = 0,                                           // make alpha plots
 		    int mcTruth = 1,                                            // plot mcTruth
@@ -94,13 +96,13 @@ int plotFinalResult(int TrackletType,char* filename,
    if (useCorrectionFile) fCorrection = getCorrectionFile(correctionName,TrackletType);
    
    // Definition of Vz, Eta, Hit bins
-   selectionCut myCut(isMC);
+   selectionCut myCut(isMC,LumiL,LumiH);
    const int nTrackletBin =14;// myCut.nTrackletBin;
    const int nEtaBin =12;// myCut.nEtaBin;
    const int nVzBin  =20;// myCut.nVzBin;
    int VzRangeL =myCut.VzRangeL;
    int VzRangeH =myCut.VzRangeH;
-   double HitBins[nTrackletBin+1] = {-5,5,10,15,20,25,30,35,40,50,60,80,100,150,200};
+   double HitBins[nTrackletBin+1] = {-5,5,10,15,20,25,30,35,40,45,50,55,60,65,100};
    double EtaBins[nEtaBin+1];
    double VzBins[nVzBin+1];
    

@@ -100,9 +100,9 @@ layer, double vx, double vy, double vz, double splitProb = 0, double dropProb = 
   if (layer == 1) {
     for(int ihit = 0; ihit < par.nhits1; ++ihit){
       // Reject
-//      if (par.phi1[ihit]>-1.395&&par.phi1[ihit]<-1.105&&par.eta1[ihit]>1.085&&par.eta1[ihit]<1.725) continue;
+      if (par.phi1[ihit]>-1.395&&par.phi1[ihit]<-1.105&&par.eta1[ihit]>1.085&&par.eta1[ihit]<1.725) continue;
 
-//      if (par.phi1[ihit]>1.57&&par.phi1[ihit]<1.77&&par.eta1[ihit]>-0.27&&par.eta1[ihit]<-0.02) continue;
+      if (par.phi1[ihit]>1.57&&par.phi1[ihit]<1.77&&par.eta1[ihit]>-0.27&&par.eta1[ihit]<-0.02) continue;
       
       RecoHit tmp(par.eta1[ihit],par.phi1[ihit],par.r1[ihit]);
       if (gRandom->Rndm()<dropProb) continue;
@@ -155,8 +155,9 @@ layer, double vx, double vy, double vz, double splitProb = 0, double dropProb = 
     double z = hits[ihit].r/tan(atan(exp(-hits[ihit].eta))*2);
 
 //    ROOT::Math::XYZVector tmpVector(x-vx,y-vy,z-vz);
-   ROOT::Math::XYZVector tmpVector(x-0.192598,y-0.150772,z-vz);
-//   ROOT::Math::XYZVector tmpVector(x-0.174562,y-0.144887,z-vz);
+//   ROOT::Math::XYZVector tmpVector(x-0.192598,y-0.150772,z-vz);
+   ROOT::Math::XYZVector tmpVector(x-0.174562,y-0.144887,z-vz);
+//   ROOT::Math::XYZVector tmpVector(x,y,z-vz);
 //  ROOT::Math::XYZVector tmpVector(x,y,z-vz);
     RecoHit tmpHit(tmpVector.eta(),tmpVector.phi(),tmpVector.rho());
     cleanedHits.push_back(tmpHit);      

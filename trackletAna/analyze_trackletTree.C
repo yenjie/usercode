@@ -23,7 +23,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 			  bool putPixelTree = 0,
 			  bool useKKVertex = 1,
 			  bool useNSD = 0,
-			  bool reWeight = 0
+			  bool reWeight = 1
 			 )
 {
 
@@ -164,7 +164,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
        double DataPdf = TMath::Gaus(myVz,-2.702,3.627,1);
        double Ratio = DataPdf / MCPdf;
        //cout <<MCPdf<<" "<<DataPdf<<" "<<Ratio<<endl;
-       double x=gRandom->Rndm()*2;
+       double x=gRandom->Rndm()*1.3;
 
        if (x> Ratio) reWeightDropFlag=1;
        //cout <<x<<" "<<Ratio<<" "<<reWeightDropFlag<<endl;

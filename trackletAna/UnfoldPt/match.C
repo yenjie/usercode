@@ -38,7 +38,7 @@ void match::Loop()
       Long64_t ientry = LoadTree(jentry);
       if (ientry < 0) break;
       nb = fChain->GetEntry(jentry);   nbytes += nb;
-      
+      if (vz[1]<-99) continue;
       // loop over genParticles to do matching
       for (int j=0;j<npart;j++) {
          double minDEta=100;
@@ -46,7 +46,7 @@ void match::Loop()
          for (int i=0;i<nTracklets;i++) {
 	    double deltaEta=fabs(eta[j]-eta1[i]);
 	    double deltaPhi=fabs(phi[j]-phi1[i]);
-      
+           
             // select the one with smallest delta eta      
 	    if (minDEta>deltaEta) {
                selected = i;
@@ -54,7 +54,7 @@ void match::Loop()
             }
          }             
          // fill ntuple
-         nt->Fill(pt[j],eta[j],phi[j],eta1[selected],deta[selected],phi1[selected],dphi[selected]);
+         if (selected>-1) nt->Fill(pt[j],eta[j],phi[j],eta1[selected],deta[selected],phi1[selected],dphi[selected]);
       }
    }
    output->Write();
