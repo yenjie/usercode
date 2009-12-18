@@ -456,7 +456,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 
     for(int j=0;j<par.npart;j++)
     {
-        if (fabs(par.eta[j])>3||par.chg[j]==0) continue;
+        if (fabs(par.eta[j])>3||par.chg[j]==0||fabs(par.pdg[j])==11) continue;
 //        if (fabs(par.eta[j])>3) continue;
 	tdata12.eta[tdata12.npart]=par.eta[j];
 	tdata12.phi[tdata12.npart]=par.phi[j];
@@ -529,7 +529,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 
     for(int j=0;j<par.npart;j++)
     {
-        if (fabs(par.eta[j])>3||par.chg[j]==0) continue;
+        if (fabs(par.eta[j])>3||par.chg[j]==0||fabs(par.pdg[j])==11) continue;
 //        if (fabs(par.eta[j])>3) continue;
 	tdata13.eta[tdata13.npart]=par.eta[j];
 	tdata13.phi[tdata13.npart]=par.phi[j];
@@ -601,7 +601,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 
     for(int j=0;j<par.npart;j++)
     {
-        if (fabs(par.eta[j])>3||par.chg[j]==0) continue;
+        if (fabs(par.eta[j])>3||par.chg[j]==0||fabs(par.pdg[j])==11) continue;
 //        if (fabs(par.eta[j])>3) continue;
 	tdata23.eta[tdata23.npart]=par.eta[j];
 	tdata23.phi[tdata23.npart]=par.phi[j];

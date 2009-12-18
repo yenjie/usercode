@@ -1260,8 +1260,8 @@
    tex->Draw();
    
 //   TFile *inf = new TFile("../sample-official2/TrackletTree-900GeV-D6T-BSCTuned.root");
-   TFile *inf = new TFile("../sample-1213/Pythia_MinBias_ATLAS_900GeV_d20091208.root");
-//   TFile *inf = new TFile("../sample-official2/Pythia_MinBias_D6T_900GeV_d20091210-BSCTuned_v1.root");
+//   TFile *inf = new TFile("../sample-1213/Pythia_MinBias_ATLAS_900GeV_d20091208.root");
+   TFile *inf = new TFile("../sample-official2/Pythia_MinBias_D6T_900GeV_d20091210-BSCTuned_v1.root");
    TTree *tree = (TTree*)inf->FindObjectAny("PixelTree");
    
    TCut cut = "evtType!=92&&evtType!=93";
