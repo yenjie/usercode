@@ -23,7 +23,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 			  bool putPixelTree = 0,
 			  bool useKKVertex = 1,
 			  bool useNSD = 0,
-			  bool reWeight = 1
+			  bool reWeight = 1         // reweight to Run 123596 vtx distribution
 			 )
 {
 
@@ -127,7 +127,8 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
   
   // Parameters for the tree =============================================================================
   Parameters par;  
-//  Parameters beamHaloPar;
+  
+  //  Parameters beamHaloPar;
   if (putBeamHalo) getPixelTreeBranch(beamHaloTree,par);  
   getPixelTreeBranch(t,par);
   
@@ -262,7 +263,6 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 
     }
 
-    
     // add trackletVertex
     /*
     if (tdata12.nv == 2) tdata12.nv=3;
@@ -275,7 +275,6 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     vector<RecoHit> layerRaw2;
     prepareHits(layerRaw2,par, cuts, 2, 0, splitProb, dropProb);
 
-
     if (nPileUp!=0 && par.nhits1<10 ) {
        for (int j=1;j <= nPileUp ; j++) {
           t->GetEntry(i+j);
@@ -284,7 +283,6 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
        }
        t->GetEntry(i);
     }
-
     
     double trackletVertex = 0;
 
@@ -354,7 +352,6 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
        }
        t->GetEntry(i);
     }
-    
 
     for(int ihit = 0; ihit< (int)layer1.size(); ++ihit) {
       int hitbin1 = (int)layer1.size();
