@@ -223,7 +223,7 @@ int plotFinalResult(int TrackletType,char* filename,
 	 double minEdge = VzBins[j]-rho2 / tan(atan(exp(minEta+0.1))*2);
 	 if (verbose) cout <<minEta <<" "<<maxEta<<" "<<VzBins[j]<<" "<<maxEdge<<" "<<minEdge;
 	 
-	 if ((maxEdge>-endpoint2&&minEdge<endpoint2)&&(maxEta)<=2.0&&(minEta)>=-2.0) {
+	 if((maxEdge>-endpoint2&&minEdge<endpoint2)&&(maxEta)<=2.5&&(minEta)>=-2.5) {
             hAcceptance->SetBinContent(i+1,j+1,hVz->GetBinContent(j+1));
 	    hAcceptance->SetBinError(i+1,j+1,0);
 	    if (verbose) cout <<" Selected!";
@@ -758,7 +758,7 @@ int plotFinalResult(int TrackletType,char* filename,
    // prepared dN/dhit/deta, apply vertexing correction
 
    double nEvt=0;
-   double SDFactor = 1;
+   double SDFactor = 0.5;
    
    for (int y=1;y<=nTrackletBin;y++)
    { 

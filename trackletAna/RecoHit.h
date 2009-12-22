@@ -156,7 +156,16 @@ layer, double vx, double vy, double vz, double splitProb = 0, double dropProb = 
 
 //    ROOT::Math::XYZVector tmpVector(x-vx,y-vy,z-vz);
 //   ROOT::Math::XYZVector tmpVector(x-0.192598,y-0.150772,z-vz);
-   ROOT::Math::XYZVector tmpVector(x-0.174562,y-0.144887,z-vz);
+// Run 123596
+//   ROOT::Math::XYZVector tmpVector(x-0.174562,y-0.144887,z-vz);
+// Run 124022
+// x0 = 0.192372
+// y0 = 0.162306
+   ROOT::Math::XYZVector tmpVector(x-0.192372,y-0.162306,z-vz); //refitted
+
+// Run 124120
+//   ROOT::Math::XYZVector tmpVector(x-0.11811,y-0.0244726,z-vz); //refitted
+//   ROOT::Math::XYZVector tmpVector(x-0.205124,y-0.164012,z-vz);
 //   ROOT::Math::XYZVector tmpVector(x,y,z-vz);
 //  ROOT::Math::XYZVector tmpVector(x,y,z-vz);
     RecoHit tmpHit(tmpVector.eta(),tmpVector.phi(),tmpVector.rho());

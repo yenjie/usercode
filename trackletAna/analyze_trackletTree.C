@@ -23,7 +23,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 			  bool putPixelTree = 0,
 			  bool useKKVertex = 1,
 			  bool useNSD = 0,
-			  bool reWeight = 1         // reweight to Run 123596 vtx distribution
+			  bool reWeight = 0         // reweight to Run 123596 vtx distribution
 			 )
 {
 
@@ -138,7 +138,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
   int nBeamHalo = 0;
 
   // Main loop ==========================================================================================
-  for(int i =0;  i<t->GetEntries()&&i<50000000 ; i = i + 1 + nPileUp){    
+  for(int i =0;  i<t->GetEntries()&&i<30000000 ; i = i + 1 + nPileUp){    
     t->GetEntry(i);
     
     if (i % 1000 == 0) {
@@ -162,10 +162,12 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 	  delete f;
        }
        double MCPdf = TMath::Gaus(myVz,-2.709,4.551,1);
-       double DataPdf = TMath::Gaus(myVz,-2.702,3.627,1);
+//       double DataPdf = TMath::Gaus(myVz,-2.702,3.627,1);
+
+       double DataPdf = TMath::Gaus(myVz,-0.4623,2.731,1);
        double Ratio = DataPdf / MCPdf;
        //cout <<MCPdf<<" "<<DataPdf<<" "<<Ratio<<endl;
-       double x=gRandom->Rndm()*1.3;
+       double x=gRandom->Rndm()*2.5;
 
        if (x> Ratio) reWeightDropFlag=1;
        //cout <<x<<" "<<Ratio<<" "<<reWeightDropFlag<<endl;

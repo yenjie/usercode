@@ -8,6 +8,21 @@
 #include "UA5Plot.h"
 #include "GraphErrorsBand.h"
 
+void correctBin(TH1F* h,double* a1,double*a2)
+{
+   for (int i=1;i<=12;i++)
+   {
+      double bin = h->GetBinContent(i);
+      double binErr = h->GetBinError(i);
+      bin/=a1[i-1];
+      bin/=a2[i-1];
+      binErr/=a1[i-1];
+      binErr/=a2[i-1];
+      h->SetBinContent(i,bin);
+      h->SetBinError(i,binErr);
+   }
+}
+
 void clearBin(TH1F* h)
 {
    h->SetBinContent(2,0);
@@ -37,7 +52,7 @@ uncert = 3.8,int par=0)
    
 
    TFile *outfile = new TFile(Form("mergedResult-%d.root",par),"recreate");
-   TCanvas *c = new TCanvas("c","",600,600);
+   TCanvas *c = new TCanvas("c","",400,400);
    
    TNtuple *nt = new TNtuple("nt","","par:eta:val:valerr");
    
@@ -47,14 +62,25 @@ uncert = 3.8,int par=0)
    h23->SetMarkerStyle(25);
    h23->SetMarkerColor(4);
    h23->SetLineColor(4);
-   h12->SetMarkerSize(1.5);
-   h13->SetMarkerSize(1.5);
-   h23->SetMarkerSize(1.5);
+   h12->SetMarkerSize(1);
+   h13->SetMarkerSize(1);
+   h23->SetMarkerSize(1);
+
+   double acceptance1[12]={1.14972  ,1.02133,1.01079,0.99826 ,0.989326,0.988454,0.991541,0.993707,0.982555,0.960913,0.9896252,1.01673};
+   double acceptance2[12]={1        ,1.11661,1.01825,0.995795,0.990697,0.991587,0.994311,0.994696,0.987352,0.984903,0.986908 ,1.12377};
+   double acceptance3[12]={1        ,1.32239,1.03311,0.996744,0.985756,0.992889,1.00236,0.994132,0.983021,0.972563,0.930894,1};
+
 
    clearBin(h12);
    clearBin(h23);
    clearBin(h13);
 
+/*
+   correctBin(h12,acceptance1,acceptance2);
+   correctBin(h13,acceptance1,acceptance3);
+   correctBin(h23,acceptance2,acceptance3);
+
+*/
    TH1F *hUA5 = getUA5NSD();
    h12->SetXTitle("#eta");
    h12->SetYTitle("dN/d#eta");
@@ -72,14 +98,14 @@ uncert = 3.8,int par=0)
    leg->SetLineWidth(1);
    leg->SetFillColor(0);
    leg->SetFillStyle(0);
-   TLegendEntry *entry=leg->AddEntry("hTruth","Data-Run123596","");
+   TLegendEntry *entry=leg->AddEntry("hTruth",Form("Data-%s",name),"");
    entry=leg->AddEntry("h12","Reconstructed (1st+2nd layers)","pl");
    entry=leg->AddEntry("h13","Reconstructed (1st+3rd layers)","pl");   
    entry=leg->AddEntry("h23","Reconstructed (2nd+3rd layers)","pl");
    leg->Draw();   
 
 
-   TCanvas *c2 = new TCanvas("c2","",600,600);
+   TCanvas *c2 = new TCanvas("c2","",400,400);
    TH1F *hAvg = (TH1F*) h12->Clone();
    hAvg->SetName("hAvg");
    
@@ -113,7 +139,7 @@ uncert = 3.8,int par=0)
    hAvg->Draw("same");
 
 
-   TCanvas *c3 = new TCanvas("c3","",600,600);
+   TCanvas *c3 = new TCanvas("c3","",400,400);
    hAvg2 = (TH1F*) h12->Clone();
    hAvg2->SetName("hAvg");
    
@@ -167,7 +193,7 @@ uncert = 3.8,int par=0)
    leg2->SetLineWidth(1);
    leg2->SetFillColor(0);
    leg2->SetFillStyle(0);
-   TLegendEntry *entry2=leg2->AddEntry("hTruth","Run123596","");
+   TLegendEntry *entry2=leg2->AddEntry("hTruth",Form("Data-%s",name),"");
    entry2=leg2->AddEntry(hAvg2,"900 GeV p+p by Tracklet (CMS)","pl");
    entry2=leg2->AddEntry(hUA5,"900 GeV p+#bar{p} (UA5)","pl");
    leg2->Draw();   
