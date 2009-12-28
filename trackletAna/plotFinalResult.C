@@ -38,6 +38,9 @@
 
 #define dndetaRange 5.5
 
+#define SDFactor 1
+
+
 void formatHist(TH1* h, int col = 1, double norm = 1,double msize = 1);
 
 //===========================================================================
@@ -49,6 +52,15 @@ void formatHist(TH1* h, int col = 1, double norm = 1,double msize = 1);
 // 2 = 10 TeV
 // 3 = 900 GeV (half of the sample)
 // 4 = 10 TeV (half of the ample)
+
+TFile* getAcceptanceFile(string correctionFileName,int TrackletType){
+   TFile *fAcceptance;
+   char * filename = Form("correction/Acceptance-%d.root",TrackletType);
+   fAcceptance = new TFile(filename);
+   cout <<"Use Acceptance file : "<<filename<<endl;
+   return fAcceptance;  
+}
+
 
 
 TFile* getCorrectionFile(string correctionFileName,int TrackletType){
@@ -75,25 +87,30 @@ int plotFinalResult(int TrackletType,char* filename,
 		    int makePlot = 0,                                           // make alpha plots
 		    int mcTruth = 1,                                            // plot mcTruth
 		    bool putUA5 = 1,                                            // overlap UA5 result
-		    bool putPYTHIA = 0                                          // put PYTHIA result
+		    bool putPYTHIA = 0,                                         // put PYTHIA result
+		    bool doAcceptanceCorrection = 1                             // do acceptance correction
 		   )
 {
    FILE *logFile = fopen("correction.log","w");
    
    TFile *f= new TFile(filename);
    
+   
    TTree * TrackletTree= dynamic_cast<TTree*>(f->Get(Form("TrackletTree%d",TrackletType)));
    bool isMC = false;
    if (TrackletTree->GetEntries("npart!=0")!=0) {
       isMC=true;
       cout <<"This is a Monte Carlo study."<<endl;
+      doAcceptanceCorrection = 0;
    } else {
       cout <<"This is a data analysis."<<endl;
    }
    
    // Read alpha, beta, geometry correction from file.
    TFile *fCorrection;
+   TFile *fAcceptance;
    if (useCorrectionFile) fCorrection = getCorrectionFile(correctionName,TrackletType);
+   if (useCorrectionFile&&doAcceptanceCorrection) fAcceptance = getAcceptanceFile(correctionName,TrackletType);
    
    // Definition of Vz, Eta, Hit bins
    selectionCut myCut(isMC,LumiL,LumiH);
@@ -152,6 +169,8 @@ int plotFinalResult(int TrackletType,char* filename,
    TH2F *hEtaVzRatio = new TH2F("hEtaVzatio","#eta:Vz",nEtaBin,EtaBins,nVzBin,VzBins);
    TH2F *hEtaHitRatio = new TH2F("hEtaHitatio","#eta:N_{Hit}",nEtaBin,EtaBins,nTrackletBin,HitBins);
    TH2F *hAcceptance = new TH2F("hAcceptance","",nEtaBin,EtaBins,nVzBin,VzBins);
+   TH2F *hDataAcc = new TH2F("hDataAcc","",nEtaBin,EtaBins,nVzBin,VzBins);
+   TH2F *hMCAcc = new TH2F("hMCAcc","",nEtaBin,EtaBins,nVzBin,VzBins);
 
    TH1F *hCorrectedEtaBin = new TH1F("hCorrectedEtaBin","Corrected",nEtaBin,-3,3);
    TH1F *hVtxEff = new TH1F("hVtxEff","",nTrackletBin,HitBins);
@@ -254,6 +273,12 @@ int plotFinalResult(int TrackletType,char* filename,
    // deltaPhi sideband region (with eta signal region cut) && evtSelection //
    TrackletTree->Project("hReproducedBackground","vz[1]:mult:eta1",sideBandRegionEtaSignalRegion&&evtSelection,"",nentries,firstentry);   
    hReproducedBackground->Sumw2();
+
+   // Read Acceptance ==================================================================================================
+   if (doAcceptanceCorrection) {
+      hMCAcc = (TH2F*)fAcceptance->FindObjectAny("hMCAcc");
+      hDataAcc = (TH2F*)fAcceptance->FindObjectAny("hDataAcc");
+   }
      
    // Beta calculation ============================================================================================================
    for (int x=1;x<=nEtaBin;x++) {
@@ -579,6 +604,18 @@ int plotFinalResult(int TrackletType,char* filename,
             double alpha,alphaErr;
 	    alpha = alphaPlots[x-1][z-1]->GetBinContent(y);
             alphaErr = alphaPlots[x-1][z-1]->GetBinError(y);
+	    
+	    if (doAcceptanceCorrection) {
+	       double accData = hDataAcc->GetBinContent(x,z);
+	       double accMC = hMCAcc->GetBinContent(x,z);
+	       if (accData == 0 && accMC == 0){
+	          cout <<"Error in Acceptance Correction!!!! "<<x<<" "<<z<<endl;
+	       } else {
+	          alpha = alpha / accData * accMC;
+	          alphaErr = alphaErr / accData * accMC;
+		  cout <<accMC/accData<<endl;
+	       }
+	    }
             alphaCode <<"  AlphaTracklets12_->SetBinContent("<<x<<","<<y<<","<<z<<","<<alpha<<");"<<endl;
 
             // use extrapolated value if alpha is not available
@@ -758,7 +795,6 @@ int plotFinalResult(int TrackletType,char* filename,
    // prepared dN/dhit/deta, apply vertexing correction
 
    double nEvt=0;
-   double SDFactor = 0.5;
    
    for (int y=1;y<=nTrackletBin;y++)
    { 

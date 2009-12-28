@@ -10,9 +10,10 @@
 void plotAcceptedBin(int ch=12)
 {
 //   TFile *inputFile = new TFile("correction/correction-12-Official.root","");
-   TFile *inputFile = new TFile(Form("plot/root/result-%d-Run123596-Official.root",ch),"");
+//   TFile *inputFile = new TFile(Form("plot/root/result-%d-Run124022-Official-BSC.root",ch),"");
+   TFile *inputFile = new TFile(Form("plot/root/result-%d-Run124120-yetkin-2360GeV-1224-HF2.root",ch),"");
 //   TFile *inputFile = new TFile("./sample-1213/TrackletTree-900GeV-ATLAS.root","");
-   TFile *inputFile2 = new TFile("./newBestDataSample/TrackletTree-Run123596.root");
+   TFile *inputFile2 = new TFile("./newEvenBetterSample/TrackletTree-Run124120.root");
 //   TFile *inputFile2 = new TFile("./sample-official/TrackletTree-900GeV-D6T-20091210-KKVertex-removeDead2-newMult.root");
    
    TTree *TrackletTree = (TTree*)inputFile2->FindObjectAny(Form("TrackletTree%d",ch));
@@ -31,7 +32,7 @@ void plotAcceptedBin(int ch=12)
    h->SetFillColor(15);
    h->SetLineColor(2);
    
-   selectionCut myCut(0);
+   selectionCut myCut(0,0,10000);
    TrackletTree->Draw("vz[1]:eta1>>h2","abs(deta)<0.1&&abs(dphi)<1"&&myCut.Cut);
     
    h->Draw("box");

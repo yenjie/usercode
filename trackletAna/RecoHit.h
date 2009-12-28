@@ -51,7 +51,7 @@ class SelectionCriteria {
 class Parameters {
  public:
 
-  int   nRun,nEv,nLumi,nHltBit,nL1ABit,nL1TBit,nBX;
+  int   nRun,nEv,nLumi,nHltBit,nL1ABit,nL1TBit,nBX,nHFn,nHFp;
   bool hltBit[500];
   bool l1ABit[500];
   bool l1TBit[500];
@@ -65,13 +65,13 @@ class Parameters {
   float eta2[maxEntry],phi2[maxEntry],r2[maxEntry],cs2[maxEntry],ch2[maxEntry];
   float eta3[maxEntry],phi3[maxEntry],r3[maxEntry],cs3[maxEntry],ch3[maxEntry];
   float etaF2[maxEntry],phiF2[maxEntry],rF2[maxEntry],csF2[maxEntry],chF2[maxEntry];
-  float eta[maxEntry],phi[maxEntry],chg[maxEntry],pdg[maxEntry],pt[maxEntry];
-  int nhits1,nhits2,nhits3,nhitsF2,mult,nv,npart,evtType;
+  float eta[maxEntry],phi[maxEntry],pt[maxEntry];
+  int nhits1,nhits2,nhits3,nhitsF2,mult,nv,npart,evtType,chg[maxEntry],pdg[maxEntry];
 };
 
 class TrackletData {
  public:
-  int   nRun,nEv,nLumi,nHltBit,nL1ABit,nL1TBit,nBX;
+  int   nRun,nEv,nLumi,nHltBit,nL1ABit,nL1TBit,nBX,nHFn,nHFp;
   bool hltBit[500];
   bool l1ABit[500];
   bool l1TBit[500];
@@ -161,11 +161,11 @@ layer, double vx, double vy, double vz, double splitProb = 0, double dropProb = 
 // Run 124022
 // x0 = 0.192372
 // y0 = 0.162306
-   ROOT::Math::XYZVector tmpVector(x-0.192372,y-0.162306,z-vz); //refitted
+//   ROOT::Math::XYZVector tmpVector(x-0.192372,y-0.162306,z-vz); //refitted
 
 // Run 124120
 //   ROOT::Math::XYZVector tmpVector(x-0.11811,y-0.0244726,z-vz); //refitted
-//   ROOT::Math::XYZVector tmpVector(x-0.205124,y-0.164012,z-vz);
+   ROOT::Math::XYZVector tmpVector(x-0.205124,y-0.164012,z-vz);
 //   ROOT::Math::XYZVector tmpVector(x,y,z-vz);
 //  ROOT::Math::XYZVector tmpVector(x,y,z-vz);
     RecoHit tmpHit(tmpVector.eta(),tmpVector.phi(),tmpVector.rho());
@@ -216,6 +216,8 @@ void getPixelTreeBranch(TTree *t, Parameters &par)
   t->SetBranchAddress("nEv",&par.nEv);
   t->SetBranchAddress("nLumi",&par.nLumi);
   t->SetBranchAddress("nBX",&par.nBX);
+  t->SetBranchAddress("nHFn",&par.nHFn);
+  t->SetBranchAddress("nHFp",&par.nHFp);
 
   t->SetBranchAddress("nHltBit",&par.nHltBit);
   t->SetBranchAddress("hltBit",par.hltBit);

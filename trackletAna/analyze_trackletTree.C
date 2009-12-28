@@ -10,6 +10,7 @@
 #include "Math/Vector3D.h"
 #include "TMath.h"
 #include "TF1.h"
+#include "TTimeStamp.h"
 using namespace std;
 
 void analyze_trackletTree(char * infile, char * outfile = "output.root", int makeVzCut = 0,
@@ -23,10 +24,15 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 			  bool putPixelTree = 0,
 			  bool useKKVertex = 1,
 			  bool useNSD = 0,
-			  bool reWeight = 0         // reweight to Run 123596 vtx distribution
+			  bool reWeight = 0,         // reweight to Run 123596 vtx distribution
+			  bool useRandomVertex= 0
 			 )
 {
-
+  // Set Random Seed
+  TTimeStamp myTime;
+  gRandom->SetSeed(myTime.GetNanoSec());
+  cout <<"Randomize "<<gRandom->Rndm()<<endl;
+  
   // Input file =======================================================================================
   TFile* inf = new  TFile(infile);
   TTree* t = dynamic_cast<TTree*>(inf->FindObjectAny("PixelTree"));
@@ -162,9 +168,9 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 	  delete f;
        }
        double MCPdf = TMath::Gaus(myVz,-2.709,4.551,1);
-//       double DataPdf = TMath::Gaus(myVz,-2.702,3.627,1);
+       double DataPdf = TMath::Gaus(myVz,-2.702,3.627,1);
 
-       double DataPdf = TMath::Gaus(myVz,-0.4623,2.731,1);
+//       double DataPdf = TMath::Gaus(myVz,-0.4623,2.731,1);
        double Ratio = DataPdf / MCPdf;
        //cout <<MCPdf<<" "<<DataPdf<<" "<<Ratio<<endl;
        double x=gRandom->Rndm()*2.5;
@@ -333,10 +339,17 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
        if (i==1)cout <<"Use Tracklet Vertex "<<endl;
     }
 
+    if (useRandomVertex) {
+       if (i==1) cout <<"Random Vertex!!!"<<endl;
+           tdata12.vz[1]=gRandom->Rndm()*40-20;
+           tdata13.vz[1]=tdata12.vz[1];
+           tdata23.vz[1]=tdata12.vz[1];
+   }
     // use trackletVertex
     if (fabs(tdata12.vz[1])>cuts.vzCut && makeVzCut == 1) continue;
     
 
+    
     // Process hits with Vz constraint:
     vector<RecoHit> layer1;
     prepareHits(layer1,par, cuts, 1, tdata12.vx[1], tdata12.vy[1], tdata12.vz[1], splitProb, dropProb);
@@ -409,6 +422,8 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     tdata12.nEv     = par.nEv;
     tdata12.nLumi   = par.nLumi;
     tdata12.nBX     = par.nBX;
+    tdata12.nHFn    = par.nHFp;
+    tdata12.nHFp    = par.nHFn;
     tdata12.nHltBit = par.nHltBit;
     tdata12.nL1ABit = par.nL1ABit;
     tdata12.nL1TBit = par.nL1TBit;
@@ -455,12 +470,13 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 
     for(int j=0;j<par.npart;j++)
     {
-        if (fabs(par.eta[j])>3||par.chg[j]==0||fabs(par.pdg[j])==11) continue;
+        if (fabs(par.eta[j])>3||par.chg[j]==0||abs(par.pdg[j])==11||abs(par.pdg[j])==13) continue;
 //        if (fabs(par.eta[j])>3) continue;
 	tdata12.eta[tdata12.npart]=par.eta[j];
 	tdata12.phi[tdata12.npart]=par.phi[j];
 	tdata12.chg[tdata12.npart]=par.chg[j];
 	tdata12.pdg[tdata12.npart]=par.pdg[j];
+	if (abs(par.pdg[j]-11)<1) cout <<"Oh no???"<<endl;
 	tdata12.pt[tdata12.npart]=par.pt[j];
         tdata12.npart++;
 	int bin = (int)((par.eta[j]+3)*2);
@@ -481,6 +497,8 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     tdata13.nEv     = par.nEv;
     tdata13.nLumi   = par.nLumi;
     tdata13.nBX     = par.nBX;
+    tdata13.nHFn    = par.nHFp;
+    tdata13.nHFp    = par.nHFn;
     tdata13.nHltBit = par.nHltBit;
     tdata13.nL1ABit = par.nL1ABit;
     tdata13.nL1TBit = par.nL1TBit;
@@ -528,7 +546,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 
     for(int j=0;j<par.npart;j++)
     {
-        if (fabs(par.eta[j])>3||par.chg[j]==0||fabs(par.pdg[j])==11) continue;
+        if (fabs(par.eta[j])>3||par.chg[j]==0||fabs(par.pdg[j])==11||abs(par.pdg[j])==13) continue;
 //        if (fabs(par.eta[j])>3) continue;
 	tdata13.eta[tdata13.npart]=par.eta[j];
 	tdata13.phi[tdata13.npart]=par.phi[j];
@@ -554,6 +572,8 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     tdata23.nEv     = par.nEv;
     tdata23.nLumi   = par.nLumi;
     tdata23.nBX     = par.nBX;
+    tdata23.nHFn    = par.nHFp;
+    tdata23.nHFp    = par.nHFn;
     tdata23.nHltBit = par.nHltBit;
     tdata23.nL1ABit = par.nL1ABit;
     tdata23.nL1TBit = par.nL1TBit;
@@ -600,7 +620,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 
     for(int j=0;j<par.npart;j++)
     {
-        if (fabs(par.eta[j])>3||par.chg[j]==0||fabs(par.pdg[j])==11) continue;
+        if (fabs(par.eta[j])>3||par.chg[j]==0||fabs(par.pdg[j])==11||abs(par.pdg[j])==13) continue;
 //        if (fabs(par.eta[j])>3) continue;
 	tdata23.eta[tdata23.npart]=par.eta[j];
 	tdata23.phi[tdata23.npart]=par.phi[j];
