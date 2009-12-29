@@ -24,7 +24,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 			  bool putPixelTree = 0,
 			  bool useKKVertex = 1,
 			  bool useNSD = 0,
-			  bool reWeight = 0,         // reweight to Run 123596 vtx distribution
+			  bool reWeight = 1,         // reweight to Run 123596 vtx distribution
 			  bool useRandomVertex= 0
 			 )
 {
@@ -144,7 +144,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
   int nBeamHalo = 0;
 
   // Main loop ==========================================================================================
-  for(int i =0;  i<t->GetEntries()&&i<30000000 ; i = i + 1 + nPileUp){    
+  for(int i =0;  i<t->GetEntries()&&i<500000000 ; i = i + 1 + nPileUp){    
     t->GetEntry(i);
     
     if (i % 1000 == 0) {
@@ -424,6 +424,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     tdata12.nBX     = par.nBX;
     tdata12.nHFn    = par.nHFp;
     tdata12.nHFp    = par.nHFn;
+    tdata12.nHits   = layer1.size()+layer2.size()+layer3.size();
     tdata12.nHltBit = par.nHltBit;
     tdata12.nL1ABit = par.nL1ABit;
     tdata12.nL1TBit = par.nL1TBit;
@@ -499,6 +500,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     tdata13.nBX     = par.nBX;
     tdata13.nHFn    = par.nHFp;
     tdata13.nHFp    = par.nHFn;
+    tdata13.nHits   = layer1.size()+layer2.size()+layer3.size();
     tdata13.nHltBit = par.nHltBit;
     tdata13.nL1ABit = par.nL1ABit;
     tdata13.nL1TBit = par.nL1TBit;
@@ -574,6 +576,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     tdata23.nBX     = par.nBX;
     tdata23.nHFn    = par.nHFp;
     tdata23.nHFp    = par.nHFn;
+    tdata23.nHits   = layer1.size()+layer2.size()+layer3.size();
     tdata23.nHltBit = par.nHltBit;
     tdata23.nL1ABit = par.nL1ABit;
     tdata23.nL1TBit = par.nL1TBit;

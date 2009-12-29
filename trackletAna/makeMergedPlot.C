@@ -30,7 +30,7 @@ void clearBin(TH1F* h)
    h->SetBinError(2,0);
    h->SetBinError(11,0);
 }
-TH1F* makeMergedPlot(char *name = "D6T-Official-Reweight",bool UA5=0, double
+TH1F* makeMergedPlot(char *name = "D6T-Official-Reweight",int UA5=0, double
 uncert = 3.8,int par=0)
 {
    TH1F* hAvg2;
@@ -83,6 +83,7 @@ uncert = 3.8,int par=0)
 */
 
    TH1F *hUA5 = getUA5NSD();
+   TH1F *hTracklet900GeV = tracklet900GeV();
    h12->SetXTitle("#eta");
    h12->SetYTitle("dN/d#eta");
    h12->Draw();
@@ -137,6 +138,7 @@ uncert = 3.8,int par=0)
    
    hAvg->Draw();
    if (UA5) hUA5->Draw("p same");
+   if (UA5==2) hTracklet900GeV->Draw("p same");   
    hAvg->Draw("same");
 
 

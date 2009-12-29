@@ -114,3 +114,38 @@ TH1F *getUA5NSD()
  hEta_UA5_NSD->SetMarkerStyle(4);
  return hEta_UA5_NSD;
 }
+
+TH1F* tracklet900GeV()
+{
+   Double_t xAxis5[13] = {-3, -2.5, -2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2, 2.5, 3};
+
+   TH1F *hMeasuredFinal = new TH1F("hMeasuredFinal","",12, xAxis5);
+
+
+   hMeasuredFinal->SetBinContent(3,3.49038);
+   hMeasuredFinal->SetBinContent(4,3.77519);
+   hMeasuredFinal->SetBinContent(5,3.61123);
+   hMeasuredFinal->SetBinContent(6,3.40686);
+   hMeasuredFinal->SetBinContent(7,3.44304);
+   hMeasuredFinal->SetBinContent(8,3.61126);
+   hMeasuredFinal->SetBinContent(9,3.64045);
+   hMeasuredFinal->SetBinContent(10,3.69915);
+
+
+   hMeasuredFinal->SetBinError(3,0.132634);
+   hMeasuredFinal->SetBinError(4,0.143457);
+   hMeasuredFinal->SetBinError(5,0.137227);
+   hMeasuredFinal->SetBinError(6,0.129461);
+   hMeasuredFinal->SetBinError(7,0.130835);
+   hMeasuredFinal->SetBinError(8,0.137228);
+   hMeasuredFinal->SetBinError(9,0.138337);
+   hMeasuredFinal->SetBinError(10,0.140568);
+
+   
+   hMeasuredFinal->SetMarkerColor(kBlue);
+   hMeasuredFinal->SetMarkerStyle(4);
+   hMeasuredFinal->SetLineColor(4);
+   hMeasuredFinal->SetMarkerSize(0.7); // use rootlogon size
+
+   return hMeasuredFinal;
+}

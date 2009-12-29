@@ -88,7 +88,8 @@ int plotFinalResult(int TrackletType,char* filename,
 		    int mcTruth = 1,                                            // plot mcTruth
 		    bool putUA5 = 1,                                            // overlap UA5 result
 		    bool putPYTHIA = 0,                                         // put PYTHIA result
-		    bool doAcceptanceCorrection = 1                             // do acceptance correction
+		    bool doAcceptanceCorrection = 1,                            // do acceptance correction
+  		    bool doBetaCorrection = 1                                   // do acceptance correction
 		   )
 {
    FILE *logFile = fopen("correction.log","w");
@@ -149,7 +150,7 @@ int plotFinalResult(int TrackletType,char* filename,
 
    TNtuple * betas = new TNtuple("betas","","eta:nTracklet:vz:beta:betaErr");
    TNtuple * alphas = new TNtuple("alphas","","eta:nTracklet:vz:alpha:alphaErr");
-   TNtuple * correction = new TNtuple("correction","","bin:nTracklet:obs:gen:err");
+   TNtuple * correction = new TNtuple("correction","","eta:nTracklet:vz:alpha:alphaErr:beta:betaErr:obs:gen:err");
    
    TH3F *hEverything =
          new TH3F("hEverything","Everything in the signal region with vz cut",nEtaBin,EtaBins,nTrackletBin,HitBins,nVzBin,VzBins);
@@ -183,8 +184,11 @@ int plotFinalResult(int TrackletType,char* filename,
 
    TH1F *alphaPlots[nEtaBin][nVzBin];
    TH1F *betaPlots[nEtaBin][nVzBin];
+   TH1F *betaMCPlots[nEtaBin][nVzBin];
    TH1F *alphaErrPlots[nEtaBin][nVzBin];
    TH1F *betaErrPlots[nEtaBin][nVzBin];
+   
+
    TH1F *hTriggerCorrection;   
    TH1F *hEmptyEvtCorrection;
 
@@ -384,6 +388,7 @@ int plotFinalResult(int TrackletType,char* filename,
          fAlpha[i][j] = (TF1*) fCorrection->FindObjectAny(Form("funAlpha%dVz%d",i,j));
 	 fAlphaErr[i][j] = (TF1*) fCorrection->FindObjectAny(Form("funAlphaErr%dVz%d",i,j));
          alphaPlots[i][j] = (TH1F*) fCorrection->FindObjectAny(Form("alpha%dVz%d",i,j));
+         betaMCPlots[i][j] = (TH1F*) fCorrection->FindObjectAny(Form("beta%dVz%d",i,j));
          }
       }
       hTruthRatio = (TH1F*) fCorrection->FindObjectAny("hTruthRatio");
@@ -605,6 +610,32 @@ int plotFinalResult(int TrackletType,char* filename,
 	    alpha = alphaPlots[x-1][z-1]->GetBinContent(y);
             alphaErr = alphaPlots[x-1][z-1]->GetBinError(y);
 	    
+	    if (doBetaCorrection) {
+	       double a,b;
+	       if (TrackletType==12) {
+	          a=1.005;
+		  b=1.269;
+	       }
+	       
+	       if (TrackletType==13) {
+	          a=1.059;
+		  b=1.348;
+	       }
+	       
+	       if (TrackletType==23) {
+	          a=0.946;
+		  b=1.049;
+	       }
+	       double A = a+b*beta;
+//	       double A = 0.9479+2.655*beta;
+	       double betaMC = betaMCPlots[x-1][z-1]->GetBinContent(y);
+	       double B = a+b*betaMC;
+//	       double B = 0.974407+1.77653*betaMC;
+	       alpha = alpha*A/B;
+	       alphaErr = alphaErr*A/B;
+	       cout <<A<<" "<<B<<" "<<endl;
+	       
+	    }
 	    if (doAcceptanceCorrection) {
 	       double accData = hDataAcc->GetBinContent(x,z);
 	       double accMC = hMCAcc->GetBinContent(x,z);
@@ -636,7 +667,8 @@ int plotFinalResult(int TrackletType,char* filename,
 	                  + betaErr*betaErr*alpha*hEverything->GetBinContent(x,y,z)*alpha*hEverything->GetBinContent(x,y,z));
 	    
             hCorrected->SetBinError(x,y,z, valErr);
-	    correction->Fill(x,y,nCorrected,hHadronAccepted->GetBinContent(x,y,z),valErr);
+	        
+	    correction->Fill((EtaBins[x]+EtaBins[x-1])/2,(HitBins[y]+HitBins[y-1])/2,(VzBins[z]+VzBins[z-1])/2,alpha,alphaErr,beta,betaErr,nCorrected,hHadronAccepted->GetBinContent(x,y,z),valErr);
             totalN +=nCorrected;
 	    totalNErr += valErr*valErr;      
 	    if (verbose) cout <<x<<" "<<y<<" "<<z<<" "<<nCorrected<<" "<<valErr<<endl;  
@@ -853,7 +885,7 @@ int plotFinalResult(int TrackletType,char* filename,
    
    hTruthEvtCutCorrectedByXi->Multiply(hTriggerCorrection);
    hMeasured->Multiply(hTriggerCorrection);
-   hTruth->Multiply(hTriggerCorrection);
+//   hTruth->Multiply(hTriggerCorrection);
 
    hTruthWOSelection->Draw("hist");
    hTruthWOSelection->SetAxisRange(0,dndetaRange,"y");
