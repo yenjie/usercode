@@ -71,11 +71,10 @@ uncert = 3.8,int par=0)
    double acceptance2[12]={1        ,1.11661,1.01825,0.995795,0.990697,0.991587,0.994311,0.994696,0.987352,0.984903,0.986908 ,1.12377};
    double acceptance3[12]={1        ,1.32239,1.03311,0.996744,0.985756,0.992889,1.00236,0.994132,0.983021,0.972563,0.930894,1};
 
-/*
+
    clearBin(h12);
    clearBin(h23);
    clearBin(h13);
-*/
 /*
    correctBin(h12,acceptance12);
    correctBin(h13,acceptance13);
@@ -83,6 +82,7 @@ uncert = 3.8,int par=0)
 */
 
    TH1F *hUA5 = getUA5NSD();
+   TH1F *hUA5Scaled = getUA5NSDScaled();
    TH1F *hTracklet900GeV = tracklet900GeV();
    h12->SetXTitle("#eta");
    h12->SetYTitle("dN/d#eta");
@@ -138,7 +138,8 @@ uncert = 3.8,int par=0)
    
    hAvg->Draw();
    if (UA5) hUA5->Draw("p same");
-   if (UA5==2) hTracklet900GeV->Draw("p same");   
+   if (UA5>=2) hTracklet900GeV->Draw("p same");   
+   if (UA5>=3) hUA5Scaled->Draw("p same");   
    hAvg->Draw("same");
 
 
@@ -176,13 +177,7 @@ uncert = 3.8,int par=0)
    
    hAvg2->Draw();
 
-/*   double systematicError900GeV[12] = 
-                  {0.064,0.064,0.064,0.064,0.064,0.064,0.064,0.064,0.064,0.064,0.064,0.064};
 
-   TGraph *gErrorBand;
-   gErrorBand = GetErrorBand2((TH1F*)hAvg2,systematicError900GeV,systematicError900GeV,0.25); //   inf12->Close();
-   gErrorBand->Draw("F");
-   */
    if (UA5) hUA5->Draw("p same");
    hAvg2->SetLineColor(1);
    hAvg2->SetMarkerColor(1);
@@ -201,10 +196,7 @@ uncert = 3.8,int par=0)
    entry2=leg2->AddEntry(hUA5,"900 GeV p+#bar{p} (UA5)","pl");
    leg2->Draw();   
 
-//   inf13->Close();
-//   inf23->Close();
    of.close();
    outfile->Write();
-//   outfile->Close();
    return hAvg2;
 }

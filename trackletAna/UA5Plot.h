@@ -115,6 +115,80 @@ TH1F *getUA5NSD()
  return hEta_UA5_NSD;
 }
 
+TH1F *getUA5NSDScaled()
+{
+ TH1F* hEta_UA5_NSD = new TH1F("hEta_UA5_NSDScale",";#eta;dN/d#eta", 50,-3,3);
+   //scaleFactor = 1.23625;
+   double scaleFactor = 4.45/3.423;
+
+   // positive eta
+   hEta_UA5_NSD->SetBinContent(hEta_UA5_NSD->FindBin(1.1417*0.125),scaleFactor*3.48);
+   hEta_UA5_NSD->SetBinContent(hEta_UA5_NSD->FindBin(1.1417*0.375),scaleFactor*3.38);
+   hEta_UA5_NSD->SetBinContent(hEta_UA5_NSD->FindBin(1.1417*0.625),scaleFactor*3.52);
+   hEta_UA5_NSD->SetBinContent(hEta_UA5_NSD->FindBin(1.1417*0.875),scaleFactor*3.68);
+   hEta_UA5_NSD->SetBinContent(hEta_UA5_NSD->FindBin(1.1417*1.125),scaleFactor*3.71);
+   hEta_UA5_NSD->SetBinContent(hEta_UA5_NSD->FindBin(1.1417*1.375),scaleFactor*3.86);
+   hEta_UA5_NSD->SetBinContent(hEta_UA5_NSD->FindBin(1.1417*1.625),scaleFactor*3.76);
+   hEta_UA5_NSD->SetBinContent(hEta_UA5_NSD->FindBin(1.1417*1.875),scaleFactor*3.66);
+   hEta_UA5_NSD->SetBinContent(hEta_UA5_NSD->FindBin(1.1417*2.125),scaleFactor*3.72);
+   hEta_UA5_NSD->SetBinContent(hEta_UA5_NSD->FindBin(1.1417*2.375),scaleFactor*3.69);
+   hEta_UA5_NSD->SetBinContent(hEta_UA5_NSD->FindBin(1.1417*2.625),scaleFactor*3.56);
+   hEta_UA5_NSD->SetBinContent(hEta_UA5_NSD->FindBin(1.1417*2.875),scaleFactor*3.41);
+   hEta_UA5_NSD->SetBinContent(hEta_UA5_NSD->FindBin(1.1417*3.125),scaleFactor*3.15);
+
+   hEta_UA5_NSD->SetBinError(hEta_UA5_NSD->FindBin(1.1417*0.125),scaleFactor*0.07);
+   hEta_UA5_NSD->SetBinError(hEta_UA5_NSD->FindBin(1.1417*0.375),scaleFactor*0.07);
+   hEta_UA5_NSD->SetBinError(hEta_UA5_NSD->FindBin(1.1417*0.625),scaleFactor*0.07);
+   hEta_UA5_NSD->SetBinError(hEta_UA5_NSD->FindBin(1.1417*0.875),scaleFactor*0.07);
+   hEta_UA5_NSD->SetBinError(hEta_UA5_NSD->FindBin(1.1417*1.125),scaleFactor*0.07);
+   hEta_UA5_NSD->SetBinError(hEta_UA5_NSD->FindBin(1.1417*1.375),scaleFactor*0.07);
+   hEta_UA5_NSD->SetBinError(hEta_UA5_NSD->FindBin(1.1417*1.625),scaleFactor*0.07);
+   hEta_UA5_NSD->SetBinError(hEta_UA5_NSD->FindBin(1.1417*1.875),scaleFactor*0.07);
+   hEta_UA5_NSD->SetBinError(hEta_UA5_NSD->FindBin(1.1417*2.125),scaleFactor*0.07);
+   hEta_UA5_NSD->SetBinError(hEta_UA5_NSD->FindBin(1.1417*2.375),scaleFactor*0.07);
+   hEta_UA5_NSD->SetBinError(hEta_UA5_NSD->FindBin(1.1417*2.625),scaleFactor*0.07);
+   hEta_UA5_NSD->SetBinError(hEta_UA5_NSD->FindBin(1.1417*2.875),scaleFactor*0.07);
+   hEta_UA5_NSD->SetBinError(hEta_UA5_NSD->FindBin(1.1417*3.125),scaleFactor*0.07);
+
+   //negative eta
+   hEta_UA5_NSD->SetBinContent(hEta_UA5_NSD->FindBin(1.1417*-0.125),scaleFactor*3.48);
+   hEta_UA5_NSD->SetBinContent(hEta_UA5_NSD->FindBin(1.1417*-0.375),scaleFactor*3.38);
+   hEta_UA5_NSD->SetBinContent(hEta_UA5_NSD->FindBin(1.1417*-0.625),scaleFactor*3.52);
+   hEta_UA5_NSD->SetBinContent(hEta_UA5_NSD->FindBin(1.1417*-0.875),scaleFactor*3.68);
+   hEta_UA5_NSD->SetBinContent(hEta_UA5_NSD->FindBin(1.1417*-1.125),scaleFactor*3.71);
+   hEta_UA5_NSD->SetBinContent(hEta_UA5_NSD->FindBin(1.1417*-1.375),scaleFactor*3.86);
+   hEta_UA5_NSD->SetBinContent(hEta_UA5_NSD->FindBin(1.1417*-1.625),scaleFactor*3.76);
+   hEta_UA5_NSD->SetBinContent(hEta_UA5_NSD->FindBin(1.1417*-1.875),scaleFactor*3.66);
+   hEta_UA5_NSD->SetBinContent(hEta_UA5_NSD->FindBin(1.1417*-2.125),scaleFactor*3.72);
+   hEta_UA5_NSD->SetBinContent(hEta_UA5_NSD->FindBin(1.1417*-2.375),scaleFactor*3.69);
+   hEta_UA5_NSD->SetBinContent(hEta_UA5_NSD->FindBin(1.1417*-2.625),scaleFactor*3.56);
+   hEta_UA5_NSD->SetBinContent(hEta_UA5_NSD->FindBin(1.1417*-2.875),scaleFactor*3.41);
+   hEta_UA5_NSD->SetBinContent(hEta_UA5_NSD->FindBin(1.1417*-3.125),scaleFactor*3.15);
+
+   hEta_UA5_NSD->SetBinError(hEta_UA5_NSD->FindBin(1.1417*-0.125),scaleFactor*0.07);
+   hEta_UA5_NSD->SetBinError(hEta_UA5_NSD->FindBin(1.1417*-0.375),scaleFactor*0.07);
+   hEta_UA5_NSD->SetBinError(hEta_UA5_NSD->FindBin(1.1417*-0.625),scaleFactor*0.07);
+   hEta_UA5_NSD->SetBinError(hEta_UA5_NSD->FindBin(1.1417*-0.875),scaleFactor*0.07);
+   hEta_UA5_NSD->SetBinError(hEta_UA5_NSD->FindBin(1.1417*-1.125),scaleFactor*0.07);
+   hEta_UA5_NSD->SetBinError(hEta_UA5_NSD->FindBin(1.1417*-1.375),scaleFactor*0.07);
+   hEta_UA5_NSD->SetBinError(hEta_UA5_NSD->FindBin(1.1417*-1.625),scaleFactor*0.07);
+   hEta_UA5_NSD->SetBinError(hEta_UA5_NSD->FindBin(1.1417*-1.875),scaleFactor*0.07);
+   hEta_UA5_NSD->SetBinError(hEta_UA5_NSD->FindBin(1.1417*-2.125),scaleFactor*0.07);
+   hEta_UA5_NSD->SetBinError(hEta_UA5_NSD->FindBin(1.1417*-2.375),scaleFactor*0.07);
+   hEta_UA5_NSD->SetBinError(hEta_UA5_NSD->FindBin(1.1417*-2.625),scaleFactor*0.07);
+   hEta_UA5_NSD->SetBinError(hEta_UA5_NSD->FindBin(1.1417*-2.875),scaleFactor*0.07);
+   hEta_UA5_NSD->SetBinError(hEta_UA5_NSD->FindBin(1.1417*-3.125),scaleFactor*0.07);
+
+//   hEta_UA5_NSD->SetMarkerStyle(25);
+//   hEta_UA5_NSD->SetMarkerSize(1.1);
+ hEta_UA5_NSD->SetMarkerColor(kBlue-2);
+ hEta_UA5_NSD->SetMarkerSize(0.5);
+ hEta_UA5_NSD->SetLineColor(kBlue-2);
+ hEta_UA5_NSD->SetMarkerStyle(4);
+ return hEta_UA5_NSD;
+}
+
+
 TH1F* tracklet900GeV()
 {
    Double_t xAxis5[13] = {-3, -2.5, -2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2, 2.5, 3};

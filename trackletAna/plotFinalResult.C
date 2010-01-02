@@ -112,7 +112,17 @@ int plotFinalResult(int TrackletType,char* filename,
    TFile *fAcceptance;
    if (useCorrectionFile) fCorrection = getCorrectionFile(correctionName,TrackletType);
    if (useCorrectionFile&&doAcceptanceCorrection) fAcceptance = getAcceptanceFile(correctionName,TrackletType);
-   
+
+   TH3F *hAlphaA;
+   TH3F *hAlphaB;
+
+   if (doBetaCorrection) {
+      TFile *myFile = new TFile(Form("correction/alphaBetaCoeff-%d.root",TrackletType));
+      hAlphaA = (TH3F*) myFile->FindObjectAny("hAlphaA");
+      hAlphaB = (TH3F*) myFile->FindObjectAny("hAlphaB");
+   }
+
+
    // Definition of Vz, Eta, Hit bins
    selectionCut myCut(isMC,LumiL,LumiH);
    const int nTrackletBin =14;// myCut.nTrackletBin;
@@ -151,7 +161,7 @@ int plotFinalResult(int TrackletType,char* filename,
    TNtuple * betas = new TNtuple("betas","","eta:nTracklet:vz:beta:betaErr");
    TNtuple * alphas = new TNtuple("alphas","","eta:nTracklet:vz:alpha:alphaErr");
    TNtuple * correction = new TNtuple("correction","","eta:nTracklet:vz:alpha:alphaErr:beta:betaErr:obs:gen:err");
-   
+
    TH3F *hEverything =
          new TH3F("hEverything","Everything in the signal region with vz cut",nEtaBin,EtaBins,nTrackletBin,HitBins,nVzBin,VzBins);
    TH3F *hReproducedBackground = 
@@ -191,6 +201,8 @@ int plotFinalResult(int TrackletType,char* filename,
 
    TH1F *hTriggerCorrection;   
    TH1F *hEmptyEvtCorrection;
+
+
 
    // Prepare histograms ==========================================================================================================
    for (int i=0;i<nEtaBin;i++) {
@@ -592,6 +604,7 @@ int plotFinalResult(int TrackletType,char* filename,
    alphaCode <<endl;
    
    int alpha0flag=0;
+
    
    for (int x=1;x<=nEtaBin;x++) {
    
@@ -611,28 +624,17 @@ int plotFinalResult(int TrackletType,char* filename,
             alphaErr = alphaPlots[x-1][z-1]->GetBinError(y);
 	    
 	    if (doBetaCorrection) {
-	       double a,b;
-	       if (TrackletType==12) {
-	          a=1.005;
-		  b=1.269;
-	       }
-	       
-	       if (TrackletType==13) {
-	          a=1.059;
-		  b=1.348;
-	       }
-	       
-	       if (TrackletType==23) {
-	          a=0.946;
-		  b=1.049;
-	       }
+	       double a=1,b=1;
+	       a = hAlphaA->GetBinContent(x,y,z);
+	       b = hAlphaB->GetBinContent(x,y,z);
+	       if (fabs(b)>10) b=1;
 	       double A = a+b*beta;
 //	       double A = 0.9479+2.655*beta;
 	       double betaMC = betaMCPlots[x-1][z-1]->GetBinContent(y);
 	       double B = a+b*betaMC;
 //	       double B = 0.974407+1.77653*betaMC;
-	       alpha = alpha*A/B;
-	       alphaErr = alphaErr*A/B;
+	       alpha = A;
+	       alphaErr = alphaErr;
 	       cout <<A<<" "<<B<<" "<<endl;
 	       
 	    }
@@ -652,10 +654,10 @@ int plotFinalResult(int TrackletType,char* filename,
             // use extrapolated value if alpha is not available
  	    
 	    if (alpha==0) {
-	//       alpha = fAlpha[x-1][z-1]->Eval((HitBins[y]+HitBins[y-1])/2);
-	//       alphaErr = fAlphaErr[x-1][z-1]->Eval((HitBins[y]+HitBins[y-1])/2);
+	    //   alpha = fAlpha[x-1][z-1]->Eval((HitBins[y]+HitBins[y-1])/2);
+	    //   alphaErr = fAlphaErr[x-1][z-1]->Eval((HitBins[y]+HitBins[y-1])/2);
 	       if (verbose) cout <<x<<" "<<y<<" extrapolate! "<<alpha<<" "<<alphaErr<<endl;
-	       alpha0flag=1;
+	      // alpha0flag=1;
 	    }
 	    
             

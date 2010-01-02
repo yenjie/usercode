@@ -14,7 +14,7 @@
 using namespace std;
 
 void analyze_trackletTree(char * infile, char * outfile = "output.root", int makeVzCut = 0,
-                          int addL1Bck = 0, int addL2Bck = 0, 
+                          int addL1Bck = 0, int addL2Bck = 0, int addL3Bck = 0, 
 			  double splitProb = 0, double dropProb = 0, 
 			  int nPileUp = 0, 
 			  double beamHaloRatio = 0.2,
@@ -144,7 +144,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
   int nBeamHalo = 0;
 
   // Main loop ==========================================================================================
-  for(int i =0;  i<t->GetEntries()&&i<500000000 ; i = i + 1 + nPileUp){    
+  for(int i =0;  i<t->GetEntries()&&i<100000 ; i = i + 1 + nPileUp){    
     t->GetEntry(i);
     
     if (i % 1000 == 0) {
@@ -239,8 +239,8 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
        double etaMax = 2.5;
        double phiMin = -3.1415926;
        double phiMax = 3.1415926;
-       
-       for (int i = par.nhits1; i < par.nhits1+addL1Bck; i++) {
+       int bckHits = addL1Bck*gRandom->Rndm()+0.5;
+       for (int i = par.nhits1; i < par.nhits1+bckHits; i++) {
 
           double eta = etaMin + (etaMax-etaMin)*gRandom->Rndm();
           double phi = phiMin + (phiMax-phiMin)*gRandom->Rndm();
@@ -250,7 +250,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 	  par.r1[i] = r;
 
        }
-       par.nhits1+=addL1Bck;
+       par.nhits1+=bckHits;
     }
 
     if (addL2Bck!=0) {
@@ -258,8 +258,9 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
        double etaMax = 2.5;
        double phiMin = -3.1415926;
        double phiMax = 3.1415926;
+       int bckHits = addL2Bck*gRandom->Rndm()+0.5;
 
-       for (int i = par.nhits2; i < par.nhits2+addL2Bck; i++) {
+       for (int i = par.nhits2; i < par.nhits2+bckHits; i++) {
           double eta = etaMin + (etaMax-etaMin)*gRandom->Rndm();
           double phi = phiMin + (phiMax-phiMin)*gRandom->Rndm();
 	  double r = 7.05;
@@ -267,7 +268,26 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 	  par.phi2[i] = phi;
 	  par.r2[i] = r;
        }
-       par.nhits2+=addL2Bck;
+       par.nhits2+=bckHits;
+
+    }
+
+    if (addL3Bck!=0) {
+       double etaMin = -2.5;
+       double etaMax = 2.5;
+       double phiMin = -3.1415926;
+       double phiMax = 3.1415926;
+       int bckHits = addL3Bck*gRandom->Rndm()+0.5;
+
+       for (int i = par.nhits3; i < par.nhits3+bckHits; i++) {
+          double eta = etaMin + (etaMax-etaMin)*gRandom->Rndm();
+          double phi = phiMin + (phiMax-phiMin)*gRandom->Rndm();
+	  double r = 10.5;
+	  par.eta2[i] = eta;
+	  par.phi2[i] = phi;
+	  par.r2[i] = r;
+       }
+       par.nhits3+=bckHits;
 
     }
 
