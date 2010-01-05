@@ -10,17 +10,19 @@ using namespace std;
 class RecoHit {
    public:
 
-   RecoHit(double _eta,double _phi,double _r) 
+   RecoHit(double _eta,double _phi,double _r,double _cs) 
    { 
       eta = _eta;
       phi = _phi;
       r = _r;
+      cs = _cs;
    }; 
-   RecoHit(double _eta,double _phi,double _r,double _l) 
+   RecoHit(double _eta,double _phi,double _r,double _cs, double _l) 
    { 
       eta = _eta;
       phi = _phi;
       r = _r;
+      cs = _cs;
       layer = _l;
    }; 
    
@@ -57,6 +59,7 @@ class Parameters {
   bool l1TBit[500];
   bool l1ABitVsBx[500][5];
   bool l1TBitVsBx[500][5];
+  bool fl1[maxEntry],fl2[maxEntry],fl3[maxEntry];
 
   float vx[maxEntry];
   float vy[maxEntry];
@@ -75,13 +78,14 @@ class TrackletData {
   bool hltBit[500];
   bool l1ABit[500];
   bool l1TBit[500];
-  float eta1[maxEntry2],phi1[maxEntry2],eta2[maxEntry2],phi2[maxEntry2];
+  float eta1[maxEntry],phi1[maxEntry],r1[maxEntry],cs1[maxEntry],ch1[maxEntry];
+  float eta2[maxEntry],phi2[maxEntry],r2[maxEntry],cs2[maxEntry],ch2[maxEntry];
   float vx[maxEntry2];
   float vy[maxEntry2];
   float vz[maxEntry2];
-  float r1[maxEntry2],r2[maxEntry2];
   float deta[maxEntry2],dphi[maxEntry2];
   float eta[maxEntry2],phi[maxEntry2],chg[maxEntry2],pdg[maxEntry2],nhad[12],pt[maxEntry2];
+  float pro2;
   int nTracklet,nhit1,nhit2,mult,nv,npart,evtType,trackletType;
 };
 
@@ -93,7 +97,7 @@ double calcDphi(double phi1,double phi2);
 
 
 void prepareHits(vector<RecoHit> &cleanedHits, Parameters par, SelectionCriteria cuts,Int_t
-layer, double vx, double vy, double vz, double splitProb = 0, double dropProb = 0)
+layer, double vx, double vy, double vz, double splitProb = 0, double dropProb = 0, bool cutOnClusterSize = 0)
 {
   vector<RecoHit> hits;
 
@@ -103,8 +107,8 @@ layer, double vx, double vy, double vz, double splitProb = 0, double dropProb = 
       if (par.phi1[ihit]>-1.395&&par.phi1[ihit]<-1.105&&par.eta1[ihit]>1.085&&par.eta1[ihit]<1.725) continue;
 
       if (par.phi1[ihit]>1.57&&par.phi1[ihit]<1.77&&par.eta1[ihit]>-0.27&&par.eta1[ihit]<-0.02) continue;
-      
-      RecoHit tmp(par.eta1[ihit],par.phi1[ihit],par.r1[ihit]);
+//      if (par.fl1[ihit]) continue;
+      RecoHit tmp(par.eta1[ihit],par.phi1[ihit],par.r1[ihit],par.cs1[ihit]);
       if (gRandom->Rndm()<dropProb) continue;
       hits.push_back(tmp);
       // put artifical split hits
@@ -112,7 +116,12 @@ layer, double vx, double vy, double vz, double splitProb = 0, double dropProb = 
     }
   } else if (layer == 2){
     for(int ihit = 0; ihit < par.nhits2; ++ihit){
-      RecoHit tmp(par.eta2[ihit],par.phi2[ihit],par.r2[ihit]);
+
+      // for Run 124120
+      //if (par.phi2[ihit]>2.98&&par.phi2[ihit]<3.2&&par.eta2[ihit]>-2.1&&par.eta2[ihit]<-1.71) continue;
+
+//      if (par.fl2[ihit]) continue;
+      RecoHit tmp(par.eta2[ihit],par.phi2[ihit],par.r2[ihit],par.cs2[ihit]);
       if (gRandom->Rndm()<dropProb) continue;
       hits.push_back(tmp);
       // put artifical split hits
@@ -120,7 +129,9 @@ layer, double vx, double vy, double vz, double splitProb = 0, double dropProb = 
     }
   } else if (layer == 3){
     for(int ihit = 0; ihit < par.nhits3; ++ihit){
-      RecoHit tmp(par.eta3[ihit],par.phi3[ihit],par.r3[ihit]);
+//      if (par.fl3[ihit]) continue;
+      RecoHit tmp(par.eta3[ihit],par.phi3[ihit],par.r3[ihit],par.cs3[ihit]);
+
       if (gRandom->Rndm()<dropProb) continue;
       hits.push_back(tmp);
       // put artifical split hits
@@ -169,7 +180,15 @@ layer, double vx, double vy, double vz, double splitProb = 0, double dropProb = 
 //   ROOT::Math::XYZVector tmpVector(x-0.205124,y-0.164012,z-vz);
 //   ROOT::Math::XYZVector tmpVector(x,y,z-vz);
 //  ROOT::Math::XYZVector tmpVector(x,y,z-vz);
-    RecoHit tmpHit(tmpVector.eta(),tmpVector.phi(),tmpVector.rho());
+    RecoHit tmpHit(tmpVector.eta(),tmpVector.phi(),tmpVector.rho(),hits[ihit].cs);
+    double eta = tmpVector.eta();
+
+    if (cutOnClusterSize && fabs(eta)< 0.5 &&                  hits[ihit].cs < 1) continue;
+    if (cutOnClusterSize && fabs(eta)<=1.0 && fabs(eta)>0.5 && hits[ihit].cs < 2) continue;
+    if (cutOnClusterSize && fabs(eta)<=1.5 && fabs(eta)>1.0 && hits[ihit].cs < 3) continue;
+    if (cutOnClusterSize && fabs(eta)<=2.0 && fabs(eta)>1.5 && hits[ihit].cs < 4) continue;
+    if (cutOnClusterSize && fabs(eta)<=2.5 && fabs(eta)>2.0 && hits[ihit].cs < 6) continue;
+    if (cutOnClusterSize && fabs(eta)<=5.0 && fabs(eta)>2.5 && hits[ihit].cs < 9) continue;
     cleanedHits.push_back(tmpHit);      
   }
 }
@@ -180,7 +199,7 @@ RecoHit RandomHit(double etaMin, double etaMax, double phiMin, double phiMax)
 {
    double eta = etaMin + (etaMax-etaMin)*gRandom->Rndm();
    double phi = phiMin + (phiMax-phiMin)*gRandom->Rndm();
-   RecoHit myRandomHit(eta,phi,0);
+   RecoHit myRandomHit(eta,phi,0,100);
    return myRandomHit;
 }
 
@@ -236,12 +255,18 @@ void getPixelTreeBranch(TTree *t, Parameters &par)
   t->SetBranchAddress("eta1",par.eta1);
   t->SetBranchAddress("phi1",par.phi1);
   t->SetBranchAddress("r1",par.r1);
+  t->SetBranchAddress("cs1",par.cs1);
+  t->SetBranchAddress("fl1",par.fl1);
   t->SetBranchAddress("eta2",par.eta2);
   t->SetBranchAddress("phi2",par.phi2);
   t->SetBranchAddress("r2",par.r2);
+  t->SetBranchAddress("cs2",par.cs2);
+  t->SetBranchAddress("fl2",par.fl2);
   t->SetBranchAddress("eta3",par.eta3);
   t->SetBranchAddress("phi3",par.phi3);
   t->SetBranchAddress("r3",par.r3);
+  t->SetBranchAddress("cs3",par.cs3);
+  t->SetBranchAddress("fl3",par.fl3);
   t->SetBranchAddress("nhits1",&par.nhits1);
   t->SetBranchAddress("nhits2",&par.nhits2);
   t->SetBranchAddress("nhits3",&par.nhits3);

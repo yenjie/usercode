@@ -24,8 +24,10 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 			  bool putPixelTree = 0,
 			  bool useKKVertex = 1,
 			  bool useNSD = 0,
-			  bool reWeight = 1,         // reweight to Run 123596 vtx distribution
-			  bool useRandomVertex= 0
+			  bool reWeight = 0,         // reweight to Run 123596 vtx distribution
+			  bool useRandomVertex= 0,
+			  bool cutOnClusterSize = 0,
+			  bool mimicPixelCounting = 0
 			 )
 {
   // Set Random Seed
@@ -130,6 +132,16 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 
 
   TH3F* nhits = new TH3F("nhits","",100,0,100,100,0,100,100,0,100);
+
+  TH3D* hLayer1Hit = new TH3D("hLayer1Hit","",75,0,15,60,-3,3,64,-3.2,3.2);
+  TH3D* hLayer2Hit = new TH3D("hLayer2Hit","",75,0,15,60,-3,3,64,-3.2,3.2);
+  TH3D* hLayer3Hit = new TH3D("hLayer3Hit","",75,0,15,60,-3,3,64,-3.2,3.2);
+
+  // Prepare hit spectra for random hit 
+  if (addL1Bck!=0) t->Project("hLayer1Hit","phi1:eta1:r1");
+  if (addL2Bck!=0) t->Project("hLayer2Hit","phi2:eta2:r2");
+  if (addL3Bck!=0) t->Project("hLayer3Hit","phi3:eta3:r3");
+
   
   // Parameters for the tree =============================================================================
   Parameters par;  
@@ -144,7 +156,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
   int nBeamHalo = 0;
 
   // Main loop ==========================================================================================
-  for(int i =0;  i<t->GetEntries()&&i<100000 ; i = i + 1 + nPileUp){    
+  for(int i =0;  i<t->GetEntries()&&i<100000000 ; i = i + 1 + nPileUp){    
     t->GetEntry(i);
     
     if (i % 1000 == 0) {
@@ -235,60 +247,38 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     
     // add background 
     if (addL1Bck!=0) {
-       double etaMin = -2.5;
-       double etaMax = 2.5;
-       double phiMin = -3.1415926;
-       double phiMax = 3.1415926;
        int bckHits = addL1Bck*gRandom->Rndm()+0.5;
        for (int i = par.nhits1; i < par.nhits1+bckHits; i++) {
-
-          double eta = etaMin + (etaMax-etaMin)*gRandom->Rndm();
-          double phi = phiMin + (phiMax-phiMin)*gRandom->Rndm();
-	  double r = 4.15;
+          double eta, phi, r;
+	  hLayer1Hit->GetRandom3(r,eta,phi);
 	  par.eta1[i] = eta;
 	  par.phi1[i] = phi;
 	  par.r1[i] = r;
-
        }
        par.nhits1+=bckHits;
     }
 
     if (addL2Bck!=0) {
-       double etaMin = -2.5;
-       double etaMax = 2.5;
-       double phiMin = -3.1415926;
-       double phiMax = 3.1415926;
        int bckHits = addL2Bck*gRandom->Rndm()+0.5;
-
        for (int i = par.nhits2; i < par.nhits2+bckHits; i++) {
-          double eta = etaMin + (etaMax-etaMin)*gRandom->Rndm();
-          double phi = phiMin + (phiMax-phiMin)*gRandom->Rndm();
-	  double r = 7.05;
+          double eta, phi, r;
+	  hLayer2Hit->GetRandom3(r,eta,phi);
 	  par.eta2[i] = eta;
 	  par.phi2[i] = phi;
 	  par.r2[i] = r;
        }
        par.nhits2+=bckHits;
-
     }
-
     if (addL3Bck!=0) {
-       double etaMin = -2.5;
-       double etaMax = 2.5;
-       double phiMin = -3.1415926;
-       double phiMax = 3.1415926;
        int bckHits = addL3Bck*gRandom->Rndm()+0.5;
-
        for (int i = par.nhits3; i < par.nhits3+bckHits; i++) {
-          double eta = etaMin + (etaMax-etaMin)*gRandom->Rndm();
-          double phi = phiMin + (phiMax-phiMin)*gRandom->Rndm();
-	  double r = 10.5;
-	  par.eta2[i] = eta;
-	  par.phi2[i] = phi;
-	  par.r2[i] = r;
+          double eta, phi, r;
+	  hLayer3Hit->GetRandom3(r,eta,phi);
+	  par.eta3[i] = eta;
+	  par.phi3[i] = phi;
+	  par.r3[i] = r;
        }
        par.nhits3+=bckHits;
-
     }
 
     // add trackletVertex
@@ -372,18 +362,18 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     
     // Process hits with Vz constraint:
     vector<RecoHit> layer1;
-    prepareHits(layer1,par, cuts, 1, tdata12.vx[1], tdata12.vy[1], tdata12.vz[1], splitProb, dropProb);
+    prepareHits(layer1,par, cuts, 1, tdata12.vx[1], tdata12.vy[1], tdata12.vz[1], splitProb, dropProb, cutOnClusterSize);
     vector<RecoHit> layer2;
-    prepareHits(layer2,par, cuts, 2, tdata12.vx[1], tdata12.vy[1], tdata12.vz[1], splitProb, dropProb);
+    prepareHits(layer2,par, cuts, 2, tdata12.vx[1], tdata12.vy[1], tdata12.vz[1], splitProb, dropProb, cutOnClusterSize);
     vector<RecoHit> layer3;
-    prepareHits(layer3,par, cuts, 3, tdata12.vx[1], tdata12.vy[1], tdata12.vz[1], splitProb, dropProb);
+    prepareHits(layer3,par, cuts, 3, tdata12.vx[1], tdata12.vy[1], tdata12.vz[1], splitProb, dropProb, cutOnClusterSize);
 
     if (nPileUp!=0) {
        for (int j=1;j <= nPileUp ; j++) {
           t->GetEntry(i+j);
-          prepareHits(layer1,par, cuts, 1,tdata12.vx[1], tdata12.vy[1],  tdata12.vz[1], splitProb, dropProb);
-          prepareHits(layer2,par, cuts, 2,tdata12.vx[1], tdata12.vy[1],  tdata12.vz[1], splitProb, dropProb);
-          prepareHits(layer3,par, cuts, 3,tdata12.vx[1], tdata12.vy[1],  tdata12.vz[1], splitProb, dropProb);
+          prepareHits(layer1,par, cuts, 1,tdata12.vx[1], tdata12.vy[1],  tdata12.vz[1], splitProb, dropProb, cutOnClusterSize);
+          prepareHits(layer2,par, cuts, 2,tdata12.vx[1], tdata12.vy[1],  tdata12.vz[1], splitProb, dropProb, cutOnClusterSize);
+          prepareHits(layer3,par, cuts, 3,tdata12.vx[1], tdata12.vy[1],  tdata12.vz[1], splitProb, dropProb, cutOnClusterSize);
        }
        t->GetEntry(i);
     }
@@ -417,14 +407,27 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     }
 
     // Form Tracklets        
-    vector<Tracklet> protoTracklets12 = recoProtoTracklets(layer1,layer2);
-    vector<Tracklet> recoTracklets12 = cleanTracklets(protoTracklets12,0,cuts);
+    vector<Tracklet> protoTracklets12;
+    vector<Tracklet> protoTracklets13;
+    vector<Tracklet> protoTracklets23;
+    vector<Tracklet> recoTracklets12;
+    vector<Tracklet> recoTracklets13;
+    vector<Tracklet> recoTracklets23;
 
-    vector<Tracklet> protoTracklets13 = recoProtoTracklets(layer1,layer3);
-    vector<Tracklet> recoTracklets13 = cleanTracklets(protoTracklets13,0,cuts);
-
-    vector<Tracklet> protoTracklets23 = recoProtoTracklets(layer2,layer3);
-    vector<Tracklet> recoTracklets23 = cleanTracklets(protoTracklets23,0,cuts);
+    if (mimicPixelCounting) {
+       protoTracklets12 = recoProtoTracklets(layer1,layer1);
+       protoTracklets13 = recoProtoTracklets(layer2,layer2);
+       protoTracklets23 = recoProtoTracklets(layer3,layer3);
+    } else {
+       protoTracklets12 = recoProtoTracklets(layer1,layer2);
+       protoTracklets13 = recoProtoTracklets(layer1,layer3);
+       protoTracklets23 = recoProtoTracklets(layer2,layer3);
+    }  
+    
+    recoTracklets12  = cleanTracklets(protoTracklets12,0,cuts);
+    recoTracklets13  = cleanTracklets(protoTracklets13,0,cuts);
+    recoTracklets23  = cleanTracklets(protoTracklets23,0,cuts);
+    
 
     // Move the Vertex back
     if (smearVertex!=0)
@@ -472,6 +475,8 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
         tdata12.eta2[j] = recoTracklets12[j].eta2();	
         tdata12.r1[j] = recoTracklets12[j].r1();	
         tdata12.r2[j] = recoTracklets12[j].r2();	
+        tdata12.cs1[j] = recoTracklets12[j].cs1();	
+        tdata12.cs2[j] = recoTracklets12[j].cs2();	
         tdata12.phi1[j] = recoTracklets12[j].phi1();	
         tdata12.phi2[j] = recoTracklets12[j].phi2();
 	tdata12.deta[j] = recoTracklets12[j].deta();
@@ -487,10 +492,25 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     }
     tdata12.mult=ntracklet12s-ntracklet12b;
     tdata12.npart=0;
+    
+    double pro1=0;
+    double pro2=0;
     for (int j=0;j<12;j++) tdata12.nhad[j]=0;
 
     for(int j=0;j<par.npart;j++)
     {
+	if (fabs(par.pdg[j])==2212) {
+	   double momentum = par.pt[j]*cosh(par.eta[j]);
+	   if (momentum>pro2) {
+	      if (momentum>pro1) {
+	         pro2 = pro1;
+		 pro1 = momentum;
+	      } else {
+	         pro2 = momentum;
+	      }
+//	      cout <<pro2<<" "<<pro1<<endl;
+	   }
+	}
         if (fabs(par.eta[j])>3||par.chg[j]==0||abs(par.pdg[j])==11||abs(par.pdg[j])==13) continue;
 //        if (fabs(par.eta[j])>3) continue;
 	tdata12.eta[tdata12.npart]=par.eta[j];
@@ -509,6 +529,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     ntmult->Fill(mult,layer1.size(),layer2.size());
 
     tdata12.evtType = par.evtType;
+    tdata12.pro2 = pro2;
     trackletTree12->Fill();
 
     tdata13.nTracklet = recoTracklets13.size();
@@ -548,6 +569,8 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
         tdata13.eta2[j] = recoTracklets13[j].eta2();	
         tdata13.r1[j] = recoTracklets13[j].r1();	
         tdata13.r2[j] = recoTracklets13[j].r2();	
+        tdata13.cs1[j] = recoTracklets13[j].cs1();	
+        tdata13.cs2[j] = recoTracklets13[j].cs2();	
         tdata13.phi1[j] = recoTracklets13[j].phi1();	
         tdata13.phi2[j] = recoTracklets13[j].phi2();
 	tdata13.deta[j] = recoTracklets13[j].deta();
@@ -585,6 +608,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     ntmult->Fill(mult,layer1.size(),layer2.size());
 
     tdata13.evtType = par.evtType;
+    tdata13.pro2 = pro2;
     trackletTree13->Fill();
 
     tdata23.nTracklet = recoTracklets23.size();
@@ -624,6 +648,8 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
         tdata23.eta2[j] = recoTracklets23[j].eta2();	
         tdata23.r1[j] = recoTracklets23[j].r1();	
         tdata23.r2[j] = recoTracklets23[j].r2();	
+        tdata23.cs1[j] = recoTracklets23[j].cs1();	
+        tdata23.cs2[j] = recoTracklets23[j].cs2();	
         tdata23.phi1[j] = recoTracklets23[j].phi1();	
         tdata23.phi2[j] = recoTracklets23[j].phi2();
 	tdata23.deta[j] = recoTracklets23[j].deta();
@@ -660,6 +686,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     ntmult->Fill(mult,layer1.size(),layer2.size());
 
     tdata23.evtType = par.evtType;
+    tdata23.pro2 = pro2;
     trackletTree23->Fill();
   }
 

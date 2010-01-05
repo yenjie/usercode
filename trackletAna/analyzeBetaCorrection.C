@@ -57,7 +57,7 @@ void analyzeBetaCorrection(int TrackletType = 12)
       for (int y=1;y<=nTrackletBin;y++) {
          for (int z=1;z<=nVzBin;z++) {
    	       double a=1,b=1;
-	       cout <<Form("eta==%f&&vz==%f&&alpha!=0",(EtaBins[x]+EtaBins[x-1])/2,(HitBins[y]+HitBins[y-1])/2,(VzBins[z]+VzBins[z-1])/2)<<endl;
+	       cout <<Form("eta==%f&&nTracklet==%f&&vz==%f&&alpha!=0",(EtaBins[x]+EtaBins[x-1])/2,(HitBins[y]+HitBins[y-1])/2,(VzBins[z]+VzBins[z-1])/2)<<endl;
 	       betaCorrection->Project("hAlphaBeta","alpha:beta",Form("eta==%f&&nTracklet==%f&&vz==%f&&alpha!=0",(EtaBins[x]+EtaBins[x-1])/2,(HitBins[y]+HitBins[y-1])/2,(VzBins[z]+VzBins[z-1])/2));
                hAlphaBeta->Fit("pol1","m E Q");
 	       TF1 *fLine = hAlphaBeta->GetFunction("pol1");

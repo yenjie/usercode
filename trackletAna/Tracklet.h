@@ -12,7 +12,7 @@ class Tracklet
 {
    public:
       Tracklet(double eta1,double eta2,double phi1,double phi2,double r1,double
-      r2);
+      r2, double cs1, double cs2);
       ~Tracklet(){};
 
       double eta1() { return eta1_; }
@@ -21,6 +21,8 @@ class Tracklet
       double phi2() { return phi2_; }
       double r1()   { return r1_; }
       double r2()   { return r2_; }
+      double cs1()   { return cs1_; }
+      double cs2()   { return cs2_; }
       
 
       double deta() { return eta1_-eta2_; }
@@ -57,6 +59,9 @@ class Tracklet
       double r1_;
       double r2_;
 
+      double cs1_;
+      double cs2_;
+
       int it1_;   // first iterator
       int it2_;   // second iterator
       
@@ -72,7 +77,7 @@ class Tracklet
       
 };
 
-Tracklet::Tracklet(double eta1, double eta2, double phi1, double phi2, double r1, double r2) {
+Tracklet::Tracklet(double eta1, double eta2, double phi1, double phi2, double r1, double r2, double cs1, double cs2) {
 
    eta1_ = eta1;
    eta2_ = eta2;
@@ -85,6 +90,9 @@ Tracklet::Tracklet(double eta1, double eta2, double phi1, double phi2, double r1
 
    r1_ = r1;
    r2_ = r2;
+
+   cs1_ = cs1;
+   cs2_ = cs2;
    
    dphi_=-10000;
    deta_=-10000;
@@ -148,11 +156,12 @@ vector<Tracklet> recoProtoTracklets(vector<RecoHit> hits1, vector<RecoHit> hits2
     {
       for (int j = 0; j < (int) hits2.size(); j++)
 	{
-	  Tracklet mytracklet(hits1[i].eta,hits2[j].eta,hits1[i].phi,hits2[j].phi,hits1[i].r,hits2[j].r);
+	  Tracklet mytracklet(hits1[i].eta,hits2[j].eta,hits1[i].phi,hits2[j].phi,hits1[i].r,hits2[j].r,hits1[i].cs,hits2[j].cs);
 	  mytracklet.setIt1(i);
 	  mytracklet.setIt2(j);
 	  // prevent self-match in same layer tracklet
-	  if (hits1[i].eta!=hits2[j].eta) protoTracklets.push_back(mytracklet);
+	  //if (hits1[i].eta!=hits2[j].eta) 
+	  protoTracklets.push_back(mytracklet);
 	}
     }
 
@@ -221,7 +230,7 @@ vector<Tracklet> recoFastTracklets(vector<RecoHit> hits,int verbose_ = 0)
 	      continue;
 	  }
 	  flag=0;
-	  Tracklet mytracklet(hits[i1-1].eta,hits[i1].eta,hits[i1-1].phi,hits[i1].phi,hits[i1-1].r,hits[i1].r);
+	  Tracklet mytracklet(hits[i1-1].eta,hits[i1].eta,hits[i1-1].phi,hits[i1].phi,hits[i1-1].r,hits[i1].r,hits[i1-1].cs,hits[i1].cs);
           fastTracklets.push_back(mytracklet);
 	  n[(int)hits[i1-1].layer]--;
 	  n[(int)hits[i1].layer]--;
@@ -434,9 +443,11 @@ void setTrackletTreeBranch(TTree* trackletTree,TrackletData &tdata)
   trackletTree->Branch("eta1",tdata.eta1,"eta1[nTracklets]/F");
   trackletTree->Branch("phi1",tdata.phi1,"phi1[nTracklets]/F");
   trackletTree->Branch("r1",tdata.r1,"r1[nTracklets]/F");
+  trackletTree->Branch("cs1",tdata.cs1,"cs1[nTracklets]/F");
   trackletTree->Branch("eta2",tdata.eta2,"eta2[nTracklets]/F");
   trackletTree->Branch("phi2",tdata.phi2,"phi2[nTracklets]/F");
   trackletTree->Branch("r2",tdata.r2,"r2[nTracklets]/F");
+  trackletTree->Branch("cs2",tdata.cs2,"cs2[nTracklets]/F");
   trackletTree->Branch("deta",tdata.deta,"deta[nTracklets]/F");
   trackletTree->Branch("dphi",tdata.dphi,"dphi[nTracklets]/F");
   
@@ -448,6 +459,7 @@ void setTrackletTreeBranch(TTree* trackletTree,TrackletData &tdata)
   trackletTree->Branch("nhad",tdata.nhad,"nhad[12]/F");
   trackletTree->Branch("pt",tdata.pt,"pt[npart]/F");
   trackletTree->Branch("evtType",&tdata.evtType,"evtType/I");
+  trackletTree->Branch("pro2",&tdata.pro2,"evtType/F");
 
   trackletTree->SetAlias("dR","sqrt(deta*deta+dphi*dphi)");
   trackletTree->SetAlias("dRR","sqrt(deta*deta+dphi*dphi+(r1-r2)*(r1-r2))") ;
