@@ -29,7 +29,31 @@ void clearBin(TH1F* h)
    h->SetBinContent(11,0);
    h->SetBinError(2,0);
    h->SetBinError(11,0);
+   for (int i=2;i<=11;i++)
+   {
+      h->SetBinError(i,h->GetBinContent(i)*3.8/100);
+   }   
+
 }
+
+
+void clearBin2(TH1F* h)
+{
+   h->SetBinContent(2,0);
+   h->SetBinContent(3,0);
+   h->SetBinContent(11,0);
+   h->SetBinContent(10,0);
+   h->SetBinError(2,0);
+   h->SetBinError(3,0);
+   h->SetBinError(11,0);
+   h->SetBinError(10,0);
+
+   for (int i=2;i<=11;i++)
+   {
+      h->SetBinError(i,h->GetBinContent(i)*3.8/100);
+   }   
+}
+
 TH1F* makeMergedPlot(char *name = "D6T-Official-Reweight",int UA5=0, double
 uncert = 3.8,int par=0)
 {
@@ -73,8 +97,8 @@ uncert = 3.8,int par=0)
 
 
    clearBin(h12);
-   clearBin(h23);
-   clearBin(h13);
+   clearBin2(h23);
+   clearBin2(h13);
 /*
    correctBin(h12,acceptance12);
    correctBin(h13,acceptance13);
@@ -88,6 +112,7 @@ uncert = 3.8,int par=0)
    h12->SetYTitle("dN/d#eta");
    h12->Draw();
    if (UA5) hUA5->Draw("p same");   
+   if (UA5>=3) hUA5Scaled->Draw("p same");  
    h12->Draw("same");
    h13->Draw("same");
    h23->Draw("same");
@@ -120,7 +145,7 @@ uncert = 3.8,int par=0)
       avg += h12->GetBinContent(i);
       avg += h13->GetBinContent(i);
       avg += h23->GetBinContent(i);
-      avg/=3.0;
+      if (i!=2&&i!=3&&i!=11&&i!=10) avg/=3.0; else avg/=1.0;
       double avgErr = avg*uncert/100.;
       
       hAvg->SetBinContent(i,avg);
@@ -157,8 +182,8 @@ uncert = 3.8,int par=0)
       avg += h12->GetBinContent(13-i);
       avg += h13->GetBinContent(13-i);
       avg += h23->GetBinContent(13-i);
-      avg/=6.0;
-      double avgErr = avg*6.4/100.;
+      if (i!=2&&i!=3&&i!=11&&i!=10) avg/=6.0; else avg/=2.0;
+      double avgErr = avg*3.8/100.;
       
       hAvg2->SetBinContent(i,avg);
       hAvg2->SetBinError(i,0,avgErr);
@@ -178,7 +203,9 @@ uncert = 3.8,int par=0)
    hAvg2->Draw();
 
 
-   if (UA5) hUA5->Draw("p same");
+//   if (UA5) hUA5->Draw("p same");
+   if (UA5>=2) hTracklet900GeV->Draw("p same");   
+   if (UA5>=3) hUA5Scaled->Draw("p same");  
    hAvg2->SetLineColor(1);
    hAvg2->SetMarkerColor(1);
    hAvg2->Draw("p same");
@@ -192,7 +219,7 @@ uncert = 3.8,int par=0)
    leg2->SetFillColor(0);
    leg2->SetFillStyle(0);
    TLegendEntry *entry2=leg2->AddEntry("hTruth",Form("Data-%s",name),"");
-   entry2=leg2->AddEntry(hAvg2,"2.36 TeV p+p by Tracklet (CMS)","pl");
+   entry2=leg2->AddEntry(hAvg2,"900 GeV p+p by Tracklet (CMS)","pl");
    entry2=leg2->AddEntry(hUA5,"900 GeV p+#bar{p} (UA5)","pl");
    leg2->Draw();   
 

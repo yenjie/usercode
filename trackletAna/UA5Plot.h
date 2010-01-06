@@ -119,7 +119,7 @@ TH1F *getUA5NSDScaled()
 {
  TH1F* hEta_UA5_NSD = new TH1F("hEta_UA5_NSDScale",";#eta;dN/d#eta", 50,-3,3);
    //scaleFactor = 1.23625;
-   double scaleFactor = 4.45/3.423;
+   double scaleFactor = 4.23/3.423;
 
    // positive eta
    hEta_UA5_NSD->SetBinContent(hEta_UA5_NSD->FindBin(1.1417*0.125),scaleFactor*3.48);
@@ -196,14 +196,14 @@ TH1F* tracklet900GeV()
    TH1F *hMeasuredFinal = new TH1F("hMeasuredFinal","",12, xAxis5);
 
 
-   hMeasuredFinal->SetBinContent(3,3.49038);
-   hMeasuredFinal->SetBinContent(4,3.77519);
-   hMeasuredFinal->SetBinContent(5,3.61123);
-   hMeasuredFinal->SetBinContent(6,3.40686);
-   hMeasuredFinal->SetBinContent(7,3.44304);
-   hMeasuredFinal->SetBinContent(8,3.61126);
-   hMeasuredFinal->SetBinContent(9,3.64045);
-   hMeasuredFinal->SetBinContent(10,3.69915);
+   hMeasuredFinal->SetBinContent(7,(3.44304+3.40686)/2);
+   hMeasuredFinal->SetBinContent(8,(3.61126+3.61123)/2);
+   hMeasuredFinal->SetBinContent(9,(3.64045+3.77519)/2);
+   hMeasuredFinal->SetBinContent(10,(3.69915+3.49038)/2);
+   hMeasuredFinal->SetBinContent(6,(3.44304+3.40686)/2);
+   hMeasuredFinal->SetBinContent(5,(3.61126+3.61123)/2);
+   hMeasuredFinal->SetBinContent(4,(3.64045+3.77519)/2);
+   hMeasuredFinal->SetBinContent(3,(3.69915+3.49038)/2);
 
 
    hMeasuredFinal->SetBinError(3,0.132634);
@@ -223,3 +223,5 @@ TH1F* tracklet900GeV()
 
    return hMeasuredFinal;
 }
+
+

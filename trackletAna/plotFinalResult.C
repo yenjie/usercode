@@ -41,7 +41,7 @@
 #define SDFactor 1
 
 
-void formatHist(TH1* h, int col = 1, double norm = 1,double msize = 1);
+void formatHist(TH1* h, int col = 1, double norm = 1,double msize = 1.1);
 
 //===========================================================================
 // Read Stored correction factors
@@ -53,7 +53,7 @@ void formatHist(TH1* h, int col = 1, double norm = 1,double msize = 1);
 // 3 = 900 GeV (half of the sample)
 // 4 = 10 TeV (half of the ample)
 
-TFile* getAcceptanceFile(string correctionFileName,int TrackletType){
+TFile* getAcceptanceFile(int TrackletType){
    TFile *fAcceptance;
    char * filename = Form("correction/Acceptance-%d.root",TrackletType);
    fAcceptance = new TFile(filename);
@@ -81,11 +81,10 @@ int plotFinalResult(int TrackletType,char* filename,
 		    string correctionName = "Official",                         // Correction file name
 		    Long64_t nentries = 1000000000,                             // Number of entries
 		    Long64_t firstentry = 0,                                    // First Entry
-		    double LumiL = 69,                                          // nLumi Lower cut
-		    double LumiH = 144,                                         // nLumi Higher cut
+		    int LumiL = 69,                                             // nLumi Lower cut
+		    int LumiH = 144,                                            // nLumi Higher cut
 		    int verbose = 0,                                            // Set Verbose level
 		    int makePlot = 0,                                           // make alpha plots
-		    int mcTruth = 1,                                            // plot mcTruth
 		    bool putUA5 = 1,                                            // overlap UA5 result
 		    bool putPYTHIA = 0,                                         // put PYTHIA result
 		    bool doAcceptanceCorrection = 0,                            // do acceptance correction
@@ -111,7 +110,7 @@ int plotFinalResult(int TrackletType,char* filename,
    TFile *fCorrection;
    TFile *fAcceptance;
    if (useCorrectionFile) fCorrection = getCorrectionFile(correctionName,TrackletType);
-   if (useCorrectionFile&&doAcceptanceCorrection) fAcceptance = getAcceptanceFile(correctionName,TrackletType);
+   if (useCorrectionFile&&doAcceptanceCorrection) fAcceptance = getAcceptanceFile(TrackletType);
 
    TH3F *hAlphaA;
    TH3F *hAlphaB;
@@ -122,7 +121,6 @@ int plotFinalResult(int TrackletType,char* filename,
       hAlphaB = (TH3F*) myFile->FindObjectAny("hAlphaB");
    }
 
-
    // Definition of Vz, Eta, Hit bins
    selectionCut myCut(isMC,LumiL,LumiH);
    const int nTrackletBin =14;// myCut.nTrackletBin;
@@ -130,7 +128,7 @@ int plotFinalResult(int TrackletType,char* filename,
    const int nVzBin  =20;// myCut.nVzBin;
    int VzRangeL =myCut.VzRangeL;
    int VzRangeH =myCut.VzRangeH;
-   double HitBins[nTrackletBin+1] = {-5,5,10,15,20,25,30,35,40,45,50,55,60,65,100};
+   double TrackletBins[nTrackletBin+1] = {-5,5,10,15,20,25,30,35,40,45,50,55,60,65,100};
    double EtaBins[nEtaBin+1];
    double VzBins[nVzBin+1];
    
@@ -163,34 +161,37 @@ int plotFinalResult(int TrackletType,char* filename,
    TNtuple * correction = new TNtuple("correction","","eta:nTracklet:vz:alpha:alphaErr:beta:betaErr:obs:gen:err:betaMC");
 
    TH3F *hEverything =
-         new TH3F("hEverything","Everything in the signal region with vz cut",nEtaBin,EtaBins,nTrackletBin,HitBins,nVzBin,VzBins);
+         new TH3F("hEverything","Everything in the signal region with vz cut",nEtaBin,EtaBins,nTrackletBin,TrackletBins,nVzBin,VzBins);
    TH3F *hReproducedBackground = 
-         new TH3F("hReproducedBackground","Reproduced Background",nEtaBin,EtaBins,nTrackletBin,HitBins,nVzBin,VzBins);
+         new TH3F("hReproducedBackground","Reproduced Background",nEtaBin,EtaBins,nTrackletBin,TrackletBins,nVzBin,VzBins);
    TH3F *hSubtracted = 
-         new TH3F("hSubtracted","",nEtaBin,EtaBins,nTrackletBin,HitBins,nVzBin,VzBins);
+         new TH3F("hSubtracted","",nEtaBin,EtaBins,nTrackletBin,TrackletBins,nVzBin,VzBins);
    TH3F *hHadron = 
-         new TH3F("hHadron","",nEtaBin,EtaBins,nTrackletBin,HitBins,nVzBin,VzBins);
+         new TH3F("hHadron","",nEtaBin,EtaBins,nTrackletBin,TrackletBins,nVzBin,VzBins);
    TH3F *hHadronAccepted = 
-         new TH3F("hHadronAccepted","",nEtaBin,EtaBins,nTrackletBin,HitBins,nVzBin,VzBins);
+         new TH3F("hHadronAccepted","",nEtaBin,EtaBins,nTrackletBin,TrackletBins,nVzBin,VzBins);
    TH3F *hHadronWOSelection = 
-         new TH3F("hHadronWOSelection","",nEtaBin,EtaBins,nTrackletBin,HitBins,nVzBin,VzBins);
+         new TH3F("hHadronWOSelection","",nEtaBin,EtaBins,nTrackletBin,TrackletBins,nVzBin,VzBins);
    TH3F *hCorrected = 
-         new TH3F("hCorrected","",nEtaBin,EtaBins,nTrackletBin,HitBins,nVzBin,VzBins);
+         new TH3F("hCorrected","",nEtaBin,EtaBins,nTrackletBin,TrackletBins,nVzBin,VzBins);
+   TH3F *hnTracklet3D = new TH3F("hnTracklet3D","",nEtaBin,EtaBins,nTrackletBin,TrackletBins,nVzBin,VzBins);
+
 
    TH2F *hEtaVzRatio = new TH2F("hEtaVzatio","#eta:Vz",nEtaBin,EtaBins,nVzBin,VzBins);
-   TH2F *hEtaHitRatio = new TH2F("hEtaHitatio","#eta:N_{Hit}",nEtaBin,EtaBins,nTrackletBin,HitBins);
+   TH2F *hEtaHitRatio = new TH2F("hEtaHitatio","#eta:N_{Hit}",nEtaBin,EtaBins,nTrackletBin,TrackletBins);
    TH2F *hAcceptance = new TH2F("hAcceptance","",nEtaBin,EtaBins,nVzBin,VzBins);
    TH2F *hDataAcc = new TH2F("hDataAcc","",nEtaBin,EtaBins,nVzBin,VzBins);
    TH2F *hMCAcc = new TH2F("hMCAcc","",nEtaBin,EtaBins,nVzBin,VzBins);
+   TH2F *hVzNTracklet = new TH2F("hVzNTracklet","",nTrackletBin,TrackletBins,nVzBin,VzBins);
 
    TH1F *hCorrectedEtaBin = new TH1F("hCorrectedEtaBin","Corrected",nEtaBin,-3,3);
-   TH1F *hTrigEff = new TH1F("hTrigEff","",nTrackletBin,HitBins);
-   TH1F *hTrigEffNoCut = new TH1F("hTrigEffNoCut","",nTrackletBin,HitBins);
-   TH1F *hSD = new TH1F("hSD","",nTrackletBin,HitBins);
-   TH1F *hSDFrac = new TH1F("hSDFrac","",nTrackletBin,HitBins);
+   TH1F *hTrigEff = new TH1F("hTrigEff","",nTrackletBin,TrackletBins);
+   TH1F *hTrigEffNoCut = new TH1F("hTrigEffNoCut","",nTrackletBin,TrackletBins);
+   TH1F *hSD = new TH1F("hSD","",nTrackletBin,TrackletBins);
+   TH1F *hSDFrac = new TH1F("hSDFrac","",nTrackletBin,TrackletBins);
    TH1F *hTruthRatio;
    TH1F *hVz = new TH1F("hVz","",nVzBin,VzBins);
-   TH1F *hnTracklet = new TH1F("hnTracklet","",nTrackletBin,HitBins);
+   TH1F *hnTracklet = new TH1F("hnTracklet","",nTrackletBin,TrackletBins);
 
    TH1F *alphaPlots[nEtaBin][nVzBin];
    TH1F *betaPlots[nEtaBin][nVzBin];
@@ -198,20 +199,17 @@ int plotFinalResult(int TrackletType,char* filename,
    TH1F *alphaErrPlots[nEtaBin][nVzBin];
    TH1F *betaErrPlots[nEtaBin][nVzBin];
    
-
    TH1F *hTriggerCorrection;   
    TH1F *hEmptyEvtCorrection;
-
-
 
    // Prepare histograms ==========================================================================================================
    for (int i=0;i<nEtaBin;i++) {
       for (int j=0;j<nVzBin;j++) {
-         alphaPlots[i][j] = new TH1F(Form("alpha%dVz%d",i,j),"",nTrackletBin,HitBins);
-         alphaErrPlots[i][j] = new TH1F(Form("alphaErr%dVz%d",i,j),"",nTrackletBin,HitBins);
-         betaPlots[i][j] = new TH1F(Form("beta%dVz%d",i,j),"",nTrackletBin,HitBins);
-         betaErrPlots[i][j] = new TH1F(Form("betaErr%dVz%d",i,j),"",nTrackletBin,HitBins);
-         betaMCPlots[i][j] = new TH1F(Form("betaMC%dVz%d",i,j),"",nTrackletBin,HitBins);
+         alphaPlots[i][j] = new TH1F(Form("alpha%dVz%d",i,j),"",nTrackletBin,TrackletBins);
+         alphaErrPlots[i][j] = new TH1F(Form("alphaErr%dVz%d",i,j),"",nTrackletBin,TrackletBins);
+         betaPlots[i][j] = new TH1F(Form("beta%dVz%d",i,j),"",nTrackletBin,TrackletBins);
+         betaErrPlots[i][j] = new TH1F(Form("betaErr%dVz%d",i,j),"",nTrackletBin,TrackletBins);
+         betaMCPlots[i][j] = new TH1F(Form("betaMC%dVz%d",i,j),"",nTrackletBin,TrackletBins);
       }
    }
 
@@ -229,12 +227,12 @@ int plotFinalResult(int TrackletType,char* filename,
    double neventWOSelection = TrackletTree->Draw("vz[1]",NSDCut,"",nentries,firstentry);
 
    TrackletTree->Project("hnTracklet","mult",evtSelection,"",nentries,firstentry);   
+   TrackletTree->Project("hVzNTracklet","vz[1]:mult",evtSelection,"",nentries,firstentry);   
 
    TrackletTree->Project("hVz","vz[1]",evtSelection,"",nentries,firstentry);   
    hVz->Sumw2();
    hVz->Scale(1./hVz->GetEntries());
    hVz->Fit("gaus");
-   TF1 *fVz = hVz->GetFunction("gaus");
    hVz->SetXTitle("v_{z} (cm)");
    hVz->Draw();
    cVz->SaveAs(Form("plot/vz/plotVz-%s-%d.gif",myPlotTitle,TrackletType));
@@ -253,6 +251,7 @@ int plotFinalResult(int TrackletType,char* filename,
    
    for (int i=0;i<nEtaBin;i++) {
       for (int j=0;j<nVzBin;j++) {
+
          double minEta = EtaBins[i];
 	 double maxEta = EtaBins[i+1];
 //	 double maxEdge = VzBins[j+1]-rho2 / tan(atan(exp(maxEta-0.1))*2);
@@ -261,17 +260,26 @@ int plotFinalResult(int TrackletType,char* filename,
 	 double minEdge = VzBins[j]-rho2 / tan(atan(exp(minEta+0.1))*2);
 	 if (verbose) cout <<minEta <<" "<<maxEta<<" "<<VzBins[j]<<" "<<maxEdge<<" "<<minEdge;
 	 
-	 if((maxEdge>-endpoint2&&minEdge<endpoint2)&&(maxEta)<=2.5&&(minEta)>=-2.5) {
-            hAcceptance->SetBinContent(i+1,j+1,hVz->GetBinContent(j+1));
-	    hAcceptance->SetBinError(i+1,j+1,0);
-	    if (verbose) cout <<" Selected!";
-         } else {
-	    hAcceptance->SetBinContent(i+1,j+1,0);
+         for (int k=0;k<nTrackletBin;k++) {
+	    if((maxEdge>-endpoint2&&minEdge<endpoint2)&&(maxEta)<=2.5&&(minEta)>=-2.5) {
+//               hAcceptance->SetBinContent(i+1,j+1,hAcceptance->GetBinContent(i+1,j+1)+hVzNTracklet->GetBinContent(k+1,j+1)/hVzNTracklet->GetEntries());
+               hAcceptance->SetBinContent(i+1,j+1,hVz->GetBinContent(j+1));
+               hnTracklet3D->SetBinContent(i+1,j+1,k+1,hVzNTracklet->GetBinContent(k+1,j+1));
+	       hAcceptance->SetBinError(i+1,j+1,0);
+	       if (verbose) cout <<" Selected!";
+            } else {
+	       hAcceptance->SetBinContent(i+1,j+1,0);
+	    }
+	    if (verbose) cout <<" "<<endl;
 	 }
-	 if (verbose) cout <<" "<<endl;
+	 
       }
    }
- 
+
+   TCanvas *cAcc = new TCanvas("cAcc","Acc",canvasSizeX,canvasSizeY);
+   hAcceptance->ProjectionX()->Draw("");
+   cAcc->Update();
+    
    // Charged Hadrons =============================================================================================================
    hHadron->SetXTitle("#eta");
    hHadron->SetYTitle("N_{hit}^{Layer1} |#eta|<1");
@@ -317,17 +325,13 @@ int plotFinalResult(int TrackletType,char* filename,
 	       double e2 = hReproducedBackground->GetBinError(x,y,z)/hReproducedBackground->GetBinContent(x,y,z);
                double betaErr = beta* sqrt(e2*e2);
                if (beta/betaErr>-10) {
-	          betas->Fill((EtaBins[x]+EtaBins[x-1])/2,(HitBins[y]+HitBins[y-1])/2,(VzBins[z]+VzBins[z-1])/2,beta,betaErr);
+	          betas->Fill((EtaBins[x]+EtaBins[x-1])/2,(TrackletBins[y]+TrackletBins[y-1])/2,(VzBins[z]+VzBins[z-1])/2,beta,betaErr);
 	          betaPlots[x-1][z-1]->SetBinContent(y,beta);
 	          betaPlots[x-1][z-1]->SetBinError(y,betaErr);
 	          betaErrPlots[x-1][z-1]->SetBinContent(y,betaErr);
 	       }  
 	       beta = hEverything->GetBinContent(x,y,z)-hReproducedBackground->GetBinContent(x,y,z);
-               hSubtracted->SetBinContent((EtaBins[x]+EtaBins[x-1])/2,(HitBins[y]+HitBins[y-1])/2,(VzBins[z]+VzBins[z-1])/2, beta);
-	       double e3 = hEverything->GetBinError(x,y,z);
-	       double e4 = hReproducedBackground->GetBinError(x,y,z);
                betaErr = sqrt(e1*e1+e2*e2);
-               hSubtracted->SetBinError(x,y,z, sqrt(e3*e3+e4*e4));
 	    } 
 	 }      
       }
@@ -339,7 +343,7 @@ int plotFinalResult(int TrackletType,char* filename,
       {
       //c[i]= new TCanvas (Form("c%d",i),"",canvasSizeX,canvasSizeY);
       //p1->cd(i+1);
-      formatHist(betaPlots[i][j],2,1);
+      formatHist(betaPlots[i][j],2,1.1);
       double etaMin = i*0.5 -3;
       double etaMax = i*0.5 -3+0.5;
 
@@ -379,7 +383,7 @@ int plotFinalResult(int TrackletType,char* filename,
 		  if (verbose) cout <<"alpha calc: "<<x<<" "<<y<<" "<<z<<" "<<truth<<" "<<val<<" "<<(1-beta)<<" "<<endl;
 	          double alphaErr = truth/nsig* sqrt(valErr/nsig*valErr/nsig+truthErr/truth*truthErr/truth*0);
                   if (beta!=1&&alpha/alphaErr>-3&&alpha<500&&alpha>0) {
-	             alphas->Fill((EtaBins[x]+EtaBins[x-1])/2,(HitBins[y]+HitBins[y-1])/2,(VzBins[z]+VzBins[z-1])/2,alpha,alphaErr);
+	             alphas->Fill((EtaBins[x]+EtaBins[x-1])/2,(TrackletBins[y]+TrackletBins[y-1])/2,(VzBins[z]+VzBins[z-1])/2,alpha,alphaErr);
 	             alphaPlots[x-1][z-1]->SetBinContent(y,alpha);
 	             alphaPlots[x-1][z-1]->SetBinError(y,alphaErr);
 	             alphaErrPlots[x-1][z-1]->SetBinContent(y,alphaErr);
@@ -411,6 +415,7 @@ int plotFinalResult(int TrackletType,char* filename,
       hSDFrac = (TH1F*) fCorrection->FindObjectAny("hSDFrac");
       TCanvas *cSDFrac = new TCanvas("cSDFrac","SD Fraction After Cut",400,400);
       hSDFrac->Draw();
+      cSDFrac->Update();
       hEmptyEvtCorrection = (TH1F*) fCorrection->FindObjectAny("hEmptyEvtCorrection");
    } else {
       for (int j=0;j<nVzBin;j++) 
@@ -419,7 +424,7 @@ int plotFinalResult(int TrackletType,char* filename,
          {
             // c[i]= new TCanvas (Form("c%d",i),"",canvasSizeX,canvasSizeY);
             // p2->cd(i+1);
-            formatHist(alphaPlots[i][j],2,1);
+            formatHist(alphaPlots[i][j],2,1.1);
             funAlpha[i][j] = new TF1(Form("funAlpha%dVz%d",i,j),"[1]/(x+[3]+0.5)+[2]/(x+0.5)/(x+0.5)+[0]",0,100);
             funAlphaErr[i][j] = new TF1(Form("funAlphaErr%dVz%d",i,j),"[0]+[1]/(x+0.5)+[2]*exp([3]*x)",0,100);
             double etaMin = i*0.5-3;
@@ -591,7 +596,7 @@ int plotFinalResult(int TrackletType,char* filename,
    alphaCode <<"  const int nTrackletBin = 14;"<<endl;
    alphaCode <<"  const int nVzBin  = 10;"<<endl;
    alphaCode <<endl;
-   alphaCode <<"  double HitBins[nTrackletBin+1] = {0,5,10,15,20,25,30,35,40,50,60,80,100,200,700};"<<endl;
+   alphaCode <<"  double TrackletBins[nTrackletBin+1] = {0,5,10,15,20,25,30,35,40,50,60,80,100,200,700};"<<endl;
    alphaCode <<endl;
    alphaCode <<"  double EtaBins[nEtaBin+1];"<<endl;
    alphaCode <<"  for (int i=0;i<=nEtaBin;i++)"<<endl;
@@ -602,7 +607,7 @@ int plotFinalResult(int TrackletType,char* filename,
    alphaCode <<endl;
    alphaCode <<"  double alpha[nEtaBin][nTrackletBin][nVzBin];"<<endl;
    alphaCode <<endl;
-   alphaCode <<"  AlphaTracklets12_ = new TH3F(\"hAlphaTracklets12\",\"\",nEtaBin, EtaBins, nTrackletBin, HitBins, nVzBin, VzBins);"<<endl;
+   alphaCode <<"  AlphaTracklets12_ = new TH3F(\"hAlphaTracklets12\",\"\",nEtaBin, EtaBins, nTrackletBin, TrackletBins, nVzBin, VzBins);"<<endl;
    alphaCode <<"  AlphaTracklets12_->SetDirectory(0);"<<endl;
    alphaCode <<endl;
    
@@ -658,8 +663,8 @@ int plotFinalResult(int TrackletType,char* filename,
             // use extrapolated value if alpha is not available
  	    
 	    if (alpha==0) {
-	    //   alpha = fAlpha[x-1][z-1]->Eval((HitBins[y]+HitBins[y-1])/2);
-	    //   alphaErr = fAlphaErr[x-1][z-1]->Eval((HitBins[y]+HitBins[y-1])/2);
+	    //   alpha = fAlpha[x-1][z-1]->Eval((TrackletBins[y]+TrackletBins[y-1])/2);
+	    //   alphaErr = fAlphaErr[x-1][z-1]->Eval((TrackletBins[y]+TrackletBins[y-1])/2);
 	       if (verbose) cout <<x<<" "<<y<<" extrapolate! "<<alpha<<" "<<alphaErr<<endl;
 	      // alpha0flag=1;root -l
 	    }
@@ -674,7 +679,7 @@ int plotFinalResult(int TrackletType,char* filename,
 	    
             hCorrected->SetBinError(x,y,z, valErr);
 	        
-	    correction->Fill((EtaBins[x]+EtaBins[x-1])/2,(HitBins[y]+HitBins[y-1])/2,(VzBins[z]+VzBins[z-1])/2,alpha,alphaErr,beta,betaErr,nCorrected,hHadronAccepted->GetBinContent(x,y,z),valErr,betaMC);
+	    correction->Fill((EtaBins[x]+EtaBins[x-1])/2,(TrackletBins[y]+TrackletBins[y-1])/2,(VzBins[z]+VzBins[z-1])/2,alpha,alphaErr,beta,betaErr,nCorrected,hHadronAccepted->GetBinContent(x,y,z),valErr,betaMC);
             totalN +=nCorrected;
 	    totalNErr += valErr*valErr;      
 	    if (verbose) cout <<x<<" "<<y<<" "<<z<<" "<<nCorrected<<" "<<valErr<<endl;  
@@ -682,7 +687,7 @@ int plotFinalResult(int TrackletType,char* filename,
             hEtaVzRatio->Fill(x,z,nCorrected-hHadronAccepted->GetBinContent(x,y,z));	 
 	    hEtaHitRatio->Fill(x,y,nCorrected-hHadronAccepted->GetBinContent(x,y,z));
 	    if (fabs(valErr)/nCorrected>-1) {  
-               fprintf(logFile," beta (%3.1f,%3.1f,%3.1f) = %.2f +- %.2f",EtaBins[x],HitBins[y],VzBins[z],beta,betaErr);
+               fprintf(logFile," beta (%3.1f,%3.1f,%3.1f) = %.2f +- %.2f",EtaBins[x],TrackletBins[y],VzBins[z],beta,betaErr);
 	       fprintf(logFile," alpha = %.2f +- %.2f ",alpha,alphaErr);
 	       fprintf(logFile," Value = %.1f +- %.1f Truth = %.1f \n",nCorrected,valErr,(double)hHadronAccepted->GetBinContent(x,y,z));
             }
@@ -718,6 +723,8 @@ int plotFinalResult(int TrackletType,char* filename,
    hRawMinusBackgroundTrackletnTracklet->SetMarkerColor(4);
    hRawMinusBackgroundTrackletnTracklet->Add(hBackgroundTrackletnTracklet,-1);
    hRawMinusBackgroundTrackletnTracklet->Draw("same");
+   
+   cRawTrackletnTracklet->Update();
      
    // Plot RawTracklet and Background Tracklet in Vz bin
    TCanvas *cRawTrackletVz = new TCanvas("cRawTrackletVz","",canvasSizeX,canvasSizeY);
@@ -741,7 +748,8 @@ int plotFinalResult(int TrackletType,char* filename,
    hRawMinusBackgroundTrackletVz->SetMarkerColor(4);
    hRawMinusBackgroundTrackletVz->Add(hBackgroundTrackletVz,-1);
    hRawMinusBackgroundTrackletVz->Draw("same");
-
+   
+   cRawTrackletVz->Update();
 
    // Plot RawTracklet and Background Tracklet in eta bin
    TCanvas *cRawTrackletEta = new TCanvas("cRawTrackletEta","",canvasSizeX,canvasSizeY);
@@ -766,6 +774,8 @@ int plotFinalResult(int TrackletType,char* filename,
    hRawMinusBackgroundTrackletEta->Add(hBackgroundTrackletEta,-1);
    hRawMinusBackgroundTrackletEta->Draw("same");
    
+   cRawTrackletEta->Update();
+   
    // Plot Before Acceptance correction
    TCanvas *cDNdEtaC = new TCanvas("cDNdEtaC","Before Acceptance correction",canvasSizeX,canvasSizeY);
 
@@ -781,13 +791,14 @@ int plotFinalResult(int TrackletType,char* filename,
    hTruthAccepted->Sumw2();
   
    formatHist(hTruthAccepted,1,nevent/nEtaBin*6);
-   formatHist(hCorrectedEtaBin,2,nevent/nEtaBin*6,1.5);
+   formatHist(hCorrectedEtaBin,2,nevent/nEtaBin*6,1.1);
    hTruthAccepted->SetAxisRange(0,dndetaRange,"y");
    hTruthAccepted->SetXTitle("#eta (Calculated Hand)");
    hTruthAccepted->SetYTitle("dN/d#eta");
    hTruthAccepted->Draw("hist");
    hCorrectedEtaBin->Draw("e same");    
-   
+
+   cDNdEtaC->Update();   
    
    // Final dN/deta results =======================================================================================================   
 
@@ -797,7 +808,7 @@ int plotFinalResult(int TrackletType,char* filename,
 
    formatHist(hTruth,1,nevent/nEtaBin*6);
    formatHist(hTruthEvtCutCorrectedByXi,1,nevent/nEtaBin*6);
-   formatHist(hMeasured,4,nevent/nEtaBin*6,1.5);
+   formatHist(hMeasured,4,nevent/nEtaBin*6,1.1);
  
    hTruth->Divide(hAcceptance->ProjectionX());  // calibrate the acceptance
    hMeasured->Divide(hAcceptance->ProjectionX());  // calibrate the acceptance
@@ -813,7 +824,7 @@ int plotFinalResult(int TrackletType,char* filename,
  */
     
    // different calculation //
-   TH2F *hMeasuredEtanTracklet = new TH2F("hMeasuredEtanTracklet","",nEtaBin,EtaBins,nTrackletBin,HitBins);
+   TH2F *hMeasuredEtanTracklet = new TH2F("hMeasuredEtanTracklet","",nEtaBin,EtaBins,nTrackletBin,TrackletBins);
    for (int x=1;x<=nEtaBin;x++) {
       for (int y=1;y<=nTrackletBin;y++) {
          double total=0;
@@ -854,7 +865,7 @@ int plotFinalResult(int TrackletType,char* filename,
 
    TH1F *hMeasuredTrigEffCorrected = (TH1F*)hMeasuredEtanTracklet->ProjectionX();
    hMeasuredTrigEffCorrected->SetName("hMeasuredTrigEffCorrected");      
-   formatHist(hMeasuredTrigEffCorrected,2,nEvt/nEtaBin*6,1.5);
+   formatHist(hMeasuredTrigEffCorrected,2,nEvt/nEtaBin*6,1.1);
    hMeasuredTrigEffCorrected->Divide(hAcceptance->ProjectionX());  // calibrate the acceptance
    hMeasuredTrigEffCorrected->SetMarkerStyle(4);
    
@@ -882,7 +893,7 @@ int plotFinalResult(int TrackletType,char* filename,
       hMeasuredFinal->SetBinContent(x,val);
       hMeasuredFinal->SetBinError(x,valerr);
    }
-   formatHist(hMeasuredFinal,2,1,1.5);
+   formatHist(hMeasuredFinal,2,1,1.1);
 
    //=======================//
    
@@ -901,9 +912,6 @@ int plotFinalResult(int TrackletType,char* filename,
    hTruthEvtCutCorrectedByXi->SetXTitle("#eta");
    hTruthEvtCutCorrectedByXi->SetYTitle("dN/d#eta");
 //   hTruthEvtCutCorrectedByXi->Draw("hist");
-   
-   double systematicError900GeV[12] = 
-                  {0.129,0.129,0.088,0.082,0.082,0.079,0.079,0.082,0.082,0.088,0.129,0.129};
 
    double systematicError10TeV[12] = 
                   {0.132,0.132,0.093,0.085,0.084,0.083,0.083,0.084,0.085,0.093,0.132,0.132};
@@ -913,11 +921,8 @@ int plotFinalResult(int TrackletType,char* filename,
 
    gErrorBand = GetErrorBand((TH1F*)hMeasuredFinal,systematicError10TeV,systematicError10TeV,0.25); 
 
-//   gErrorBand->Draw("F");
-//   hTruthEvtCutCorrectedByXi->Draw("hist same");
+   //gErrorBand->Draw("F");
    hTruthWOSelection->Draw("hist same");
-//   hMeasured->Draw("e same");    
-//   hMeasuredTrigEffCorrected->Draw("e same");    
    hMeasuredFinal->Draw("e same");    
    TH1F *hMeasuredStat = (TH1F*)hMeasuredFinal->Clone();
    hMeasuredStat->SetName("hMeasuredStat");
@@ -988,75 +993,76 @@ int plotFinalResult(int TrackletType,char* filename,
    leg11->AddEntry(hMeasuredFinal,"TrigEff+Empty correction","pl");
 
    leg11->Draw();
-
-
-   // Ratio between measured and truth ===========================================================================================    
-   TCanvas *cRatio = new TCanvas("cRatio","Ratio",canvasSizeX,canvasSizeY);
-
-   TH1F *hRatio = (TH1F*)hMeasuredFinal->Clone();
-   hRatio->SetName("hRatio");
-   hRatio->Divide(hTruthWOSelection);
-   hRatio->SetXTitle("#eta");
-   hRatio->SetYTitle("Ratio");
-   hRatio->SetAxisRange(0.8,1.2,"y");
-   hRatio->Draw();
    
-   TH1F *hRatioStat = (TH1F*)hRatio->Clone();
-   hRatioStat->SetName("hRatioStat");
-   hRatioStat->SetMarkerSize(0);
-   hRatioStat->Draw("same");
+   cDNdEtaCompare->Update();
 
-   TLegend * leg2 = new TLegend(0.18,0.18,1,0.3);
-   leg2->SetFillStyle(0);  
-   leg2->SetFillColor(0); 
-   leg2->SetBorderSize(0);
-   //leg2->SetTextSize(0.045);
-   leg2->AddEntry(hTruth,myPlotTitle,"");
-   leg2->AddEntry(hRatio,"Reconstructed / MC Truth","pl");
+   if (isMC) {
+      // Ratio between measured and truth ===========================================================================================    
+      TCanvas *cRatio = new TCanvas("cRatio","Ratio",canvasSizeX,canvasSizeY);
 
-   leg2->Draw();
-
-  
-   TLine *l1 = new TLine(-3,1,3,1);
-   l1->Draw();
+      TH1F *hRatio = (TH1F*)hMeasuredFinal->Clone();
+      hRatio->SetName("hRatio");
+      hRatio->Divide(hTruthWOSelection);
+      hRatio->SetXTitle("#eta");
+      hRatio->SetYTitle("Ratio");
+      hRatio->SetAxisRange(0.8,1.2,"y");
+      hRatio->Draw();
    
-   TText *   tex2 = new TText(-2.6,1.165,"CMS Preliminary");
-   tex2->Draw();
+      TH1F *hRatioStat = (TH1F*)hRatio->Clone();
+      hRatioStat->SetName("hRatioStat");
+      hRatioStat->SetMarkerSize(0);
+      hRatioStat->Draw("same");
 
-   cRatio->SaveAs(Form("plot/ratio/ratio-%s-%d.gif",myPlotTitle,TrackletType));
-   cRatio->SaveAs(Form("plot/ratio/ratio-%s-%d.eps",myPlotTitle,TrackletType));
-   cRatio->SaveAs(Form("plot/ratio/ratio-%s-%d.C",myPlotTitle,TrackletType));
+      TLegend * leg2 = new TLegend(0.18,0.18,1,0.3);  
+      leg2->SetFillStyle(0);  
+      leg2->SetFillColor(0); 
+      leg2->SetBorderSize(0);
+      //leg2->SetTextSize(0.045);
+      leg2->AddEntry(hTruth,myPlotTitle,"");
+      leg2->AddEntry(hRatio,"Reconstructed / MC Truth","pl"); 
+
+      leg2->Draw();
+
+   
+      TLine *l1 = new TLine(-3,1,3,1);
+      l1->Draw();
+   
+      TText *   tex2 = new TText(-2.6,1.165,"CMS Preliminary");
+      tex2->Draw();
+
+      cRatio->SaveAs(Form("plot/ratio/ratio-%s-%d.gif",myPlotTitle,TrackletType));
+      cRatio->SaveAs(Form("plot/ratio/ratio-%s-%d.eps",myPlotTitle,TrackletType));
+      cRatio->SaveAs(Form("plot/ratio/ratio-%s-%d.C",myPlotTitle,TrackletType));
    
 
-   TCanvas *cDNdnTracklet = new TCanvas("cDNdnTracklet","Measured vs mult",canvasSizeX,canvasSizeY);
-   TH1D *hTruthHit = (TH1D*)hHadronAccepted->Project3D("y");
-   TH1D *hMeasuredHit = (TH1D*)hCorrected->Project3D("y"); 
-   hTruthHit->Sumw2();
-   hMeasuredHit->Sumw2();
+      TCanvas *cDNdnTracklet = new TCanvas("cDNdnTracklet","Measured vs mult",canvasSizeX,canvasSizeY);     
+      TH1D *hTruthHit = (TH1D*)hHadronAccepted->Project3D("y");
+      TH1D *hMeasuredHit = (TH1D*)hCorrected->Project3D("y"); 
+      hTruthHit->Sumw2();
+      hMeasuredHit->Sumw2();
    
-   formatHist(hTruthHit,1,nevent);
-   formatHist(hMeasuredHit,2,nevent,1.5);
-   hTruthHit->SetAxisRange(0,dndetaRange,"y");
-   hTruthHit->SetXTitle("N_{Hit1} |#eta|<1");
-   hTruthHit->SetYTitle("dN/dN_{Hit1}");
-   hTruthHit->Draw("hist");
-   hMeasuredHit->Draw("e same");    
+      formatHist(hTruthHit,1,nevent);
+      formatHist(hMeasuredHit,2,nevent,1.1);
+      hTruthHit->SetAxisRange(0,dndetaRange,"y");
+      hTruthHit->SetXTitle("N_{Hit1} |#eta|<1");
+      hTruthHit->SetYTitle("dN/dN_{Hit1}");
+      hTruthHit->Draw("hist");
+      hMeasuredHit->Draw("e same");    
+      cDNdnTracklet->Update();
    
-   TCanvas *cRatioTracklet = new TCanvas("cRatioTracklet","Ratio vs mult",canvasSizeX,canvasSizeY);
-   TH1D *hRatioHit = (TH1D*)hMeasuredHit->Clone();
-   hRatioHit->Divide(hTruthHit);
-   hRatioHit->SetXTitle("#eta");
-   hRatioHit->SetYTitle("Ratio");
-   hRatioHit->SetAxisRange(0.7,1.3,"y");
-   hRatioHit->Draw();
+      TCanvas *cRatioTracklet = new TCanvas("cRatioTracklet","Ratio vs mult",canvasSizeX,canvasSizeY);
+      TH1D *hRatioHit = (TH1D*)hMeasuredHit->Clone();
+      hRatioHit->Divide(hTruthHit);
+      hRatioHit->SetXTitle("#eta");
+      hRatioHit->SetYTitle("Ratio");
+      hRatioHit->SetAxisRange(0.7,1.3,"y");
+      hRatioHit->Draw();
 
-   TLine *l2 = new TLine(0,1,nTrackletBin,1);
-   l2->Draw();
-
-
-   TH1D *hSubtractedpx = (TH1D*)hSubtracted->Project3D("x");
-   TH1D *hSubtractedpy = (TH1D*)hSubtracted->Project3D("y");
-
+      TLine *l2 = new TLine(0,1,nTrackletBin,1);
+      l2->Draw();
+      cRatioTracklet->Update();
+   }
+   
    hCorrected->Scale(1./nevent);
 
    hHadron->Scale(1./nevent);
@@ -1090,7 +1096,7 @@ void formatHist(TH1* h, int col, double norm,double msize){
   h->Scale(1/norm);
   h->SetLineColor(col);
   h->SetMarkerColor(col);
-  h->SetMarkerSize(1.1);
+  h->SetMarkerSize(msize);
   h->GetYaxis()->SetTitleOffset(1.25);
   h->GetXaxis()->CenterTitle();
   h->GetYaxis()->CenterTitle();

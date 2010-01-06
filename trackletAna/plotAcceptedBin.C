@@ -11,7 +11,8 @@ void plotAcceptedBin(int ch=12)
 {
 //   TFile *inputFile = new TFile("correction/correction-12-Official.root","");
 //   TFile *inputFile = new TFile(Form("plot/root/result-%d-Run124022-Official-BSC.root",ch),"");
-   TFile *inputFile = new TFile(Form("plot/root/result-%d-Run124120-yetkin-2360GeV-1224-HF2.root",ch),"");
+//   TFile *inputFile = new TFile(Form("plot/root/result-%d-Run124120-yetkin-2360GeV-1224-HF2.root",ch),"");
+   TFile *inputFile = new TFile(Form("correction.root"),"");
 //   TFile *inputFile = new TFile("./sample-1213/TrackletTree-900GeV-ATLAS.root","");
    TFile *inputFile2 = new TFile("./newEvenBetterSample/TrackletTree-Run124120.root");
 //   TFile *inputFile2 = new TFile("./sample-official/TrackletTree-900GeV-D6T-20091210-KKVertex-removeDead2-newMult.root");

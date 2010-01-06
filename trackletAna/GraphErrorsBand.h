@@ -16,7 +16,7 @@ TGraph* GetTGraphErrorBand(TH1F *hist, Double_t xoffset=0) {
    Double_t *y=ing->GetY();
    Double_t *yerr=ing->GetEY();
    Double_t *yerrlow=ing->GetEYlow();
-   Double_t *yerrhi=ing->GetEYhigh();
+//   Double_t *yerrhi=ing->GetEYhigh();
    if(yerr && yerrlow) {
       Error("GetTGraphErrorBand","both yerr and yerrlow are here,"
 	    " GetTGraphErrorsBand is written with wrong assumptions");
@@ -56,7 +56,7 @@ TGraph* GetErrorBand(TH1F *hist, Double_t ratio1, Double_t ratio2, Double_t xoff
    Double_t *y=ing->GetY();
    Double_t *yerr=ing->GetEY();
    Double_t *yerrlow=ing->GetEYlow();
-   Double_t *yerrhi=ing->GetEYhigh();
+//   Double_t *yerrhi=ing->GetEYhigh();
    if(yerr && yerrlow) {
       Error("GetTGraphErrorBand","both yerr and yerrlow are here,"
 	    " GetTGraphErrorsBand is written with wrong assumptions");
@@ -96,7 +96,7 @@ TGraph* GetErrorBand(TH1F *hist, Double_t *ratio1, Double_t *ratio2, Double_t xo
    Double_t *y=ing->GetY();
    Double_t *yerr=ing->GetEY();
    Double_t *yerrlow=ing->GetEYlow();
-   Double_t *yerrhi=ing->GetEYhigh();
+//   Double_t *yerrhi=ing->GetEYhigh();
    if(yerr && yerrlow) {
       Error("GetTGraphErrorBand","both yerr and yerrlow are here,"
 	    " GetTGraphErrorsBand is written with wrong assumptions");
@@ -137,7 +137,7 @@ TGraph* GetErrorBand2(TH1F *hist, Double_t *ratio1, Double_t *ratio2, Double_t x
    Double_t *y=ing->GetY();
    Double_t *yerr=ing->GetEY();
    Double_t *yerrlow=ing->GetEYlow();
-   Double_t *yerrhi=ing->GetEYhigh();
+//   Double_t *yerrhi=ing->GetEYhigh();
    if(yerr && yerrlow) {
       Error("GetTGraphErrorBand","both yerr and yerrlow are here,"
 	    " GetTGraphErrorsBand is written with wrong assumptions");
