@@ -158,7 +158,6 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
   // Main loop ==========================================================================================
   for(int i =0;  i<t->GetEntries()&&i<100000000 ; i = i + 1 + nPileUp){    
     t->GetEntry(i);
-    
     if (i % 1000 == 0) {
        cout <<"Event "<<i<<" "
             <<trackletTree12->GetEntries()<<" "
@@ -169,6 +168,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
        if (reWeight) cout <<"Reweighted!!!!!!!"<<endl;    
     }       
 
+    //if (par.nRun!=124023||(par.nRun==124033&&(par.nLumi<41||par.nLumi>96))) continue;
     bool reWeightDropFlag = 0;
     if (reWeight) {
        reWeightDropFlag = 0;

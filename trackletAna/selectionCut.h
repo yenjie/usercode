@@ -26,7 +26,7 @@ selectionCut::selectionCut(bool isMC,int nLumiL, int nLumiH)
    VzRangeH = 20;
    vtxCut = Form("vz[1]<%d&&vz[1]>%d&&vz[1]<1000",VzRangeH,VzRangeL);
 //   evtSelection      = ("l1TBit[40]>0&&l1TBit[36]!=1&&l1TBit[37]!=1&&l1TBit[38]!=1&&l1TBit[39]!=1");
-   evtSelection      = ("nHFp>=1&&nHFn>=1&&l1TBit[36]!=1&&l1TBit[37]!=1&&l1TBit[38]!=1&&l1TBit[39]!=1");
+   evtSelection      = ("nHFp>=1&&nHFn>=1&&l1TBit[34]!=0&&l1TBit[36]!=1&&l1TBit[37]!=1&&l1TBit[38]!=1&&l1TBit[39]!=1");
 
    if (!isMC) evtSelection += Form("&&nLumi>=%d&&nLumi<=%d&&l1ABit[0]==1&&l1ABit[82]==1",nLumiL,nLumiH);
 

@@ -86,15 +86,14 @@ uncert = 3.8,int par=0)
    h23->SetMarkerStyle(25);
    h23->SetMarkerColor(4);
    h23->SetLineColor(4);
-   h12->SetMarkerSize(1);
-   h13->SetMarkerSize(1);
-   h23->SetMarkerSize(1);
+   h12->SetMarkerSize(1.2);
+   h13->SetMarkerSize(1.2);
+   h23->SetMarkerSize(1.2);
 
  //  double acceptance1[12]={1,1,1,1,1,1,1,1,1,1,1,1};
    double acceptance1[12]={1.14972  ,1.02133,1.01079,0.99826 ,0.989326,0.988454,0.991541,0.993707,0.982555,0.960913,0.9896252,1.01673};
    double acceptance2[12]={1        ,1.11661,1.01825,0.995795,0.990697,0.991587,0.994311,0.994696,0.987352,0.984903,0.986908 ,1.12377};
    double acceptance3[12]={1        ,1.32239,1.03311,0.996744,0.985756,0.992889,1.00236,0.994132,0.983021,0.972563,0.930894,1};
-
 
    clearBin(h12);
    clearBin2(h23);
@@ -108,6 +107,7 @@ uncert = 3.8,int par=0)
    TH1F *hUA5 = getUA5NSD();
    TH1F *hUA5Scaled = getUA5NSDScaled();
    TH1F *hTracklet900GeV = tracklet900GeV();
+   TH1F *hTracklet2360GeVHF1 = tracklet2360GeVHF1();
    h12->SetXTitle("#eta");
    h12->SetYTitle("dN/d#eta");
    h12->Draw();
@@ -164,7 +164,8 @@ uncert = 3.8,int par=0)
    hAvg->Draw();
    if (UA5) hUA5->Draw("p same");
    if (UA5>=2) hTracklet900GeV->Draw("p same");   
-   if (UA5>=3) hUA5Scaled->Draw("p same");   
+   if (UA5>=3) hTracklet2360GeVHF1->Draw("p same");   
+   if (UA5>=4) hUA5Scaled->Draw("p same");   
    hAvg->Draw("same");
 
 
@@ -203,9 +204,10 @@ uncert = 3.8,int par=0)
    hAvg2->Draw();
 
 
-//   if (UA5) hUA5->Draw("p same");
+   if (UA5) hUA5->Draw("p same");
    if (UA5>=2) hTracklet900GeV->Draw("p same");   
-   if (UA5>=3) hUA5Scaled->Draw("p same");  
+   if (UA5>=3) hTracklet2360GeVHF1->Draw("p same");   
+   if (UA5>=4) hUA5Scaled->Draw("p same");  
    hAvg2->SetLineColor(1);
    hAvg2->SetMarkerColor(1);
    hAvg2->Draw("p same");
@@ -219,7 +221,7 @@ uncert = 3.8,int par=0)
    leg2->SetFillColor(0);
    leg2->SetFillStyle(0);
    TLegendEntry *entry2=leg2->AddEntry("hTruth",Form("Data-%s",name),"");
-   entry2=leg2->AddEntry(hAvg2,"900 GeV p+p by Tracklet (CMS)","pl");
+   entry2=leg2->AddEntry(hAvg2,"2.36 TeV p+p by Tracklet (CMS)","pl");
    entry2=leg2->AddEntry(hUA5,"900 GeV p+#bar{p} (UA5)","pl");
    leg2->Draw();   
 

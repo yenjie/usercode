@@ -225,3 +225,57 @@ TH1F* tracklet900GeV()
 }
 
 
+TH1F* tracklet2360GeVHF1()
+{
+
+   Double_t xAxis3[13] = {-3, -2.5, -2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2, 2.5, 3}; 
+   
+   TH1F *hAvg = new TH1F("hAvg","",12, xAxis3);
+   hAvg->SetBinContent(3,4.802082);
+   hAvg->SetBinContent(4,4.658647);
+   hAvg->SetBinContent(5,4.569177);
+   hAvg->SetBinContent(6,4.405703);
+   hAvg->SetBinContent(7,4.405703);
+   hAvg->SetBinContent(8,4.569177);
+   hAvg->SetBinContent(9,4.658647);
+   hAvg->SetBinContent(10,4.802082);
+   hAvg->SetBinError(3,0.1824791);
+   hAvg->SetBinError(4,0.1770286);
+   hAvg->SetBinError(5,0.1736287);
+   hAvg->SetBinError(6,0.1674167);
+   hAvg->SetBinError(7,0.1674167);
+   hAvg->SetBinError(8,0.1736287);
+   hAvg->SetBinError(9,0.1770286);
+   hAvg->SetBinError(10,0.1824791);
+   hAvg->SetMinimum(0);
+   hAvg->SetMaximum(5.5);
+   hAvg->SetEntries(194100.4);
+   hAvg->SetFillColor(1);
+   hAvg->SetFillStyle(0);
+   hAvg->SetLineStyle(0);
+   hAvg->SetMarkerStyle(20);
+   hAvg->GetXaxis()->SetTitle("#eta");
+   hAvg->GetXaxis()->CenterTitle(true);
+   hAvg->GetXaxis()->SetLabelFont(42);
+   hAvg->GetXaxis()->SetLabelOffset(0.01);
+   hAvg->GetXaxis()->SetLabelSize(0.045);
+   hAvg->GetXaxis()->SetTitleSize(0.055);
+   hAvg->GetXaxis()->SetTitleFont(42);
+   hAvg->GetYaxis()->SetTitle("dN/d#eta");
+   hAvg->GetYaxis()->CenterTitle(true);
+   hAvg->GetYaxis()->SetLabelFont(42);
+   hAvg->GetYaxis()->SetLabelOffset(0.01);
+   hAvg->GetYaxis()->SetLabelSize(0.045);
+   hAvg->GetYaxis()->SetTitleSize(0.055);
+   hAvg->GetYaxis()->SetTitleOffset(1.25);
+   hAvg->GetYaxis()->SetTitleFont(42);
+   hAvg->GetZaxis()->SetLabelFont(42);
+   hAvg->GetZaxis()->SetLabelSize(0.045);
+   hAvg->GetZaxis()->SetTitleFont(42);
+
+   hAvg->SetMarkerColor(kBlue);
+   hAvg->SetMarkerStyle(4);
+   hAvg->SetLineColor(4);
+   hAvg->SetMarkerSize(0.7); // use rootlogon size
+   return hAvg;
+}

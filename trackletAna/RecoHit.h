@@ -84,7 +84,8 @@ class TrackletData {
   float vy[maxEntry2];
   float vz[maxEntry2];
   float deta[maxEntry2],dphi[maxEntry2];
-  float eta[maxEntry2],phi[maxEntry2],chg[maxEntry2],pdg[maxEntry2],nhad[12],pt[maxEntry2];
+  float eta[maxEntry2],phi[maxEntry2],nhad[12],pt[maxEntry2];
+  int chg[maxEntry2],pdg[maxEntry2];
   float pro2;
   int nTracklet,nhit1,nhit2,mult,nv,npart,evtType,trackletType;
 };
@@ -117,8 +118,8 @@ layer, double vx, double vy, double vz, double splitProb = 0, double dropProb = 
   } else if (layer == 2){
     for(int ihit = 0; ihit < par.nhits2; ++ihit){
 
-      // for Run 124120
-      //if (par.phi2[ihit]>2.98&&par.phi2[ihit]<3.2&&par.eta2[ihit]>-2.1&&par.eta2[ihit]<-1.71) continue;
+      // for Run 124120 && 12402x
+      if (par.phi2[ihit]>2.98&&par.phi2[ihit]<3.2&&par.eta2[ihit]>-2.1&&par.eta2[ihit]<-1.71) continue;
 
 //      if (par.fl2[ihit]) continue;
       RecoHit tmp(par.eta2[ihit],par.phi2[ihit],par.r2[ihit],par.cs2[ihit]);
@@ -168,13 +169,13 @@ layer, double vx, double vy, double vz, double splitProb = 0, double dropProb = 
 //    ROOT::Math::XYZVector tmpVector(x-vx,y-vy,z-vz);
 //   ROOT::Math::XYZVector tmpVector(x-0.192598,y-0.150772,z-vz);
 // Run 123596
-   ROOT::Math::XYZVector tmpVector(x-0.174562,y-0.144887,z-vz);
+//   ROOT::Math::XYZVector tmpVector(x-0.174562,y-0.144887,z-vz);
 // Run 124022-24 (old)
 // x0 = 0.192372
 // y0 = 0.162306
 //   ROOT::Math::XYZVector tmpVector(x-0.192372,y-0.162306,z-vz); //refitted
 // Run 124023
-//   ROOT::Math::XYZVector tmpVector(x-0.193056,y-0.168689,z-vz); 
+   ROOT::Math::XYZVector tmpVector(x-0.193056,y-0.168689,z-vz); 
 // Run 124120
 //   ROOT::Math::XYZVector tmpVector(x-0.11811,y-0.0244726,z-vz); //refitted
 //   ROOT::Math::XYZVector tmpVector(x-0.205124,y-0.164012,z-vz);
