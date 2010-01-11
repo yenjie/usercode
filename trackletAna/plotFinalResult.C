@@ -132,7 +132,7 @@ int plotFinalResult(int TrackletType,char* filename,
    const int nVzBin  =20;// myCut.nVzBin;
    int VzRangeL =myCut.VzRangeL;
    int VzRangeH =myCut.VzRangeH;
-   double TrackletBins[nTrackletBin+1] = {-5,5,10,15,20,25,30,35,40,45,50,55,60,65,100};
+   double TrackletBins[nTrackletBin+1] = {-5,2,4,6,8,10,15,20,25,30,35,40,45,50,100};
    double EtaBins[nEtaBin+1];
    double VzBins[nVzBin+1];
    
@@ -155,8 +155,8 @@ int plotFinalResult(int TrackletType,char* filename,
 
    TCut evtSelection = myCut.Cut;   // cut on Z position 
   // TCut NSDCut = "";
-//   TCut NSDCut = "evtType!=92&&evtType!=93";
-   TCut NSDCut = "evtType!=5&&evtType!=6";
+   TCut NSDCut = "evtType!=92&&evtType!=93";
+//   TCut NSDCut = "evtType!=5&&evtType!=6";
 //   if (1) evtSelection+=NSDCut;
    // Output file =================================================================================================================
    TFile *outf = new TFile ("correction.root","recreate");
@@ -295,14 +295,14 @@ int plotFinalResult(int TrackletType,char* filename,
    hHadron->SetXTitle("#eta");
    hHadron->SetYTitle("N_{hit}^{Layer1} |#eta|<1");
    
-   TrackletTree->Project("hHadron","vz[1]:mult:eta","abs(eta)<3"&&evtSelection&&NSDCut,"",nentries,firstentry);
+   TrackletTree->Project("hHadron","vz[1]:mult:eta","abs(eta)<3"&&evtSelection,"",nentries,firstentry);
    TrackletTree->Project("hHadronWOSelection","vz[1]:mult:eta","abs(eta)<3"&&NSDCut,"",nentries,firstentry);
    hHadron->Sumw2();
    hHadronWOSelection->Sumw2();
    
-   TrackletTree->Project("hHadronAccepted","vz[1]:mult:eta","abs(eta)<3"&&evtSelection&&NSDCut,"",nentries,firstentry);
-//   hHadronAccepted = (TH3F*) hHadron->Clone();
-//   hHadronAccepted->SetName("hHadronAccepted");
+//   TrackletTree->Project("hHadronAccepted","vz[1]:mult:eta","abs(eta)<3"&&evtSelection,"",nentries,firstentry);
+   hHadronAccepted = (TH3F*) hHadron->Clone();
+   hHadronAccepted->SetName("hHadronAccepted");
  
    // Prepare Tracklet Three-Dimensional Histogram ================================================================================
    // signal region && evtSelection //
@@ -865,7 +865,6 @@ int plotFinalResult(int TrackletType,char* filename,
    // different calculation //
    TH2F *hMeasuredEtanTracklet = new TH2F("hMeasuredEtanTracklet","",nEtaBin,EtaBins,nTrackletBin,TrackletBins);
    TH2F *hTruthEtanTracklet = new TH2F("hTruthEtanTracklet","",nEtaBin,EtaBins,nTrackletBin,TrackletBins);
-   TH2F *hTruthEtanTracklet2 = new TH2F("hTruthEtanTracklet2","",nEtaBin,EtaBins,nTrackletBin,TrackletBins);
    for (int x=1;x<=nEtaBin;x++) {
       for (int y=1;y<=nTrackletBin;y++) {
          double total=0;
@@ -913,8 +912,6 @@ int plotFinalResult(int TrackletType,char* filename,
       
    } 
    
-   TrackletTree->Project("hTruthEtanTracklet2","mult:eta",evtSelection,"",nentries,firstentry);   
-
    for (int x=1;x<=nEtaBin;x++) {
       for (int y=1;y<=nTrackletBin;y++) {
          double TrigEff = hTrigEff->GetBinContent(y);
