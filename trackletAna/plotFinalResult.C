@@ -31,8 +31,8 @@
 
 #include "selectionCut.h"
 
-#define canvasSizeX 400
-#define canvasSizeY 400
+#define canvasSizeX 300
+#define canvasSizeY 300
 
 #define plotDEta true
 
@@ -87,7 +87,7 @@ int plotFinalResult(int TrackletType,char* filename,
 		    int makePlot = 0,                                           // make alpha plots
 		    bool putUA5 = 1,                                            // overlap UA5 result
 		    bool putPYTHIA = 0,                                         // put PYTHIA result
-		    bool doAcceptanceCorrection = 0,                            // do acceptance correction
+		    bool doAcceptanceCorrection = 1,                            // do acceptance correction
   		    bool doBetaCorrection = 0                                   // do acceptance correction
 		   )
 {
@@ -97,6 +97,7 @@ int plotFinalResult(int TrackletType,char* filename,
    
    
    TTree * TrackletTree= dynamic_cast<TTree*>(f->Get(Form("TrackletTree%d",TrackletType)));
+   TrackletTree->SetName("TrackletTree");
    bool isMC = false;
    if (TrackletTree->GetEntries("npart!=0")!=0) {
       isMC=true;
@@ -131,7 +132,7 @@ int plotFinalResult(int TrackletType,char* filename,
    const int nVzBin  =20;// myCut.nVzBin;
    int VzRangeL =myCut.VzRangeL;
    int VzRangeH =myCut.VzRangeH;
-   double TrackletBins[nTrackletBin+1] = {-5,4,6,8,10,12,14,16,18,20,25,30,40,50,200};
+   double TrackletBins[nTrackletBin+1] = {-5,5,10,15,20,25,30,35,40,45,50,55,60,65,100};
    double EtaBins[nEtaBin+1];
    double VzBins[nVzBin+1];
    
@@ -154,8 +155,8 @@ int plotFinalResult(int TrackletType,char* filename,
 
    TCut evtSelection = myCut.Cut;   // cut on Z position 
   // TCut NSDCut = "";
-   TCut NSDCut = "evtType!=92&&evtType!=93";
-//   TCut NSDCut = "evtType!=5&&evtType!=6";
+//   TCut NSDCut = "evtType!=92&&evtType!=93";
+   TCut NSDCut = "evtType!=5&&evtType!=6";
 //   if (1) evtSelection+=NSDCut;
    // Output file =================================================================================================================
    TFile *outf = new TFile ("correction.root","recreate");
@@ -184,11 +185,16 @@ int plotFinalResult(int TrackletType,char* filename,
    TH2F *hEtaVzRatio = new TH2F("hEtaVzatio","#eta:Vz",nEtaBin,EtaBins,nVzBin,VzBins);
    TH2F *hEtaHitRatio = new TH2F("hEtaHitatio","#eta:N_{Hit}",nEtaBin,EtaBins,nTrackletBin,TrackletBins);
    TH2F *hAcceptance = new TH2F("hAcceptance","",nEtaBin,EtaBins,nVzBin,VzBins);
+   
+   // Acceptance
    TH2F *hDataAcc = new TH2F("hDataAcc","",nEtaBin,EtaBins,nVzBin,VzBins);
    TH2F *hMCAcc = new TH2F("hMCAcc","",nEtaBin,EtaBins,nVzBin,VzBins);
+   
    TH2F *hVzNTracklet = new TH2F("hVzNTracklet","",nTrackletBin,TrackletBins,nVzBin,VzBins);
 
    TH1F *hCorrectedEtaBin = new TH1F("hCorrectedEtaBin","Corrected",nEtaBin,-3,3);
+   TH1F *hDNDEtaVertexed = new TH1F("hDNDEtaVertexed","",nEtaBin,-3,3);
+   TH1F *hDNDEtaNoVertexed = new TH1F("hDNDEtaNoVertexed","",nEtaBin,-3,3);
    TH1F *hTrigEff = new TH1F("hTrigEff","",nTrackletBin,TrackletBins);
    TH1F *hTrigEffNoCut = new TH1F("hTrigEffNoCut","",nTrackletBin,TrackletBins);
    TH1F *hSD = new TH1F("hSD","",nTrackletBin,TrackletBins);
@@ -196,9 +202,6 @@ int plotFinalResult(int TrackletType,char* filename,
    TH1F *hTruthRatio;
    TH1F *hVz = new TH1F("hVz","",nVzBin,VzBins);
    TH1F *hnTracklet = new TH1F("hnTracklet","",nTrackletBin,TrackletBins);
-
-//   TH1F *hAcceptance2 = new TH1F("hAcceptance2","",nEtaBin,EtaBins);
-
 
    TH1F *alphaPlots[nEtaBin][nVzBin];
    TH1F *betaPlots[nEtaBin][nVzBin];
@@ -297,8 +300,9 @@ int plotFinalResult(int TrackletType,char* filename,
    hHadron->Sumw2();
    hHadronWOSelection->Sumw2();
    
-   hHadronAccepted = (TH3F*) hHadron->Clone();
-   hHadronAccepted->SetName("hHadronAccepted");
+   TrackletTree->Project("hHadronAccepted","vz[1]:mult:eta","abs(eta)<3"&&evtSelection&&NSDCut,"",nentries,firstentry);
+//   hHadronAccepted = (TH3F*) hHadron->Clone();
+//   hHadronAccepted->SetName("hHadronAccepted");
  
    // Prepare Tracklet Three-Dimensional Histogram ================================================================================
    // signal region && evtSelection //
@@ -351,7 +355,7 @@ int plotFinalResult(int TrackletType,char* filename,
       {
       //c[i]= new TCanvas (Form("c%d",i),"",canvasSizeX,canvasSizeY);
       //p1->cd(i+1);
-      formatHist(betaPlots[i][j],2,1.1);
+      formatHist(betaPlots[i][j],2,1);
       double etaMin = i*0.5 -3;
       double etaMax = i*0.5 -3+0.5;
 
@@ -422,7 +426,7 @@ int plotFinalResult(int TrackletType,char* filename,
       if (usePHOJET==0) hTrigEff = (TH1F*) fCorrection->FindObjectAny("hTrigEff");  else  hTrigEff = (TH1F*) fCorrectionPhojet->FindObjectAny("hTrigEff");
 
       if (usePHOJET==0) hSDFrac = (TH1F*) fCorrection->FindObjectAny("hSDFrac"); else hSDFrac = (TH1F*) fCorrectionPhojet->FindObjectAny("hSDFrac"); 
-      TCanvas *cSDFrac = new TCanvas("cSDFrac","SD Fraction After Cut",400,400);
+      TCanvas *cSDFrac = new TCanvas("cSDFrac","SD Fraction After Cut",canvasSizeX,canvasSizeY);
       hSDFrac->Draw();
       cSDFrac->Update();
       hEmptyEvtCorrection = (TH1F*) fCorrection->FindObjectAny("hEmptyEvtCorrection");
@@ -433,7 +437,7 @@ int plotFinalResult(int TrackletType,char* filename,
          {
             // c[i]= new TCanvas (Form("c%d",i),"",canvasSizeX,canvasSizeY);
             // p2->cd(i+1);
-            formatHist(alphaPlots[i][j],2,1.1);
+            formatHist(alphaPlots[i][j],2,1);
             funAlpha[i][j] = new TF1(Form("funAlpha%dVz%d",i,j),"[1]/(x+[3]+0.5)+[2]/(x+0.5)/(x+0.5)+[0]",0,100);
             funAlphaErr[i][j] = new TF1(Form("funAlphaErr%dVz%d",i,j),"[0]+[1]/(x+0.5)+[2]*exp([3]*x)",0,100);
             double etaMin = i*0.5-3;
@@ -453,7 +457,7 @@ int plotFinalResult(int TrackletType,char* filename,
       }  
 
       // vtx and event selection efficiency
-      TCanvas *cTrigEff = new TCanvas("cTrigEff","TrigEff",400,400);
+      TCanvas *cTrigEff = new TCanvas("cTrigEff","TrigEff",canvasSizeX,canvasSizeY);
       TrackletTree->Project("hTrigEff","mult",TCut(myCut.evtSelection)&&"vz[1]>-99"&&NSDCut,"",nentries,firstentry);   
       TrackletTree->Project("hTrigEffNoCut","mult",NSDCut&&"vz[1]>-99","",nentries,firstentry);   
       hTrigEff->Sumw2();
@@ -463,9 +467,9 @@ int plotFinalResult(int TrackletType,char* filename,
       cTrigEff->SaveAs(Form("plot/TrigEff-%s-%d.gif",myPlotTitle,TrackletType));
 
       // Calculate SD'/IN'
-      TCanvas *cSDFrac = new TCanvas("cSDFrac","SD Fraction After Cut",400,400);
-      TrackletTree->Project("hSDFrac","mult",TCut(myCut.evtSelection)&&!(NSDCut),"",nentries,firstentry);   
-      TrackletTree->Project("hSD","mult",TCut(myCut.evtSelection),"",nentries,firstentry);   
+      TCanvas *cSDFrac = new TCanvas("cSDFrac","SD Fraction After Cut",canvasSizeX,canvasSizeY);
+      TrackletTree->Project("hSDFrac","mult",evtSelection&&!(NSDCut),"",nentries,firstentry);   
+      TrackletTree->Project("hSD","mult",evtSelection,"",nentries,firstentry);   
       hSDFrac->Sumw2();
       hSD->Sumw2();
       hSDFrac->Divide(hSD);
@@ -473,8 +477,28 @@ int plotFinalResult(int TrackletType,char* filename,
       cSDFrac->SaveAs(Form("plot/SDFrac-%s-%d.gif",myPlotTitle,TrackletType));
 
 
+      // Calculate Vertexed dN/deta
+      TCanvas *cdNdEtaVertexed = new TCanvas("cdNdEtaVertexed","dNdEta after vertexing",canvasSizeX,canvasSizeY);
+      TrackletTree->Project("hDNDEtaVertexed","eta",TCut("vz[1]>-99")&&(NSDCut),"",nentries,firstentry);   
+      int nEvtAfterVtx = TrackletTree->Draw("nhit1",TCut("vz[1]>-99")&&(NSDCut),"",nentries,firstentry);
+      hDNDEtaVertexed->SetXTitle("#eta Truth after Vtx");
+      hDNDEtaVertexed->SetYTitle("dN/#eta");
+      hDNDEtaVertexed->Scale(2./nEvtAfterVtx);
+      hDNDEtaVertexed->Draw(); 
+      //cSDFrac->SaveAs(Form("plot/SDFrac-%s-%d.gif",myPlotTitle,TrackletType));
+
+      // Calculate NoVertexed dN/deta
+      TCanvas *cdNdEtaNoVertexed = new TCanvas("cdNdEtaNoVertexed","dNdEta after vertexing",canvasSizeX,canvasSizeY);
+      TrackletTree->Project("hDNDEtaNoVertexed","eta",(NSDCut),"",nentries,firstentry);   
+      int nEvtBeforeVtx = TrackletTree->Draw("nhit1",(NSDCut),"",nentries,firstentry);
+      hDNDEtaNoVertexed->SetXTitle("#eta Truth before Vtx");
+      hDNDEtaNoVertexed->SetYTitle("dN/#eta");
+      hDNDEtaNoVertexed->Scale(2./nEvtBeforeVtx);
+      hDNDEtaNoVertexed->Draw(); 
+
+
       // Calculate Xi
-      TCanvas *cTriggerCorrection = new TCanvas("cTriggerCorrection","Xi",400,400);
+      TCanvas *cTriggerCorrection = new TCanvas("cTriggerCorrection","Xi",canvasSizeX,canvasSizeY);
       TH1F *hdNdetaWithEvtCut = (TH1F*)hHadron->Project3D("x");
       hTriggerCorrection = (TH1F*)hHadronWOSelection->Project3D("x");
       hTriggerCorrection->SetName("hTriggerCorrection");
@@ -631,7 +655,10 @@ int plotFinalResult(int TrackletType,char* filename,
       for (int y=1;y<=nTrackletBin;y++) {
          for (int z=1;z<=nVzBin;z++) {
             double val = 0;
-	    if (hAcceptance->GetBinContent(x,z)==0) hHadronAccepted->SetBinContent(x,y,z,0);
+	    if (hAcceptance->GetBinContent(x,z)==0) {
+	       hHadronAccepted->SetBinContent(x,y,z,0);
+	       hHadronAccepted->SetBinError(x,y,z,0);
+	    }
             if (hAcceptance->GetBinContent(x,z)==0) continue;
 	    val = hEverything->GetBinContent(x,y,z);
 	    double beta = betaPlots[x-1][z-1]->GetBinContent(y);
@@ -675,7 +702,7 @@ int plotFinalResult(int TrackletType,char* filename,
             // use extrapolated value if alpha is not available
  	    
    	    if (alpha==0) {
-/*
+
 	       for (int  k=0;k<y;k++) {
 	          alpha = alphaPlots[x-1][z-1]->GetBinContent(y-k);
                   alphaErr = alphaPlots[x-1][z-1]->GetBinError(y-k);
@@ -683,7 +710,7 @@ int plotFinalResult(int TrackletType,char* filename,
 	       }
 	       if (alpha==0) alpha=1;
 	       cout <<(EtaBins[x]+EtaBins[x-1])/2<<" "<<(TrackletBins[y]+TrackletBins[y-1])/2<<" "<<(VzBins[z]+VzBins[z-1])/2<<"Used "<<alpha<<" "<<endl;
-	       */
+	       
 	       cout <<"Empty!!!"<<endl;
 	    }
 	    
@@ -834,27 +861,31 @@ int plotFinalResult(int TrackletType,char* filename,
    hTruthWOSelection->SetName("hTruthWOSelection");
    formatHist(hTruthWOSelection,2,neventWOSelection/nEtaBin*6);
 
-/*
-   for (int it = 1;it <= nEtaBin; it++) {
-      if (hTruth->GetBinContent(it)==0) hTruth->SetBinContent(it,hTruthEvtCutCorrectedByXi->GetBinContent(1));  //get back the first bin
-   }
- */
-    
+   
    // different calculation //
    TH2F *hMeasuredEtanTracklet = new TH2F("hMeasuredEtanTracklet","",nEtaBin,EtaBins,nTrackletBin,TrackletBins);
+   TH2F *hTruthEtanTracklet = new TH2F("hTruthEtanTracklet","",nEtaBin,EtaBins,nTrackletBin,TrackletBins);
+   TH2F *hTruthEtanTracklet2 = new TH2F("hTruthEtanTracklet2","",nEtaBin,EtaBins,nTrackletBin,TrackletBins);
    for (int x=1;x<=nEtaBin;x++) {
       for (int y=1;y<=nTrackletBin;y++) {
          double total=0;
 	 double totalErr=0;
+         double totalMC=0;
+	 double totalMCErr=0;
 	 for (int z=1;z<=nVzBin;z++) {
-            if (hAcceptance->GetBinContent(x,z)==0) continue;
-            total += hCorrected->GetBinContent(x,y,z);
-	    double err = hCorrected->GetBinError(x,y,z);
-	    totalErr = sqrt(totalErr*totalErr+err*err);
-            if (verbose) cout <<x<<" "<<y<<" "<<z<<" "<<hCorrected->GetBinContent(x,y,z)<<" "<<hCorrected->GetBinError(x,y,z)<<endl;
+            if (hAcceptance->GetBinContent(x,z)!=0){
+               total += hCorrected->GetBinContent(x,y,z);
+	       double err = hCorrected->GetBinError(x,y,z);
+               totalMC += hHadronAccepted->GetBinContent(x,y,z);
+	       double errMC = hHadronAccepted->GetBinError(x,y,z);
+	       totalMCErr = sqrt(totalMCErr*totalMCErr+errMC*errMC);
+               if (verbose) cout <<x<<" "<<y<<" "<<z<<" "<<hCorrected->GetBinContent(x,y,z)<<" "<<hCorrected->GetBinError(x,y,z)<<endl;
+	    }
 	 }
 	    hMeasuredEtanTracklet->SetBinContent(x,y,total);
 	    hMeasuredEtanTracklet->SetBinError(x,y,totalErr);
+	    hTruthEtanTracklet->SetBinContent(x,y,totalMC);
+	    hTruthEtanTracklet->SetBinError(x,y,totalMCErr);
       }
    }      
    
@@ -866,23 +897,24 @@ int plotFinalResult(int TrackletType,char* filename,
    { 
       double SDFrac = hSDFrac->GetBinContent(y);
       double TrigEff = hTrigEff->GetBinContent(y);
-      if (TrigEff!=0) nEvt += hnTracklet->GetBinContent(y)/TrigEff*(1-SDFrac*SDFactor);
+      if (TrigEff!=0) nEvt += hnTracklet->GetBinContent(y)/TrigEff*(1-SDFrac*SDFactor); 
       for (int x=1;x<=nEtaBin;x++) {
          for (int z=1;z<=nVzBin;z++) {
-            if (TrigEff!=0) {
-	       double tmp = hnTracklet3D->GetBinContent(x,y,z);
-//	       double val = hAcceptance2->GetBinContent(x);
-	       //hAcceptance2->SetBinContent(x,val+tmp/TrigEff*(1-SDFrac*SDFactor));
-	       hnTracklet3D->SetBinContent(x,y,z,tmp/TrigEff*(1-SDFrac*SDFactor));
-//   	       cout <<hAcceptance2->GetBinContent(x)<<endl;
-	       
+            if (hAcceptance->GetBinContent(x,z)!=0){
+	       if (TrigEff!=0) {
+	          double tmp = hnTracklet3D->GetBinContent(x,y,z);
+                  hnTracklet3D->SetBinContent(x,y,z,tmp/TrigEff*(1-SDFrac*SDFactor));
+	       }
+	    } else {
+	          hnTracklet3D->SetBinContent(x,y,z,0);
 	    }
 	 }
       }
       
    } 
    
-   
+   TrackletTree->Project("hTruthEtanTracklet2","mult:eta",evtSelection,"",nentries,firstentry);   
+
    for (int x=1;x<=nEtaBin;x++) {
       for (int y=1;y<=nTrackletBin;y++) {
          double TrigEff = hTrigEff->GetBinContent(y);
@@ -890,12 +922,16 @@ int plotFinalResult(int TrackletType,char* filename,
          if (TrigEff!=0) {
 	    hMeasuredEtanTracklet->SetBinContent(x,y,hMeasuredEtanTracklet->GetBinContent(x,y)/ TrigEff*(1-SDFrac*SDFactor));
 	    hMeasuredEtanTracklet->SetBinError(x,y,hMeasuredEtanTracklet->GetBinError(x,y)/ TrigEff*(1-SDFrac*SDFactor));
+	    hTruthEtanTracklet->SetBinContent(x,y,hTruthEtanTracklet->GetBinContent(x,y)/ TrigEff*(1-SDFrac*SDFactor));
+	    hTruthEtanTracklet->SetBinError(x,y,hTruthEtanTracklet->GetBinError(x,y)/ TrigEff*(1-SDFrac*SDFactor));
 	 }
       }
    }      
 
    TH1F *hMeasuredTrigEffCorrected = (TH1F*)hMeasuredEtanTracklet->ProjectionX();
    hMeasuredTrigEffCorrected->SetName("hMeasuredTrigEffCorrected");      
+   TH1F *hTruthTrigEffCorrected = (TH1F*)hTruthEtanTracklet->ProjectionX();
+   hTruthTrigEffCorrected->SetName("hTruthTrigEffCorrected");      
 
 /*
    formatHist(hMeasuredTrigEffCorrected,2,nEvt/nEtaBin*6,1.1);
@@ -903,9 +939,11 @@ int plotFinalResult(int TrackletType,char* filename,
 */
 
    formatHist(hMeasuredTrigEffCorrected,2,1./nEtaBin*6,1.1);
+   formatHist(hTruthTrigEffCorrected,4,1./nEtaBin*6,1.1);
    TH1F *hAcceptance2 = (TH1F*)hnTracklet3D->Project3D("x");
    hAcceptance2->SetName("hAccpetance2");
    hMeasuredTrigEffCorrected->Divide(hAcceptance2);  // calibrate the acceptance
+   hTruthTrigEffCorrected->Divide(hAcceptance2);  // calibrate the acceptance
 
    hMeasuredTrigEffCorrected->SetMarkerStyle(4);
    
@@ -921,7 +959,7 @@ int plotFinalResult(int TrackletType,char* filename,
       hEmptyEvtCorrection = (TH1F*) fCorrection->FindObjectAny("hEmptyEvtCorrection");
    }
    
-   TCanvas *cEmpty = new TCanvas("c","",400,400);
+   TCanvas *cEmpty = new TCanvas("c","",canvasSizeX,canvasSizeY);
    
    hEmptyEvtCorrection->Draw();
       
@@ -1012,15 +1050,16 @@ int plotFinalResult(int TrackletType,char* filename,
    hMeasuredNoCorrection->SetMarkerColor(1);
    hMeasuredNoCorrection->SetLineColor(1);
    
-   hTruthEvtCutCorrectedByXi->Draw("hist");
-   hTruthEvtCutCorrectedByXi->Draw("hist same");
-   hTruthWOSelection->Draw("hist same");
-   hMeasured->Draw("e same");    
+   //hTruthEvtCutCorrectedByXi->Draw("hist");
+   //hTruthEvtCutCorrectedByXi->Draw("hist same");
+   hTruthWOSelection->Draw("hist ");
+ //  hMeasured->Draw("e same");    
    hMeasuredNoCorrection->Draw("e same");    
    hMeasuredTrigEffCorrected->Draw("e same");    
+   hTruthTrigEffCorrected->Draw("e same");    
    hTruth->SetLineColor(6);
    hTruth->Draw("hist same");
-
+   hDNDEtaVertexed->Draw("hist same"); 
    hMeasuredFinal->Draw("e same");    
    if (putUA5) {
       TH1F *hUA5 = getUA5NSD();
@@ -1032,12 +1071,14 @@ int plotFinalResult(int TrackletType,char* filename,
    leg11->SetFillColor(0); 
    leg11->SetBorderSize(0);
    leg11->AddEntry(hTruth,Form("%s",myPlotTitle),"");
-   leg11->AddEntry(hTruthEvtCutCorrectedByXi,"MC Truth accepted corrected by xi","l");
+//   leg11->AddEntry(hTruthEvtCutCorrectedByXi,"MC Truth accepted corrected by xi","l");
    leg11->AddEntry(hTruthWOSelection,"MC Truth W/O selection","l");
    leg11->AddEntry(hTruth,"MC Truth hTruth","l");
    leg11->AddEntry(hMeasuredNoCorrection,"No trig correction","pl");
-   leg11->AddEntry(hMeasured,"xi correction","pl");
-   leg11->AddEntry(hMeasuredTrigEffCorrected,"vtx","pl");
+   //leg11->AddEntry(hMeasured,"xi correction","pl");
+   leg11->AddEntry(hDNDEtaVertexed,"MC Truth with vtx","l");
+   leg11->AddEntry(hTruthTrigEffCorrected,"MC Truth TrigEff corrected","pl");
+   leg11->AddEntry(hMeasuredTrigEffCorrected,"TrigEff corrected","pl");
    leg11->AddEntry(hMeasuredFinal,"TrigEff+Empty correction","pl");
 
    leg11->Draw();
@@ -1113,7 +1154,7 @@ int plotFinalResult(int TrackletType,char* filename,
    
    hCorrected->Scale(1./nevent);
 
-   hHadron->Scale(1./nevent);
+//   hHadron->Scale(1./nevent);
 
    for (int i=0;i<nEtaBin;i++){
       for (int j=0;j<nVzBin;j++){
