@@ -665,7 +665,7 @@ int plotFinalResult(int TrackletType,char* filename,
 	    double betaErr = betaPlots[x-1][z-1]->GetBinError(y);
             double alpha,alphaErr;
 	    int y1=y;
-//	    if  (y1>10) y1=10;
+	    if  (y1>10) y1=10;
 	    alpha = alphaPlots[x-1][z-1]->GetBinContent(y1);
             alphaErr = alphaPlots[x-1][z-1]->GetBinError(y1);
 

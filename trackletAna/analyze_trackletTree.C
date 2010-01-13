@@ -26,8 +26,8 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 			  bool useNSD = 0,
 			  bool reWeight = 0,         // reweight to Run 123596 vtx distribution
 			  bool useRandomVertex= 0,
-			  bool cutOnClusterSize = 0,
-			  bool mimicPixelCounting = 0
+			  bool cutOnClusterSize = 1,
+			  bool mimicPixelCounting = 1
 			 )
 {
   // Set Random Seed
@@ -156,7 +156,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
   int nBeamHalo = 0;
 
   // Main loop ==========================================================================================
-  for(int i =0;  i<t->GetEntries()&&i<100000000 ; i = i + 1 + nPileUp){    
+  for(int i =0;  i<t->GetEntries()&&i<10000000 ; i = i + 1 + nPileUp){    
     t->GetEntry(i);
     if (i % 1000 == 0) {
        cout <<"Event "<<i<<" "

@@ -7,6 +7,8 @@
 #include <TNtuple.h>
 #include "UA5Plot.h"
 #include "GraphErrorsBand.h"
+#define dndetaRange 6
+
 
 void correctBin(TH1F* h,double* a1,double*a2)
 {
@@ -54,25 +56,27 @@ void clearBin2(TH1F* h)
    }   
 }
 
-TH1F* makeMergedPlot(char *name = "D6T-Official-Reweight",int UA5=0, double
-uncert = 3.8,int par=0)
+TH1F* makeMergedPlot(string name = "D6T-Official-Reweight",int UA5=0, double
+uncert = 3.8,int par=0,string title= "")
 {
    TH1F* hAvg2;
    // layer1+2
-   TFile *inf12 = new TFile(Form("plot/root/result-12-%s.root",name));
+   TFile *inf12 = new TFile(Form("plot/root/result-12-%s.root",name.data()));
    TH1F *h12 = (TH1F*)inf12->FindObjectAny("hMeasuredFinal");
    h12->SetName("h12");
-   h12->SetAxisRange(0,5.5,"Y");
+   h12->SetAxisRange(0,dndetaRange,"Y");
 
    // layer1+3
-   TFile *inf13 = new TFile(Form("plot/root/result-13-%s.root",name));
+   TFile *inf13 = new TFile(Form("plot/root/result-13-%s.root",name.data()));
    TH1F *h13 = (TH1F*)inf13->FindObjectAny("hMeasuredFinal");
    h13->SetName("h13");
    
    // layer23
-   TFile *inf23 = new TFile(Form("plot/root/result-23-%s.root",name));
+   TFile *inf23 = new TFile(Form("plot/root/result-23-%s.root",name.data()));
    TH1F *h23 = (TH1F*)inf23->FindObjectAny("hMeasuredFinal");
    h23->SetName("h23");
+   
+   if (title=="") title=name;
    
 
    TFile *outfile = new TFile(Form("mergedResult-%d.root",par),"recreate");
@@ -107,12 +111,13 @@ uncert = 3.8,int par=0)
    TH1F *hUA5 = getUA5NSD();
    TH1F *hUA5Scaled = getUA5NSDScaled();
    TH1F *hTracklet900GeV = tracklet900GeV();
+//   TH1F *hTracklet900GeV = tracklet900GeVHF1();
    TH1F *hTracklet2360GeVHF1 = tracklet2360GeVHF1();
    h12->SetXTitle("#eta");
    h12->SetYTitle("dN/d#eta");
    h12->Draw();
    if (UA5) hUA5->Draw("p same");   
-   if (UA5>=3) hUA5Scaled->Draw("p same");  
+   if (UA5>=4) hUA5Scaled->Draw("p same");  
    h12->Draw("same");
    h13->Draw("same");
    h23->Draw("same");
@@ -125,7 +130,7 @@ uncert = 3.8,int par=0)
    leg->SetLineWidth(1);
    leg->SetFillColor(0);
    leg->SetFillStyle(0);
-   TLegendEntry *entry=leg->AddEntry("hTruth",Form("Data-%s",name),"");
+   TLegendEntry *entry=leg->AddEntry("hTruth",Form("%s",title.data()),"");
    entry=leg->AddEntry("h12","Reconstructed (1st+2nd layers)","pl");
    entry=leg->AddEntry("h13","Reconstructed (1st+3rd layers)","pl");   
    entry=leg->AddEntry("h23","Reconstructed (2nd+3rd layers)","pl");
@@ -164,14 +169,36 @@ uncert = 3.8,int par=0)
    hAvg->Draw();
    if (UA5) hUA5->Draw("p same");
    if (UA5>=2) hTracklet900GeV->Draw("p same");   
-   if (UA5>=3) hTracklet2360GeVHF1->Draw("p same");   
+//   if (UA5>=3) hTracklet2360GeVHF1->Draw("p same");   
    if (UA5>=4) hUA5Scaled->Draw("p same");   
    hAvg->Draw("same");
+
+
+   TH1F* hPixelCounting = getPixelCounting2360GeV();
+   if (UA5>=3) hPixelCounting->Draw("same");
+
+   TLegend *leg3 = new TLegend(0.2,0.18,0.9,0.35,NULL,"brNDC");
+   leg3->SetBorderSize(0);
+   leg3->SetTextFont(62);
+   leg3->SetLineColor(1);
+   leg3->SetLineStyle(1);
+   leg3->SetLineWidth(1);
+   leg3->SetFillColor(0);
+   leg3->SetFillStyle(0);
+   TLegendEntry *entry3=leg3->AddEntry("hTruth",Form("%s",title.data()),"");
+   entry3=leg3->AddEntry(hAvg,"2360 GeV p+p by Tracklet (CMS)","pl");
+   if (UA5>=3) entry3=leg3->AddEntry(hPixelCounting,"2360 GeV p+#bar{p} by Pixel counting(CMS)","pl");
+   if (UA5>=2)  entry3=leg3->AddEntry(hTracklet900GeV,"900 GeV p+p by Tracklet (CMS)","pl");
+   entry3=leg3->AddEntry(hUA5,"900 GeV p+#bar{p} (UA5)","pl");
+   leg3->Draw();   
+
 
 
    TCanvas *c3 = new TCanvas("c3","",400,400);
    hAvg2 = (TH1F*) h12->Clone();
    hAvg2->SetName("hAvg");
+
+
    
    for (int i=2;i<=6;i++)
    {
@@ -184,7 +211,7 @@ uncert = 3.8,int par=0)
       avg += h13->GetBinContent(13-i);
       avg += h23->GetBinContent(13-i);
       if (i!=2&&i!=3&&i!=11&&i!=10) avg/=6.0; else avg/=2.0;
-      double avgErr = avg*3.8/100.;
+      double avgErr = avg*4.8/100.;
       
       hAvg2->SetBinContent(i,avg);
       hAvg2->SetBinError(i,0,avgErr);
@@ -208,6 +235,8 @@ uncert = 3.8,int par=0)
    if (UA5>=2) hTracklet900GeV->Draw("p same");   
    if (UA5>=3) hTracklet2360GeVHF1->Draw("p same");   
    if (UA5>=4) hUA5Scaled->Draw("p same");  
+
+   
    hAvg2->SetLineColor(1);
    hAvg2->SetMarkerColor(1);
    hAvg2->Draw("p same");
@@ -220,10 +249,26 @@ uncert = 3.8,int par=0)
    leg2->SetLineWidth(1);
    leg2->SetFillColor(0);
    leg2->SetFillStyle(0);
-   TLegendEntry *entry2=leg2->AddEntry("hTruth",Form("Data-%s",name),"");
+
+   //hTracklet900GeV->Draw("p same");   
+   
+
+//   TH1F* hBSC2360GeV = getBSC2360GeV();
+//   hBSC2360GeV->Draw("same");
+//   TH1F* hBSC900GeV = getBSC900GeV();
+//   hBSC900GeV->Draw("same");
+  
+   TLegendEntry *entry2=leg2->AddEntry("hTruth",Form("%s",title.data()),"");
    entry2=leg2->AddEntry(hAvg2,"2.36 TeV p+p by Tracklet (CMS)","pl");
-   entry2=leg2->AddEntry(hUA5,"900 GeV p+#bar{p} (UA5)","pl");
+//   entry2=leg2->AddEntry(hBSC2360GeV,"2.36 TeV p+p by Tracklet BSC(CMS)","pl");
+//   entry2=leg2->AddEntry(hAvg2,"900 GeV p+p by Tracklet HF1(CMS)","pl");
+//   entry2=leg2->AddEntry(hBSC900GeV,"900 GeV p+p by Tracklet BSC(CMS)","pl");
+   //entry2=leg2->AddEntry(hAvg2,"Run 124023 p+p by Tracklet (CMS)","pl");
+   //entry2=leg2->AddEntry(hTracklet900GeV,"Run 123596 p+p by Tracklet (CMS)","pl");
+   if (UA5) entry2=leg2->AddEntry(hUA5,"900 GeV p+#bar{p} (UA5)","pl");
    leg2->Draw();   
+
+
 
    of.close();
    outfile->Write();
