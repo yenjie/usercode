@@ -17,7 +17,6 @@ TH1F* getPlot(TH1F *hTemplate, char *var, char *cut, char *filename, char* treeN
    cout <<scale<<endl;
    tmp->Scale(scale);
    cout <<tmp->GetEntries()<<endl;
-   //inf->Close();
       
    return tmp;
 }
@@ -25,13 +24,13 @@ TH1F* getPlot(TH1F *hTemplate, char *var, char *cut, char *filename, char* treeN
 void makePlot()
 {
 
-   char *var = "ecalIso";
-   char *cut = "et>15";
+   char *var = "et";
+   char *cut = "et>10";
    
    FILE *fTable = fopen("table","r");
    
    int flag=1;
-   TH1F *hTemplate = new TH1F("hTemplate","",100,0,100);
+   TH1F *hTemplate = new TH1F("hTemplate","",100,0,1000);
    TH2F *hh = new TH2F("h","",100,0,1000,100,0,10e10);
    TH1F *h = (TH1F*) hTemplate->Clone();
    
