@@ -1,0 +1,10 @@
+PhotonJet0_15_7TeV_MC_combined.root     8.446e7         55
+PhotonJet15_20_7TeV_MC_combined.root    1.147e5         43839
+PhotonJet20_30_7TeV_MC_combined.root    5.718e4         54269
+PhotonJet30_50_7TeV_MC_combined.root    1.652e4         63836
+PhotonJet50_80_7TeV_MC_combined.root    2.723e3         80766
+PhotonJet80_120_7TeV_MC_combined.root   4.462e2         80741
+PhotonJet120_170_7TeV_MC_combined.root  8.443e1         103543
+PhotonJet170_300_7TeV_MC_combined.root  2.255e1         104072
+PhotonJet300_500_7TeV_MC_combined.root  1.545           104675
+PhotonJet500_Inf_7TeV_MC_combined.root  9.230e-2        95652
