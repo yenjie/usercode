@@ -36,8 +36,13 @@ void makePlot()
    
    TH1F *hs[50];
    h->SetName("h");
+   h->SetXTitle("Photon Candidate E_{T} (GeV)");
+   h->SetYTitle("Arbitrary Unit");
+   
    hh->Draw();
    int nfile=0;
+
+
    while (flag!=-1){
       char filename[100];
       flag=fscanf(fTable,"%s",filename);
