@@ -343,13 +343,13 @@ double sumTrackletVector(vector<Tracklet> x)
    return total;
 }
 
-double TrackletVertexUnbin(vector<RecoHit> layer1, vector<RecoHit> layer2,double histDeltaZ, double dPhiCut, bool redoAvg = true, bool fillZ=true)
+double TrackletVertexUnbin(vector<RecoHit> layer1, vector<RecoHit> layer2,double histDeltaZ, double dPhiCut, bool fillZ=true)
 {
     double maxNz=0;
     double maxTotalZ=0;
     double maxRMS=10e10;
     double nRecoZ=0;
- 
+    
     vector<double> vectorZ;
     
     for(int ihit = 0; ihit< (int)layer1.size(); ++ihit) {

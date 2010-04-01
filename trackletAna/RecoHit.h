@@ -99,10 +99,12 @@ double calcDphi(double phi1,double phi2);
 
 
 void prepareHits(vector<RecoHit> &cleanedHits, Parameters par, SelectionCriteria cuts,Int_t
-layer, double vx, double vy, double vz, double splitProb = 0, double dropProb = 0, bool cutOnClusterSize = 0)
+layer, double vx, double vy, double vz, double splitProb = 0, double dropProb = 0, bool
+cutOnClusterSize = 0, double runNum = 0,double nLumi = 0)
 {
   vector<RecoHit> hits;
-
+  static Bool_t firstCall = 0;
+  
   if (layer == 1) {
     for(int ihit = 0; ihit < par.nhits1; ++ihit){
       // Reject
@@ -150,14 +152,14 @@ layer, double vx, double vy, double vz, double splitProb = 0, double dropProb = 
     if (ihit !=0) {
 
       for (int k=ihit-1;k<ihit;k++) {
-      dphi = fabs(calcDphi(hits[k].phi, hits[ihit].phi));
-      
-      deta = fabs(hits[k].eta - hits[ihit].eta);
-      dr   = fabs(hits[k].r - hits[ihit].r);
+        dphi = fabs(calcDphi(hits[k].phi, hits[ihit].phi));
+       
+        deta = fabs(hits[k].eta - hits[ihit].eta);
+        dr   = fabs(hits[k].r - hits[ihit].r);
 
-// no double hit removal...
-//      if (dr>cuts.drCut && dphi < cuts.dPhiCut) flag=1;
-//      if (dphi > cuts.dPhiCut) k=0;
+        // no double hit removal...
+        // if (dr>cuts.drCut && dphi < cuts.dPhiCut) flag=1;
+        // if (dphi > cuts.dPhiCut) k=0;
       }
     }
       
@@ -185,7 +187,41 @@ layer, double vx, double vy, double vz, double splitProb = 0, double dropProb = 
 // Run 132440
 //   ROOT::Math::XYZVector tmpVector(x-0.09335,y-0.007392,z-vz); //vtx fit ?? (temporarily)
 // MC 7000GeV Frank
-   ROOT::Math::XYZVector tmpVector(x-0.2468185,y-0.3983917,z-vz); //vtx fit ?? (temporarily)
+//   ROOT::Math::XYZVector tmpVector(x-0.2468185,y-0.3983917,z-vz); //vtx fit ?? (temporarily)
+
+    double x0,y0;
+
+    
+    if (runNum == 123596) {
+       x0 = 0.174562;
+       y0 = 0.144887;
+    } else if (runNum == 124022||runNum == 124024) { // rough value
+       x0 = 0.193056;
+       y0 = 0.168689;
+    } else if (runNum == 124023) { 
+       x0 = 0.193056;
+       y0 = 0.168689;
+    } else if (runNum == 124120) {
+       x0 = 0.205124;
+       y0 = 0.164012;
+    } else if (runNum == 132422) { // no info
+       x0 = 0;
+       y0 = 0;
+    } else if (runNum == 132440) { // varying
+       x0 = 0.09362 + nLumi*6.033e-7;
+       y0 = 0.006874 - nLumi*3.087e-6;
+    } else {
+       x0 = 0.2468185;
+       y0 = 0.3983917;
+    }
+
+    if (vz!=0&&firstCall==0) {
+       cout << "Beamspot X0 = "<<x0<<" Y0 = "<<y0<<endl;
+       firstCall=1;
+    }
+
+   
+    ROOT::Math::XYZVector tmpVector(x-0.2468185,y-0.3983917,z-vz); //vtx fit ?? (temporarily)
     RecoHit tmpHit(tmpVector.eta(),tmpVector.phi(),tmpVector.rho(),hits[ihit].cs);
     double eta = tmpVector.eta();
 

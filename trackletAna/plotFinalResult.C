@@ -132,7 +132,7 @@ int plotFinalResult(int TrackletType,char* filename,
    const int nVzBin  =20;// myCut.nVzBin;
    int VzRangeL =myCut.VzRangeL;
    int VzRangeH =myCut.VzRangeH;
-   double TrackletBins[nTrackletBin+1] = {-5,2,4,6,8,10,15,20,25,30,35,40,45,50,100};
+   double TrackletBins[nTrackletBin+1] = {-5,2,4,6,8,10,15,20,25,30,35,40,45,50,300};
    double EtaBins[nEtaBin+1];
    double VzBins[nVzBin+1];
    
@@ -672,7 +672,7 @@ int plotFinalResult(int TrackletType,char* filename,
 	    double betaErr = betaPlots[x-1][z-1]->GetBinError(y);
             double alpha,alphaErr;
 	    int y1=y;
-	    if  (y1>10) y1=10;
+//	    if  (y1>10) y1=10;
 	    alpha = alphaPlots[x-1][z-1]->GetBinContent(y1);
             alphaErr = alphaPlots[x-1][z-1]->GetBinError(y1);
 

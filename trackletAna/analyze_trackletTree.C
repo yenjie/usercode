@@ -24,7 +24,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 			  bool putPixelTree = 0,
 			  bool useKKVertex = 1,
 			  bool useNSD = 0,
-			  bool reWeight = 0,         // reweight to Run 123596 vtx distribution
+			   bool reWeight = 0,         // reweight to Run 123596 vtx distribution
 			  bool useRandomVertex= 1,
 			  bool cutOnClusterSize = 0,
 			  bool mimicPixelCounting = 0
@@ -159,7 +159,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
   for(int i =0;  i<t->GetEntries()&&i<10000000 ; i = i + 1 + nPileUp){    
     t->GetEntry(i);
     if (i % 1000 == 0) {
-       cout <<"Event "<<i<<" "
+       cout <<"Run "<<par.nRun<<" Event "<<i<<" "
             <<trackletTree12->GetEntries()<<" "
             <<trackletTree23->GetEntries()<<" "
             <<trackletTree13->GetEntries()<<" Add Beam Halo: "
@@ -255,7 +255,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     
     // add background 
     if (addL1Bck!=0) {
-       int bckHits = addL1Bck*gRandom->Rndm()+0.5;
+       int bckHits = (int) (addL1Bck*gRandom->Rndm()+0.5);
        for (int i = par.nhits1; i < par.nhits1+bckHits; i++) {
           double eta, phi, r;
 	  hLayer1Hit->GetRandom3(r,eta,phi);
@@ -267,7 +267,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     }
 
     if (addL2Bck!=0) {
-       int bckHits = addL2Bck*gRandom->Rndm()+0.5;
+       int bckHits = (int) (addL2Bck*gRandom->Rndm()+0.5);
        for (int i = par.nhits2; i < par.nhits2+bckHits; i++) {
           double eta, phi, r;
 	  hLayer2Hit->GetRandom3(r,eta,phi);
@@ -278,7 +278,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
        par.nhits2+=bckHits;
     }
     if (addL3Bck!=0) {
-       int bckHits = addL3Bck*gRandom->Rndm()+0.5;
+       int bckHits = (int) (addL3Bck*gRandom->Rndm()+0.5);
        for (int i = par.nhits3; i < par.nhits3+bckHits; i++) {
           double eta, phi, r;
 	  hLayer3Hit->GetRandom3(r,eta,phi);
@@ -370,11 +370,11 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     
     // Process hits with Vz constraint:
     vector<RecoHit> layer1;
-    prepareHits(layer1,par, cuts, 1, tdata12.vx[1], tdata12.vy[1], tdata12.vz[1], splitProb, dropProb, cutOnClusterSize);
+    prepareHits(layer1,par, cuts, 1, tdata12.vx[1], tdata12.vy[1], tdata12.vz[1], splitProb, dropProb, cutOnClusterSize, par.nRun, par.nLumi);
     vector<RecoHit> layer2;
-    prepareHits(layer2,par, cuts, 2, tdata12.vx[1], tdata12.vy[1], tdata12.vz[1], splitProb, dropProb, cutOnClusterSize);
+    prepareHits(layer2,par, cuts, 2, tdata12.vx[1], tdata12.vy[1], tdata12.vz[1], splitProb, dropProb, cutOnClusterSize, par.nRun, par.nLumi);
     vector<RecoHit> layer3;
-    prepareHits(layer3,par, cuts, 3, tdata12.vx[1], tdata12.vy[1], tdata12.vz[1], splitProb, dropProb, cutOnClusterSize);
+    prepareHits(layer3,par, cuts, 3, tdata12.vx[1], tdata12.vy[1], tdata12.vz[1], splitProb, dropProb, cutOnClusterSize, par.nRun, par.nLumi);
 
     if (nPileUp!=0) {
        for (int j=1;j <= nPileUp ; j++) {
