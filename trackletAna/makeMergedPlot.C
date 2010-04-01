@@ -7,7 +7,7 @@
 #include <TNtuple.h>
 #include "UA5Plot.h"
 #include "GraphErrorsBand.h"
-#define dndetaRange 6
+#define dndetaRange 7
 
 
 void correctBin(TH1F* h,double* a1,double*a2)
@@ -33,7 +33,8 @@ void clearBin(TH1F* h)
    h->SetBinError(11,0);
    for (int i=2;i<=11;i++)
    {
-      h->SetBinError(i,h->GetBinContent(i)*3.8/100);
+      if (h->GetBinContent(i)>0) cout <<i<<" "<<h->GetBinError(i)/h->GetBinContent(i)<<endl;
+      h->SetBinError(i,h->GetBinContent(i)*8/100);
    }   
 
 }
@@ -52,7 +53,8 @@ void clearBin2(TH1F* h)
 
    for (int i=2;i<=11;i++)
    {
-      h->SetBinError(i,h->GetBinContent(i)*3.8/100);
+      if (h->GetBinContent(i)>0) cout <<i<<" "<<h->GetBinError(i)/h->GetBinContent(i)<<endl;
+      h->SetBinError(i,h->GetBinContent(i)*8/100);
    }   
 }
 
@@ -80,7 +82,7 @@ uncert = 3.8,int par=0,string title= "")
    
 
    TFile *outfile = new TFile(Form("mergedResult-%d.root",par),"recreate");
-   TCanvas *c = new TCanvas("c","",400,400);
+   TCanvas *c = new TCanvas("c","",600,600);
    
    TNtuple *nt = new TNtuple("nt","","par:eta:val:valerr");
    
@@ -137,7 +139,7 @@ uncert = 3.8,int par=0,string title= "")
    leg->Draw();   
 
 
-   TCanvas *c2 = new TCanvas("c2","",400,400);
+   TCanvas *c2 = new TCanvas("c2","",600,600);
    TH1F *hAvg = (TH1F*) h12->Clone();
    hAvg->SetName("hAvg");
    
@@ -194,7 +196,7 @@ uncert = 3.8,int par=0,string title= "")
 
 
 
-   TCanvas *c3 = new TCanvas("c3","",400,400);
+   TCanvas *c3 = new TCanvas("c3","",600,600);
    hAvg2 = (TH1F*) h12->Clone();
    hAvg2->SetName("hAvg");
 
@@ -211,7 +213,7 @@ uncert = 3.8,int par=0,string title= "")
       avg += h13->GetBinContent(13-i);
       avg += h23->GetBinContent(13-i);
       if (i!=2&&i!=3&&i!=11&&i!=10) avg/=6.0; else avg/=2.0;
-      double avgErr = avg*4.8/100.;
+      double avgErr = avg*8/100.;
       
       hAvg2->SetBinContent(i,avg);
       hAvg2->SetBinError(i,0,avgErr);
@@ -232,7 +234,7 @@ uncert = 3.8,int par=0,string title= "")
 
 
    if (UA5) hUA5->Draw("p same");
-   if (UA5>=2) hTracklet900GeV->Draw("p same");   
+   //if (UA5>=2) hTracklet900GeV->Draw("p same");   
    if (UA5>=3) hTracklet2360GeVHF1->Draw("p same");   
    if (UA5>=4) hUA5Scaled->Draw("p same");  
 
@@ -257,15 +259,22 @@ uncert = 3.8,int par=0,string title= "")
 //   hBSC2360GeV->Draw("same");
 //   TH1F* hBSC900GeV = getBSC900GeV();
 //   hBSC900GeV->Draw("same");
+   TH1F* hHF900GeV = getHF900GeV();
+
+   hHF900GeV->SetMarkerStyle(20);
+   hHF900GeV->SetMarkerColor(2);
+   hHF900GeV->SetLineColor(2);
+   hHF900GeV->Draw("same");
   
    TLegendEntry *entry2=leg2->AddEntry("hTruth",Form("%s",title.data()),"");
-   entry2=leg2->AddEntry(hAvg2,"2.36 TeV p+p by Tracklet (CMS)","pl");
-//   entry2=leg2->AddEntry(hBSC2360GeV,"2.36 TeV p+p by Tracklet BSC(CMS)","pl");
+   entry2=leg2->AddEntry(hAvg2,"7.0 TeV p+p by Tracklet (CMS)","pl");
+   entry2=leg2->AddEntry(hTracklet2360GeVHF1,"2.36 TeV p+p by Tracklet (CMS)","pl");
 //   entry2=leg2->AddEntry(hAvg2,"900 GeV p+p by Tracklet HF1(CMS)","pl");
 //   entry2=leg2->AddEntry(hBSC900GeV,"900 GeV p+p by Tracklet BSC(CMS)","pl");
+   entry2=leg2->AddEntry(hHF900GeV,"900 GeV p+p by Tracklet (CMS)","pl");
    //entry2=leg2->AddEntry(hAvg2,"Run 124023 p+p by Tracklet (CMS)","pl");
    //entry2=leg2->AddEntry(hTracklet900GeV,"Run 123596 p+p by Tracklet (CMS)","pl");
-   if (UA5) entry2=leg2->AddEntry(hUA5,"900 GeV p+#bar{p} (UA5)","pl");
+   //if (UA5) entry2=leg2->AddEntry(hUA5,"900 GeV p+#bar{p} (UA5)","pl");
    leg2->Draw();   
 
 

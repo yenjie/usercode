@@ -586,3 +586,247 @@ TH1F *getBSC900GeV()
    hAvg->GetZaxis()->SetTitleFont(42);
    return hAvg;
 }
+
+TH1F *getHF900GeV()
+{
+   Double_t xAxis3[13] = {-3, -2.5, -2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2, 2.5, 3}; 
+
+   TH1F *hAvg = new TH1F("hBSC900","",12, xAxis3);
+   hAvg->SetBinContent(3,3.701043);
+   hAvg->SetBinContent(4,3.623568);
+   hAvg->SetBinContent(5,3.538689);
+   hAvg->SetBinContent(6,3.445783);
+   hAvg->SetBinContent(7,3.445783);
+   hAvg->SetBinContent(8,3.538689);
+   hAvg->SetBinContent(9,3.623568);
+   hAvg->SetBinContent(10,3.701043);
+   hAvg->SetBinError(3,0.1776501);
+   hAvg->SetBinError(4,0.1739312);
+   hAvg->SetBinError(5,0.1698571);
+   hAvg->SetBinError(6,0.1653976);
+   hAvg->SetBinError(7,0.1653976);
+   hAvg->SetBinError(8,0.1698571);
+   hAvg->SetBinError(9,0.1739312);
+   hAvg->SetBinError(10,0.1776501);
+   hAvg->SetMinimum(0);
+   hAvg->SetMaximum(6);
+   hAvg->SetEntries(25);
+   hAvg->SetFillColor(1);
+   hAvg->SetFillStyle(0);
+   hAvg->SetLineStyle(0);
+   hAvg->SetLineColor(4);
+   hAvg->SetMarkerStyle(4);
+   hAvg->SetMarkerColor(4);
+   hAvg->SetMarkerSize(1.2);
+   hAvg->GetXaxis()->SetTitle("#eta");
+   hAvg->GetXaxis()->CenterTitle(true);
+   hAvg->GetXaxis()->SetLabelFont(42);
+   hAvg->GetXaxis()->SetLabelOffset(0.01);
+   hAvg->GetXaxis()->SetLabelSize(0.045);
+   hAvg->GetXaxis()->SetTitleSize(0.055);
+   hAvg->GetXaxis()->SetTitleFont(42);
+   hAvg->GetYaxis()->SetTitle("dN/d#eta");
+   hAvg->GetYaxis()->CenterTitle(true);
+   hAvg->GetYaxis()->SetLabelFont(42);
+   hAvg->GetYaxis()->SetLabelOffset(0.01);
+   hAvg->GetYaxis()->SetLabelSize(0.045);
+   hAvg->GetYaxis()->SetTitleSize(0.055);
+   hAvg->GetYaxis()->SetTitleOffset(1.25);
+   hAvg->GetYaxis()->SetTitleFont(42);
+   hAvg->GetZaxis()->SetLabelFont(42);
+   hAvg->GetZaxis()->SetLabelSize(0.045);
+   hAvg->GetZaxis()->SetTitleFont(42);
+   return hAvg;
+}
+
+
+TH1F* getPYTHIA900()
+{
+ 
+   TH1F *hTruthWOSelection = new TH1F("hTruthWOSelection","",12, -3,3);
+   hTruthWOSelection->SetBinContent(1,3.209623);
+   hTruthWOSelection->SetBinContent(2,3.278142);
+   hTruthWOSelection->SetBinContent(3,3.242403);
+   hTruthWOSelection->SetBinContent(4,3.095124);
+   hTruthWOSelection->SetBinContent(5,2.949543);
+   hTruthWOSelection->SetBinContent(6,2.804374);
+   hTruthWOSelection->SetBinContent(7,2.810627);
+   hTruthWOSelection->SetBinContent(8,2.944706);
+   hTruthWOSelection->SetBinContent(9,3.118667);
+   hTruthWOSelection->SetBinContent(10,3.227454);
+   hTruthWOSelection->SetBinContent(11,3.274334);
+   hTruthWOSelection->SetBinContent(12,3.201184);
+   hTruthWOSelection->SetBinError(1,0.009087568);
+   hTruthWOSelection->SetBinError(2,0.009184057);
+   hTruthWOSelection->SetBinError(3,0.009133856);
+   hTruthWOSelection->SetBinError(4,0.008924003);
+   hTruthWOSelection->SetBinError(5,0.008711603);
+   hTruthWOSelection->SetBinError(6,0.008494516);
+   hTruthWOSelection->SetBinError(7,0.00850398);
+   hTruthWOSelection->SetBinError(8,0.008704456);
+   hTruthWOSelection->SetBinError(9,0.008957879);
+   hTruthWOSelection->SetBinError(10,0.009112776);
+   hTruthWOSelection->SetBinError(11,0.009178721);
+   hTruthWOSelection->SetBinError(12,0.009075613);
+   hTruthWOSelection->SetMinimum(0);
+   hTruthWOSelection->SetMaximum(5.5);
+   hTruthWOSelection->SetEntries(1444075);
+   hTruthWOSelection->SetFillColor(1);
+   hTruthWOSelection->SetFillStyle(0);
+   hTruthWOSelection->SetLineColor(2);
+   hTruthWOSelection->SetLineStyle(0);
+   hTruthWOSelection->SetMarkerColor(2);
+   hTruthWOSelection->SetMarkerStyle(20);
+   hTruthWOSelection->SetMarkerSize(1.1);
+   hTruthWOSelection->GetXaxis()->SetTitle("#eta");
+   hTruthWOSelection->GetXaxis()->CenterTitle(true);
+   hTruthWOSelection->GetXaxis()->SetLabelFont(42);
+   hTruthWOSelection->GetXaxis()->SetLabelOffset(0.01);
+   hTruthWOSelection->GetXaxis()->SetLabelSize(0.045);
+   hTruthWOSelection->GetXaxis()->SetTitleSize(0.055);
+   hTruthWOSelection->GetXaxis()->SetTitleFont(42);
+   hTruthWOSelection->GetYaxis()->SetTitle("dN/d#eta");
+   hTruthWOSelection->GetYaxis()->CenterTitle(true);
+   hTruthWOSelection->GetYaxis()->SetLabelFont(42);
+   hTruthWOSelection->GetYaxis()->SetLabelOffset(0.01);
+   hTruthWOSelection->GetYaxis()->SetLabelSize(0.045);
+   hTruthWOSelection->GetYaxis()->SetTitleSize(0.055);
+   hTruthWOSelection->GetYaxis()->SetTitleOffset(1.25);
+   hTruthWOSelection->GetYaxis()->SetTitleFont(42);
+   hTruthWOSelection->GetZaxis()->SetLabelFont(42);
+   hTruthWOSelection->GetZaxis()->SetLabelSize(0.045);
+   hTruthWOSelection->GetZaxis()->SetTitleFont(42);
+   return hTruthWOSelection;
+}
+
+TH1F* getPYTHIA2360()
+{
+   
+   TH1F *hTruthWOSelection = new TH1F("hTruthWOSelection","",12, -3,3);
+   hTruthWOSelection->SetBinContent(1,3.852361);
+   hTruthWOSelection->SetBinContent(2,3.842731);
+   hTruthWOSelection->SetBinContent(3,3.777578);
+   hTruthWOSelection->SetBinContent(4,3.635311);
+   hTruthWOSelection->SetBinContent(5,3.452649);
+   hTruthWOSelection->SetBinContent(6,3.310205);
+   hTruthWOSelection->SetBinContent(7,3.310737);
+   hTruthWOSelection->SetBinContent(8,3.455538);
+   hTruthWOSelection->SetBinContent(9,3.643952);
+   hTruthWOSelection->SetBinContent(10,3.792327);
+   hTruthWOSelection->SetBinContent(11,3.844986);
+   hTruthWOSelection->SetBinContent(12,3.854641);
+   hTruthWOSelection->SetBinError(1,0.009880511);
+   hTruthWOSelection->SetBinError(2,0.009868154);
+   hTruthWOSelection->SetBinError(3,0.00978414);
+   hTruthWOSelection->SetBinError(4,0.009598132);
+   hTruthWOSelection->SetBinError(5,0.009353889);
+   hTruthWOSelection->SetBinError(6,0.009158902);
+   hTruthWOSelection->SetBinError(7,0.009159638);
+   hTruthWOSelection->SetBinError(8,0.009357801);
+   hTruthWOSelection->SetBinError(9,0.009609533);
+   hTruthWOSelection->SetBinError(10,0.009803222);
+   hTruthWOSelection->SetBinError(11,0.00987105);
+   hTruthWOSelection->SetBinError(12,0.009883436);
+   hTruthWOSelection->SetMinimum(0);
+   hTruthWOSelection->SetMaximum(5.5);
+   hTruthWOSelection->SetEntries(1727327);
+   hTruthWOSelection->SetFillColor(1);
+   hTruthWOSelection->SetFillStyle(0);
+   hTruthWOSelection->SetLineColor(2);
+   hTruthWOSelection->SetLineStyle(0);
+   hTruthWOSelection->SetMarkerColor(2);
+   hTruthWOSelection->SetMarkerStyle(20);
+   hTruthWOSelection->SetMarkerSize(1.1);
+   hTruthWOSelection->GetXaxis()->SetTitle("#eta");
+   hTruthWOSelection->GetXaxis()->CenterTitle(true);
+   hTruthWOSelection->GetXaxis()->SetLabelFont(42);
+   hTruthWOSelection->GetXaxis()->SetLabelOffset(0.01);
+   hTruthWOSelection->GetXaxis()->SetLabelSize(0.045);
+   hTruthWOSelection->GetXaxis()->SetTitleSize(0.055);
+   hTruthWOSelection->GetXaxis()->SetTitleFont(42);
+   hTruthWOSelection->GetYaxis()->SetTitle("dN/d#eta");
+   hTruthWOSelection->GetYaxis()->CenterTitle(true);
+   hTruthWOSelection->GetYaxis()->SetLabelFont(42);
+   hTruthWOSelection->GetYaxis()->SetLabelOffset(0.01);
+   hTruthWOSelection->GetYaxis()->SetLabelSize(0.045);
+   hTruthWOSelection->GetYaxis()->SetTitleSize(0.055);
+   hTruthWOSelection->GetYaxis()->SetTitleOffset(1.25);
+   hTruthWOSelection->GetYaxis()->SetTitleFont(42);
+   hTruthWOSelection->GetZaxis()->SetLabelFont(42);
+   hTruthWOSelection->GetZaxis()->SetLabelSize(0.045);
+   hTruthWOSelection->GetZaxis()->SetTitleFont(42);
+   return hTruthWOSelection;
+}
+
+TH1F *getFinal900GeV()
+{
+   TH1F *hMeasuredFinal3 = new TH1F("hMeasuredFinal3","",12,-3,3);
+   
+   hMeasuredFinal3->GetXaxis()->SetRange(1,13);
+
+   hMeasuredFinal3->SetMinimum(0);
+   hMeasuredFinal3->SetMaximum(6.0);
+
+   hMeasuredFinal3->SetBinContent(2,3.60278);  // -2.4 to -2.0    
+   hMeasuredFinal3->SetBinContent(3,3.731399616); //-2 to -1.5 
+   hMeasuredFinal3->SetBinContent(4,3.618227783);        // -1.5 to -1.0 
+   hMeasuredFinal3->SetBinContent(5,3.538766473); // -1.0 to -0.5 
+   hMeasuredFinal3->SetBinContent(6,3.477522368);        // -0.5 to 0
+
+   hMeasuredFinal3->SetBinContent(7,hMeasuredFinal3->GetBinContent(6)); // 0 to 0.5 
+   hMeasuredFinal3->SetBinContent(8,hMeasuredFinal3->GetBinContent(5)); // 0.5 to 1.0
+   hMeasuredFinal3->SetBinContent(9,hMeasuredFinal3->GetBinContent(4)); // 1.0 to 1.5 
+   hMeasuredFinal3->SetBinContent(10,hMeasuredFinal3->GetBinContent(3)); // 1.5 to 2.0 
+   hMeasuredFinal3->SetBinContent(11,hMeasuredFinal3->GetBinContent(2)); // 2.0 to 2.4 
+
+
+   // --- Stat error ---
+   double statError= 0.01767767;
+   
+
+   for (int i=2; i<12; ++i) {
+     hMeasuredFinal3->SetBinError(i,hMeasuredFinal3->GetBinContent(i)*statError);
+     cout << "stat error (" << i << "): " << hMeasuredFinal3->GetBinError(i) << endl;
+   }
+
+   hMeasuredFinal3->GetYaxis()->SetTitle("dN_{ch}/d#eta");
+   hMeasuredFinal3->GetXaxis()->SetTitle("#eta");
+   hMeasuredFinal3->GetXaxis()->CenterTitle();
+   hMeasuredFinal3->GetYaxis()->CenterTitle();
+
+
+   hMeasuredFinal3->GetXaxis()->SetNdivisions(405);
+   //hMeasuredFinal3->GetYaxis()->SetNdivisions(1005);
+   hMeasuredFinal3->GetYaxis()->SetNdivisions(506);
+
+
+   hMeasuredFinal3->SetMarkerColor(2);
+   hMeasuredFinal3->SetMarkerStyle(20);
+   //hMeasuredFinal3->SetMarkerSize(1.8); // use rootlogon size
+   
+   return hMeasuredFinal3;
+}
+
+TH1F* getFinal2360GeV()
+{
+   TH1F *hMeasuredFinal236 = new TH1F("hMeasuredFinal236","",12,-3,3);
+   //hMeasuredFinal236->GetXaxis()->SetRange(3,10);
+   hMeasuredFinal236->GetXaxis()->SetRange(1,13);
+   hMeasuredFinal236->SetMarkerColor(kRed);
+   hMeasuredFinal236->SetMarkerStyle(4);
+
+
+   hMeasuredFinal236->SetBinContent(2,4.78296);  // -2.4 to -2.0  
+   hMeasuredFinal236->SetBinContent(3,4.806189822); //-2 to -1.5
+   hMeasuredFinal236->SetBinContent(4,4.662502625);        // -1.5 to -1.0 
+   hMeasuredFinal236->SetBinContent(5,4.614742045); // -1.0 to -0.5 
+   hMeasuredFinal236->SetBinContent(6,4.469256947);        // -0.5 to 0
+
+   hMeasuredFinal236->SetBinContent(7,hMeasuredFinal236->GetBinContent(6)); // 0 to 0.5 
+   hMeasuredFinal236->SetBinContent(8,hMeasuredFinal236->GetBinContent(5)); // 0.5 to 1.0
+   hMeasuredFinal236->SetBinContent(9,hMeasuredFinal236->GetBinContent(4)); // 1.0 to 1.5 
+   hMeasuredFinal236->SetBinContent(10,hMeasuredFinal236->GetBinContent(3)); // 1.5 to 2.0 
+   hMeasuredFinal236->SetBinContent(11,hMeasuredFinal236->GetBinContent(2)); // 2.0 to 2.4 
+
+   return hMeasuredFinal236;
+}

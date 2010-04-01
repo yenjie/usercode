@@ -25,9 +25,9 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 			  bool useKKVertex = 1,
 			  bool useNSD = 0,
 			  bool reWeight = 0,         // reweight to Run 123596 vtx distribution
-			  bool useRandomVertex= 0,
-			  bool cutOnClusterSize = 1,
-			  bool mimicPixelCounting = 1
+			  bool useRandomVertex= 1,
+			  bool cutOnClusterSize = 0,
+			  bool mimicPixelCounting = 0
 			 )
 {
   // Set Random Seed
@@ -175,12 +175,20 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
        double myVz = par.vz[1];
        if (myVz<-90) {
           TF1 *f = new TF1("f","gaus",-30,30);
-          f->SetParameters(1,-2.709,4.551);
+          f->SetParameters(1,-0.6536,4.438);
           myVz = f->GetRandom();
 	  delete f;
        }
+       
+       // for early data 900 GeV
+       /*
        double MCPdf = TMath::Gaus(myVz,-2.709,4.551,1);
        double DataPdf = TMath::Gaus(myVz,-2.702,3.627,1);
+       */
+       
+       // for early data 7000 GeV Run 132440
+       double MCPdf = TMath::Gaus(myVz,-0.6536,4.438,1);
+       double DataPdf = TMath::Gaus(myVz,0.3838,2.22,1);
 
 //       double DataPdf = TMath::Gaus(myVz,-0.4623,2.731,1);
        double Ratio = DataPdf / MCPdf;

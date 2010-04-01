@@ -78,24 +78,24 @@ void plotSubtracted(char* filename,char *title="",char *mycut= "",bool useMC = f
    hy3->SetLineColor(2);
    hy3->SetMarkerStyle(25);
    hy3->Draw("same");
-    TLegend * leg1 = new TLegend(0.28,0.72,0.50,0.85);
-    leg1->SetFillStyle(0);  
-    leg1->SetFillColor(0); 
-    leg1->SetBorderSize(0);
-    leg1->SetTextSize(0.03);
-    
-    leg1->AddEntry(hy1,"All tracklets","p");
-    leg1->AddEntry(hy2,"Combinatorial Background","p");
-    leg1->AddEntry(hy3,"Tracklets with Background Subtracted","p");
+   TLegend * leg1 = new TLegend(0.28,0.72,0.50,0.85);
+   leg1->SetFillStyle(0);  
+   leg1->SetFillColor(0); 
+   leg1->SetBorderSize(0);
+   leg1->SetTextSize(0.03);
+   
+   leg1->AddEntry(hy1,"All tracklets","p");
+   leg1->AddEntry(hy2,"Combinatorial Background","p");
+   leg1->AddEntry(hy3,"Tracklets with Background Subtracted","p");
 
-    leg1->Draw();
-    TLatex *   tex = new TLatex(0.8,0.48,"CMS Preliminary");
-    tex->SetLineWidth(2);
-    tex->Draw();
+   leg1->Draw();
+   TLatex *   tex = new TLatex(0.8,0.48,"CMS Preliminary");
+   tex->SetLineWidth(2);
+   tex->Draw();
 
-    c2->SaveAs("Subtracted.gif");
-    c2->SaveAs("Subtracted.C");
-    c2->SaveAs("Subtracted.eps");
+   c2->SaveAs("Subtracted.gif");
+   c2->SaveAs("Subtracted.C");
+   c2->SaveAs("Subtracted.eps");
 
 }
 

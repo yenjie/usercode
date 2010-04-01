@@ -141,8 +141,8 @@ int plotFinalResult(int TrackletType,char* filename,
 
 
    // Signal and Sideband regions ==================================================================================================
-   double signalRegionCut = 1.0;      //delta phi cut for signal region
-   double sideBandRegionCut = 2.0;    //delta phi cut for sideband
+   double signalRegionCut = 1.5;      //delta phi cut for signal region
+   double sideBandRegionCut = 3.0;    //delta phi cut for sideband
 
    
    TCut signalRegion                  = Form("abs(dphi)<%f&&abs(deta)<0.1",signalRegionCut);
@@ -155,8 +155,10 @@ int plotFinalResult(int TrackletType,char* filename,
 
    TCut evtSelection = myCut.Cut;   // cut on Z position 
   // TCut NSDCut = "";
-   TCut NSDCut = "evtType!=92&&evtType!=93";
-//   TCut NSDCut = "evtType!=5&&evtType!=6";
+   TCut NSDCut = "evtType!=92&&evtType!=93"; cout <<"PYTHIA MC NSD definition"<<endl;
+//   TCut NSDCut = "!(evtType!=92&&evtType!=93)"; cout <<"PYTHIA MC SD definition"<<endl; // SD
+//   TCut NSDCut = "evtType!=5&&evtType!=6"; cout <<"PHOJET MC definition"<<endl; // NSD
+   if (!isMC) NSDCut="";
 //   if (1) evtSelection+=NSDCut;
    // Output file =================================================================================================================
    TFile *outf = new TFile ("correction.root","recreate");
@@ -235,7 +237,11 @@ int plotFinalResult(int TrackletType,char* filename,
    // Number of events //
    double nevent = TrackletTree->Draw("vz[1]",evtSelection&&NSDCut,"",nentries,firstentry);
    double neventWOSelection = TrackletTree->Draw("vz[1]",NSDCut,"",nentries,firstentry);
-
+   if (nevent==0) {
+      cout <<"No event survived. Abort."<<endl;
+      return 0;
+   }
+  
    TrackletTree->Project("hnTracklet","mult",evtSelection,"",nentries,firstentry);   
    TrackletTree->Project("hVzNTracklet","vz[1]:mult",evtSelection,"",nentries,firstentry);   
 
@@ -248,8 +254,7 @@ int plotFinalResult(int TrackletType,char* filename,
    cVz->SaveAs(Form("plot/vz/plotVz-%s-%d.gif",myPlotTitle,TrackletType));
    cVz->SaveAs(Form("plot/vz/plotVz-%s-%d.eps",myPlotTitle,TrackletType));
    cVz->SaveAs(Form("plot/vz/plotVz-%s-%d.C",myPlotTitle,TrackletType));
-   cout <<"Number of events: "<<nevent;
-
+   cout <<"Number of events: "<<nevent<<endl;
    // Determine the acceptance region to avoid large correction factors
    double rho2 = 7.6;  // second layer rho (cm)
 
@@ -300,7 +305,7 @@ int plotFinalResult(int TrackletType,char* filename,
    hHadron->Sumw2();
    hHadronWOSelection->Sumw2();
    
-//   TrackletTree->Project("hHadronAccepted","vz[1]:mult:eta","abs(eta)<3"&&evtSelection,"",nentries,firstentry);
+   TrackletTree->Project("hHadronAccepted","vz[1]:mult:eta","abs(eta)<3"&&evtSelection,"",nentries,firstentry);
    hHadronAccepted = (TH3F*) hHadron->Clone();
    hHadronAccepted->SetName("hHadronAccepted");
  
@@ -308,7 +313,7 @@ int plotFinalResult(int TrackletType,char* filename,
    // signal region && evtSelection //
    TrackletTree->Project("hEverything","vz[1]:mult:eta1",signalRegion&&evtSelection,"",nentries,firstentry);
    hEverything->Sumw2();
-   
+
    // deltaPhi sideband region (with eta signal region cut) && evtSelection //
    TrackletTree->Project("hReproducedBackground","vz[1]:mult:eta1",sideBandRegionEtaSignalRegion&&evtSelection,"",nentries,firstentry);   
    hReproducedBackground->Sumw2();
@@ -499,12 +504,14 @@ int plotFinalResult(int TrackletType,char* filename,
 
       // Calculate Xi
       TCanvas *cTriggerCorrection = new TCanvas("cTriggerCorrection","Xi",canvasSizeX,canvasSizeY);
-      TH1F *hdNdetaWithEvtCut = (TH1F*)hHadron->Project3D("x");
+      TH1F *hdNdetaWithEvtCut = new TH1F("hdNdetaWithEvtCut","",nEtaBin,-3,3);
+      TrackletTree->Project("hdNdetaWithEvtCut","eta",evtSelection,"",nentries,firstentry);   
+      int nEvtAfterEvtCut = TrackletTree->Draw("nhit1",evtSelection,"",nentries,firstentry);
       hTriggerCorrection = (TH1F*)hHadronWOSelection->Project3D("x");
       hTriggerCorrection->SetName("hTriggerCorrection");
       hTriggerCorrection->Sumw2();
       hdNdetaWithEvtCut->Sumw2();
-      hdNdetaWithEvtCut->Scale(1./nevent);
+      hdNdetaWithEvtCut->Scale(1./nEvtAfterEvtCut);
       hTriggerCorrection->Scale(1./neventWOSelection);
       hTriggerCorrection->Divide(hdNdetaWithEvtCut);
       hTriggerCorrection->Draw();
@@ -694,7 +701,7 @@ int plotFinalResult(int TrackletType,char* filename,
 	       } else {
 	          alpha = alpha / accData * accMC;
 	          alphaErr = alphaErr / accData * accMC;
-		  cout <<accMC/accData<<endl;
+		  //cout <<accMC/accData<<endl;
 	       }
 	    }
             alphaCode <<"  AlphaTracklets12_->SetBinContent("<<x<<","<<y<<","<<z<<","<<alpha<<");"<<endl;
@@ -709,9 +716,9 @@ int plotFinalResult(int TrackletType,char* filename,
 	          if (alpha!=0) break;
 	       }
 	       if (alpha==0) alpha=1;
-	       cout <<(EtaBins[x]+EtaBins[x-1])/2<<" "<<(TrackletBins[y]+TrackletBins[y-1])/2<<" "<<(VzBins[z]+VzBins[z-1])/2<<"Used "<<alpha<<" "<<endl;
+//	       cout <<(EtaBins[x]+EtaBins[x-1])/2<<" "<<(TrackletBins[y]+TrackletBins[y-1])/2<<" "<<(VzBins[z]+VzBins[z-1])/2<<"Used "<<alpha<<" "<<endl;
 	       
-	       cout <<"Empty!!!"<<endl;
+//	       cout <<"Empty!!!"<<endl;
 	    }
 	    
             
@@ -749,21 +756,21 @@ int plotFinalResult(int TrackletType,char* filename,
    // Plot RawTracklet and Background Tracklet in nTracklet bin
    TCanvas *cRawTrackletnTracklet = new TCanvas("cRawTrackletnTracklet","",canvasSizeX,canvasSizeY);
 
-   TH1D *hMCTruthnTracklet = (TH1D*)hHadronAccepted->Project3D("y");
+   TH1F *hMCTruthnTracklet = (TH1F*)hHadronAccepted->Project3D("y");
    hMCTruthnTracklet->Scale(1./nevent);
    hMCTruthnTracklet->SetXTitle("N_{Hit1}|#eta|<1"); 
-   hMCTruthnTracklet->Draw("hist");
+   if (isMC) hMCTruthnTracklet->Draw("hist");
 
-   TH1D *hRawTrackletnTracklet = (TH1D*)hEverything->Project3D("y");   
+   TH1F *hRawTrackletnTracklet = (TH1F*)hEverything->Project3D("y");   
    hRawTrackletnTracklet->Scale(1./nevent);
    hRawTrackletnTracklet->Draw("same");
-   TH1D *hBackgroundTrackletnTracklet = (TH1D*)hReproducedBackground->Project3D("y");   
+   TH1F *hBackgroundTrackletnTracklet = (TH1F*)hReproducedBackground->Project3D("y");   
    hBackgroundTrackletnTracklet->SetLineColor(2);
    hBackgroundTrackletnTracklet->SetMarkerColor(2);
    hBackgroundTrackletnTracklet->Scale(1./nevent);
 
    hBackgroundTrackletnTracklet->Draw("same");
-   TH1D *hRawMinusBackgroundTrackletnTracklet = (TH1D*)hRawTrackletnTracklet->Clone();
+   TH1F *hRawMinusBackgroundTrackletnTracklet = (TH1F*)hRawTrackletnTracklet->Clone();
    hRawMinusBackgroundTrackletnTracklet->SetLineColor(4);
    hRawMinusBackgroundTrackletnTracklet->SetMarkerColor(4);
    hRawMinusBackgroundTrackletnTracklet->Add(hBackgroundTrackletnTracklet,-1);
@@ -774,21 +781,21 @@ int plotFinalResult(int TrackletType,char* filename,
    // Plot RawTracklet and Background Tracklet in Vz bin
    TCanvas *cRawTrackletVz = new TCanvas("cRawTrackletVz","",canvasSizeX,canvasSizeY);
 
-   TH1D *hMCTruthVz = (TH1D*)hHadronAccepted->Project3D("z");
+   TH1F *hMCTruthVz = (TH1F*)hHadronAccepted->Project3D("z");
    hMCTruthVz->Scale(1./nevent);
    hMCTruthVz->Draw("hist");  
    hMCTruthVz->SetXTitle("V_{z}");
 
-   TH1D *hRawTrackletVz = (TH1D*)hEverything->Project3D("z");   
+   TH1F *hRawTrackletVz = (TH1F*)hEverything->Project3D("z");   
    hRawTrackletVz->Scale(1./nevent);
    hRawTrackletVz->Draw("same");
-   TH1D *hBackgroundTrackletVz = (TH1D*)hReproducedBackground->Project3D("z");   
+   TH1F *hBackgroundTrackletVz = (TH1F*)hReproducedBackground->Project3D("z");   
    hBackgroundTrackletVz->SetLineColor(2);
    hBackgroundTrackletVz->SetMarkerColor(2);
    hBackgroundTrackletVz->Scale(1./nevent);
    hBackgroundTrackletVz->Draw("same");
 
-   TH1D *hRawMinusBackgroundTrackletVz = (TH1D*)hRawTrackletVz->Clone();
+   TH1F *hRawMinusBackgroundTrackletVz = (TH1F*)hRawTrackletVz->Clone();
    hRawMinusBackgroundTrackletVz->SetLineColor(4);
    hRawMinusBackgroundTrackletVz->SetMarkerColor(4);
    hRawMinusBackgroundTrackletVz->Add(hBackgroundTrackletVz,-1);
@@ -799,21 +806,21 @@ int plotFinalResult(int TrackletType,char* filename,
    // Plot RawTracklet and Background Tracklet in eta bin
    TCanvas *cRawTrackletEta = new TCanvas("cRawTrackletEta","",canvasSizeX,canvasSizeY);
 
-   TH1D *hRawTrackletEta = (TH1D*)hEverything->Project3D("x");  
-   TH1D *hMCTruthEta = (TH1D*)hHadronAccepted->Project3D("x");
+   TH1F *hRawTrackletEta = (TH1F*)hEverything->Project3D("x");  
+   TH1F *hMCTruthEta = (TH1F*)hHadronAccepted->Project3D("x");
    hMCTruthEta->Scale(2./nevent);
    hMCTruthEta->SetXTitle("#eta");
    hMCTruthEta->Draw("hist");
  
    hRawTrackletEta->Scale(2./nevent);
    hRawTrackletEta->Draw("same");
-   TH1D *hBackgroundTrackletEta = (TH1D*)hReproducedBackground->Project3D("x");   
+   TH1F *hBackgroundTrackletEta = (TH1F*)hReproducedBackground->Project3D("x");   
    hBackgroundTrackletEta->SetLineColor(2);
    hBackgroundTrackletEta->SetMarkerColor(2);
    hBackgroundTrackletEta->Scale(2./nevent);
    hBackgroundTrackletEta->Draw("same");
 
-   TH1D *hRawMinusBackgroundTrackletEta = (TH1D*)hRawTrackletEta->Clone();
+   TH1F *hRawMinusBackgroundTrackletEta = (TH1F*)hRawTrackletEta->Clone();
    hRawMinusBackgroundTrackletEta->SetLineColor(4);
    hRawMinusBackgroundTrackletEta->SetMarkerColor(4);
    hRawMinusBackgroundTrackletEta->Add(hBackgroundTrackletEta,-1);
@@ -824,11 +831,11 @@ int plotFinalResult(int TrackletType,char* filename,
    // Plot Before Acceptance correction
    TCanvas *cDNdEtaC = new TCanvas("cDNdEtaC","Before Acceptance correction",canvasSizeX,canvasSizeY);
 
-   TH1D *hTruthAccepted = (TH1D*)hHadronAccepted->Project3D("x");
+   TH1F *hTruthAccepted = (TH1F*)hHadronAccepted->Project3D("x");
    hTruthAccepted->SetName("hTruthAccepted");
-   TH1D *hTruthEvtCutCorrectedByXi = (TH1D*)hHadron->Project3D("x");
+   TH1F *hTruthEvtCutCorrectedByXi = (TH1F*)hHadron->Project3D("x");
    hTruthEvtCutCorrectedByXi->SetName("hTruthEvtCutCorrectedByXi");
-   TH1D *hTruth = (TH1D*)hTruthAccepted->Clone();
+   TH1F *hTruth = (TH1F*)hTruthAccepted->Clone();
    hTruth->SetName("hTruth");
    
    hTruth->Sumw2();
@@ -857,7 +864,7 @@ int plotFinalResult(int TrackletType,char* filename,
    hTruth->Divide(hAcceptance->ProjectionX());  // calibrate the acceptance
    hMeasured->Divide(hAcceptance->ProjectionX());  // calibrate the acceptance
      
-   TH1D *hTruthWOSelection = (TH1D*)hHadronWOSelection->Project3D("x");
+   TH1F *hTruthWOSelection = (TH1F*)hHadronWOSelection->Project3D("x");
    hTruthWOSelection->SetName("hTruthWOSelection");
    formatHist(hTruthWOSelection,2,neventWOSelection/nEtaBin*6);
 
@@ -1122,8 +1129,8 @@ int plotFinalResult(int TrackletType,char* filename,
    
 
       TCanvas *cDNdnTracklet = new TCanvas("cDNdnTracklet","Measured vs mult",canvasSizeX,canvasSizeY);     
-      TH1D *hTruthHit = (TH1D*)hHadronAccepted->Project3D("y");
-      TH1D *hMeasuredHit = (TH1D*)hCorrected->Project3D("y"); 
+      TH1F *hTruthHit = (TH1F*)hHadronAccepted->Project3D("y");
+      TH1F *hMeasuredHit = (TH1F*)hCorrected->Project3D("y"); 
       hTruthHit->Sumw2();
       hMeasuredHit->Sumw2();
    
@@ -1137,7 +1144,7 @@ int plotFinalResult(int TrackletType,char* filename,
       cDNdnTracklet->Update();
    
       TCanvas *cRatioTracklet = new TCanvas("cRatioTracklet","Ratio vs mult",canvasSizeX,canvasSizeY);
-      TH1D *hRatioHit = (TH1D*)hMeasuredHit->Clone();
+      TH1F *hRatioHit = (TH1F*)hMeasuredHit->Clone();
       hRatioHit->Divide(hTruthHit);
       hRatioHit->SetXTitle("#eta");
       hRatioHit->SetYTitle("Ratio");

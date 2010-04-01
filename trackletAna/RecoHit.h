@@ -2,6 +2,7 @@
 #include <algorithm>
 #include "Math/Vector3D.h"
 #include <TRandom.h>
+#include <TTree.h>
 
 using namespace std;
 #define maxEntry 2000
@@ -175,12 +176,16 @@ layer, double vx, double vy, double vz, double splitProb = 0, double dropProb = 
 // y0 = 0.162306
 //   ROOT::Math::XYZVector tmpVector(x-0.192372,y-0.162306,z-vz); //refitted
 // Run 124023
-   ROOT::Math::XYZVector tmpVector(x-0.193056,y-0.168689,z-vz); 
+//   ROOT::Math::XYZVector tmpVector(x-0.193056,y-0.168689,z-vz); 
 // Run 124120
 //   ROOT::Math::XYZVector tmpVector(x-0.11811,y-0.0244726,z-vz); //refitted
-   ROOT::Math::XYZVector tmpVector(x-0.205124,y-0.164012,z-vz);
+//   ROOT::Math::XYZVector tmpVector(x-0.205124,y-0.164012,z-vz);
 //   ROOT::Math::XYZVector tmpVector(x,y,z-vz);
 //  ROOT::Math::XYZVector tmpVector(x,y,z-vz);
+// Run 132440
+//   ROOT::Math::XYZVector tmpVector(x-0.09335,y-0.007392,z-vz); //vtx fit ?? (temporarily)
+// MC 7000GeV Frank
+   ROOT::Math::XYZVector tmpVector(x-0.2468185,y-0.3983917,z-vz); //vtx fit ?? (temporarily)
     RecoHit tmpHit(tmpVector.eta(),tmpVector.phi(),tmpVector.rho(),hits[ihit].cs);
     double eta = tmpVector.eta();
 
