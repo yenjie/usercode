@@ -24,8 +24,8 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 			  bool putPixelTree = 0,
 			  bool useKKVertex = 1,
 			  bool useNSD = 0,
-			   bool reWeight = 1,         // reweight to Run 123596 vtx distribution
-			  bool useRandomVertex= 0,
+			   bool reWeight = 0,         // reweight to Run 123596 vtx distribution
+			  bool useRandomVertex= 1,
 			  bool cutOnClusterSize = 0,
 			  bool mimicPixelCounting = 0
 			 )
@@ -168,7 +168,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
        if (reWeight) cout <<"Reweighted!!!!!!!"<<endl;    
     }       
 
-    //if (par.nRun!=124023||(par.nRun==124033&&(par.nLumi<41||par.nLumi>96))) continue;
+//    if (par.nRun!=124023||(par.nRun==124033&&(par.nLumi<41||par.nLumi>96))) continue;
     bool reWeightDropFlag = 0;
     if (reWeight) {
        reWeightDropFlag = 0;
