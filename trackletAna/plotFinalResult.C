@@ -26,7 +26,7 @@
 
 // For plotting
 #include "UA5Plot.h"
-#include "PythiaPlot.h"
+//#include "PythiaPlot.h"
 #include "GraphErrorsBand.h"
 
 #include "selectionCut.h"
@@ -36,7 +36,7 @@
 
 #define plotDEta true
 
-#define dndetaRange 5.5
+#define dndetaRange 7.0
 
 #define SDFactor 1
 
@@ -86,7 +86,7 @@ int plotFinalResult(int TrackletType,char* filename,
 		    int verbose = 0,                                            // Set Verbose level
 		    int makePlot = 0,                                           // make alpha plots
 		    bool putUA5 = 1,                                            // overlap UA5 result
-		    bool putPYTHIA = 0,                                         // put PYTHIA result
+//		    bool putPYTHIA = 0,                                         // put PYTHIA result
 		    bool doAcceptanceCorrection = 1,                            // do acceptance correction
   		    bool doBetaCorrection = 0                                   // do acceptance correction
 		   )
@@ -141,8 +141,8 @@ int plotFinalResult(int TrackletType,char* filename,
 
 
    // Signal and Sideband regions ==================================================================================================
-   double signalRegionCut = 1.5;      //delta phi cut for signal region
-   double sideBandRegionCut = 3.0;    //delta phi cut for sideband
+   double signalRegionCut = 1;      //delta phi cut for signal region
+   double sideBandRegionCut = 2.0;    //delta phi cut for sideband
 
    
    TCut signalRegion                  = Form("abs(dphi)<%f&&abs(deta)<0.1",signalRegionCut);
@@ -672,7 +672,7 @@ int plotFinalResult(int TrackletType,char* filename,
 	    double betaErr = betaPlots[x-1][z-1]->GetBinError(y);
             double alpha,alphaErr;
 	    int y1=y;
-//	    if  (y1>10) y1=10;
+	    if  (y1>10) y1=10;
 	    alpha = alphaPlots[x-1][z-1]->GetBinContent(y1);
             alphaErr = alphaPlots[x-1][z-1]->GetBinError(y1);
 
@@ -1024,12 +1024,14 @@ int plotFinalResult(int TrackletType,char* filename,
       hUA5->Draw("p same");
    }
 
+
    TH1F *hPYTHIA(0);
+/*
    if (putPYTHIA) {
       hPYTHIA = getPythiaD6T();
       hPYTHIA->Draw("hist same");
    }
-
+*/
    TLegend * leg1 = new TLegend(0.30,0.18,1,0.3);
    leg1->SetFillStyle(0);  
    leg1->SetFillColor(0); 
@@ -1037,7 +1039,7 @@ int plotFinalResult(int TrackletType,char* filename,
    //leg1->SetTextSize(0.045);
    leg1->AddEntry(hTruth,Form("%s",myPlotTitle),"");
    leg1->AddEntry(hMeasuredFinal,"Reconstructed","pl");
-   if (putPYTHIA) leg1->AddEntry(hPYTHIA,"PYTHIA 900GeV D6T","l");
+//   if (putPYTHIA) leg1->AddEntry(hPYTHIA,"PYTHIA 900GeV D6T","l");
 
    leg1->Draw();
    
@@ -1069,7 +1071,7 @@ int plotFinalResult(int TrackletType,char* filename,
       TH1F *hUA5 = getUA5NSD();
       hUA5->Draw("p same");
    }
-   if (putPYTHIA) hPYTHIA->Draw("hist same");
+//   if (putPYTHIA) hPYTHIA->Draw("hist same");
    TLegend * leg11 = new TLegend(0.20,0.18,1,0.5);
    leg11->SetFillStyle(0);  
    leg11->SetFillColor(0); 

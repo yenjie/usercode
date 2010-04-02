@@ -92,9 +92,9 @@ uncert = 3.8,int par=0,string title= "")
    h23->SetMarkerStyle(25);
    h23->SetMarkerColor(4);
    h23->SetLineColor(4);
-   h12->SetMarkerSize(1.2);
-   h13->SetMarkerSize(1.2);
-   h23->SetMarkerSize(1.2);
+   h12->SetMarkerSize(1.7);
+   h13->SetMarkerSize(1.7);
+   h23->SetMarkerSize(1.7);
 
  //  double acceptance1[12]={1,1,1,1,1,1,1,1,1,1,1,1};
    double acceptance1[12]={1.14972  ,1.02133,1.01079,0.99826 ,0.989326,0.988454,0.991541,0.993707,0.982555,0.960913,0.9896252,1.01673};

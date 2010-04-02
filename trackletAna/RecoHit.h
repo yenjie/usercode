@@ -221,7 +221,7 @@ cutOnClusterSize = 0, double runNum = 0,double nLumi = 0)
     }
 
    
-    ROOT::Math::XYZVector tmpVector(x-0.2468185,y-0.3983917,z-vz); //vtx fit ?? (temporarily)
+    ROOT::Math::XYZVector tmpVector(x-x0,y-y0,z-vz); //vtx fit ?? (temporarily)
     RecoHit tmpHit(tmpVector.eta(),tmpVector.phi(),tmpVector.rho(),hits[ihit].cs);
     double eta = tmpVector.eta();
 
