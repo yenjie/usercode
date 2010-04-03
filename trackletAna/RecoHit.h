@@ -88,7 +88,7 @@ class TrackletData {
   float eta[maxEntry2],phi[maxEntry2],nhad[12],pt[maxEntry2];
   int chg[maxEntry2],pdg[maxEntry2];
   float pro2;
-  int nTracklet,nhit1,nhit2,mult,nv,npart,evtType,trackletType;
+  int nTracklet,nhit1,nhit2,mult,mult2,nv,npart,evtType,trackletType;
 };
 
 bool compareEta(RecoHit a,RecoHit b) { return a.eta<b.eta;}

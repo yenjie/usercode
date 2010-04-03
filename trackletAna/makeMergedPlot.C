@@ -6,6 +6,7 @@
 #include <fstream.h>
 #include <TNtuple.h>
 #include "UA5Plot.h"
+#include "ResultPlots.h"
 #include "GraphErrorsBand.h"
 #define dndetaRange 7
 

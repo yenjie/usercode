@@ -13,8 +13,13 @@
 #include "TTimeStamp.h"
 using namespace std;
 
-void analyze_trackletTree(char * infile, char * outfile = "output.root", int makeVzCut = 0,
-                          int addL1Bck = 0, int addL2Bck = 0, int addL3Bck = 0, 
+void analyze_trackletTree(char * infile, char * outfile = "output.root", long startEntry = 0, long endEntry = 1000000000,
+                          int addL1Bck = 0, int addL2Bck = 0, int addL3Bck = 0,
+   		          bool reWeight = 1,         // reweight to Run 123596 vtx distribution
+                          bool useRandomVertex= 0,
+			  bool cutOnClusterSize = 1,
+			  bool mimicPixelCounting = 1, 
+			  int makeVzCut = 0,
 			  double splitProb = 0, double dropProb = 0, 
 			  int nPileUp = 0, 
 			  double beamHaloRatio = 0.2,
@@ -23,12 +28,8 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
                           double smearVertex = 0.0,
 			  bool putPixelTree = 0,
 			  bool useKKVertex = 1,
-			  bool useNSD = 0,
-			   bool reWeight = 0,         // reweight to Run 123596 vtx distribution
-			  bool useRandomVertex= 1,
-			  bool cutOnClusterSize = 0,
-			  bool mimicPixelCounting = 0
-			 )
+			  bool useNSD = 0
+			  )
 {
   // Set Random Seed
   TTimeStamp myTime;
@@ -65,6 +66,8 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
   int vertexHitRegion = 500000;
   int nbins = zbins*hitbins;
   double mult = 0;
+  bool isMC = 0;
+  double vzShift = 0;
   
   // Selection on Hits and events =====================================================================
   SelectionCriteria cuts;
@@ -142,6 +145,15 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
   if (addL2Bck!=0) t->Project("hLayer2Hit","phi2:eta2:r2");
   if (addL3Bck!=0) t->Project("hLayer3Hit","phi3:eta3:r3");
 
+  if (t->GetEntries("npart!=0")!=0) {
+     isMC=true;
+     cout <<"This is a Monte Carlo study."<<endl;
+     vzShift = -0.4847;
+     cout <<"vzShift = "<<vzShift<<endl;
+  } else {
+     cout <<"This is a data analysis."<<endl;
+  }
+                                 
   
   // Parameters for the tree =============================================================================
   Parameters par;  
@@ -156,7 +168,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
   int nBeamHalo = 0;
 
   // Main loop ==========================================================================================
-  for(int i =0;  i<t->GetEntries()&&i<10000000 ; i = i + 1 + nPileUp){    
+  for(int i = startEntry;  i<t->GetEntries()&&i<endEntry ; i = i + 1 + nPileUp){    
     t->GetEntry(i);
     if (i % 1000 == 0) {
        cout <<"Run "<<par.nRun<<" Event "<<i<<" "
@@ -188,7 +200,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
        
        // for early data 7000 GeV Run 132440
        double MCPdf = TMath::Gaus(myVz,-0.6536,4.438,1);
-       double DataPdf = TMath::Gaus(myVz,0.3838,2.22,1);
+       double DataPdf = TMath::Gaus(myVz,0.3533-vzShift,2.161,1);
 
 //       double DataPdf = TMath::Gaus(myVz,-0.4623,2.731,1);
        double Ratio = DataPdf / MCPdf;
@@ -376,6 +388,9 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
     vector<RecoHit> layer3;
     prepareHits(layer3,par, cuts, 3, tdata12.vx[1], tdata12.vy[1], tdata12.vz[1], splitProb, dropProb, cutOnClusterSize, par.nRun, par.nLumi);
 
+    vector<RecoHit> layer1Cut;
+    prepareHits(layer1,par, cuts, 1, tdata12.vx[1], tdata12.vy[1], tdata12.vz[1], splitProb, dropProb, 1, par.nRun, par.nLumi);
+
     if (nPileUp!=0) {
        for (int j=1;j <= nPileUp ; j++) {
           t->GetEntry(i+j);
@@ -499,6 +514,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 	}
     }
     tdata12.mult=ntracklet12s-ntracklet12b;
+    tdata12.mult2=layer1Cut.size();
     tdata12.npart=0;
     
     double pro1=0;
@@ -538,6 +554,12 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 
     tdata12.evtType = par.evtType;
     tdata12.pro2 = pro2;
+
+    for (int j=0;j<par.nv;j++)
+    {
+       tdata12.vz[j]+=vzShift;
+    }
+    
     trackletTree12->Fill();
 
     tdata13.nTracklet = recoTracklets13.size();
@@ -593,6 +615,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 	}
     }
     tdata13.mult=ntracklet13s-ntracklet13b;
+    tdata13.mult2=layer1Cut.size();
     tdata13.npart=0;
     
     for (int j=0;j<12;j++) tdata13.nhad[j]=0;
@@ -617,6 +640,12 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 
     tdata13.evtType = par.evtType;
     tdata13.pro2 = pro2;
+
+    for (int j=0;j<par.nv;j++)
+    {
+       tdata13.vz[j]+=vzShift;
+    }
+
     trackletTree13->Fill();
 
     tdata23.nTracklet = recoTracklets23.size();
@@ -672,6 +701,8 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 	}
     }
     tdata23.mult=ntracklet23s-ntracklet23b;
+    tdata23.mult2=layer1Cut.size();
+
     tdata23.npart=0;
     for (int j=0;j<12;j++) tdata23.nhad[j]=0;
 
@@ -695,6 +726,13 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", int mak
 
     tdata23.evtType = par.evtType;
     tdata23.pro2 = pro2;
+
+    for (int j=0;j<par.nv;j++)
+    {
+       tdata23.vz[j]+=vzShift;
+    }
+
+
     trackletTree23->Fill();
   }
 

@@ -18,8 +18,8 @@ void plotClusterCharge(char *infile = "../newUltimateSample/TrackletTree-Run1324
 
    selectionCut myCut(0,0,10000);
    
-   TCut signalRegion   = "abs(deta)<0.1&&abs(dphi)<1&&abs(dphi)<1&&nhit1>25&&nhit1<35";
-   TCut sidebandRegion = "abs(deta)<0.1&&abs(dphi)>1&&abs(dphi)<2&&nhit1>25&&nhit1<35";
+   TCut signalRegion   = "abs(deta)<0.1&&abs(dphi)<1&&abs(dphi)<1&&nhit1>55&&nhit1<65";
+   TCut sidebandRegion = "abs(deta)<0.1&&abs(dphi)>1&&abs(dphi)<2&&nhit1>55&&nhit1<65";
 
    TCanvas *c = new TCanvas("c","",400,400);
 

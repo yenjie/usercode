@@ -86,7 +86,6 @@ int plotFinalResult(int TrackletType,char* filename,
 		    int verbose = 0,                                            // Set Verbose level
 		    int makePlot = 0,                                           // make alpha plots
 		    bool putUA5 = 1,                                            // overlap UA5 result
-//		    bool putPYTHIA = 0,                                         // put PYTHIA result
 		    bool doAcceptanceCorrection = 1,                            // do acceptance correction
   		    bool doBetaCorrection = 0                                   // do acceptance correction
 		   )
@@ -155,7 +154,9 @@ int plotFinalResult(int TrackletType,char* filename,
 
    TCut evtSelection = myCut.Cut;   // cut on Z position 
   // TCut NSDCut = "";
-   TCut NSDCut = "evtType!=92&&evtType!=93"; cout <<"PYTHIA MC NSD definition"<<endl;
+//   TCut NSDCut = "evtType!=92&&evtType!=93"; cout <<"PYTHIA MC NSD definition"<<endl;
+   TCut NSDCut = "1"; cout <<"PYTHIA MC INEL definition"<<endl;
+
 //   TCut NSDCut = "!(evtType!=92&&evtType!=93)"; cout <<"PYTHIA MC SD definition"<<endl; // SD
 //   TCut NSDCut = "evtType!=5&&evtType!=6"; cout <<"PHOJET MC definition"<<endl; // NSD
    if (!isMC) NSDCut="";
@@ -672,7 +673,8 @@ int plotFinalResult(int TrackletType,char* filename,
 	    double betaErr = betaPlots[x-1][z-1]->GetBinError(y);
             double alpha,alphaErr;
 	    int y1=y;
-//	    if  (y1>10) y1=10;
+
+	    if  (y1>10) y1=10;
 	    alpha = alphaPlots[x-1][z-1]->GetBinContent(y1);
             alphaErr = alphaPlots[x-1][z-1]->GetBinError(y1);
 
