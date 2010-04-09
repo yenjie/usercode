@@ -26,6 +26,17 @@ void correctBin(TH1F* h,double* a1,double*a2)
    }
 }
 
+void clearBin0(TH1F* h)
+{
+   for (int i=2;i<=11;i++)
+   {
+      if (h->GetBinContent(i)>0) cout <<i<<" "<<h->GetBinError(i)/h->GetBinContent(i)<<endl;
+      h->SetBinError(i,h->GetBinContent(i)*8/100);
+   }   
+
+}
+
+
 void clearBin(TH1F* h)
 {
    h->SetBinContent(2,0);
@@ -137,6 +148,8 @@ uncert = 3.8,int par=0,string title= "")
    entry=leg->AddEntry("h12","Reconstructed (1st+2nd layers)","pl");
    entry=leg->AddEntry("h13","Reconstructed (1st+3rd layers)","pl");   
    entry=leg->AddEntry("h23","Reconstructed (2nd+3rd layers)","pl");
+   c->SaveAs(Form("merged/%s-%d.gif",title.data(),par));
+
    leg->Draw();   
 
 
@@ -154,6 +167,7 @@ uncert = 3.8,int par=0,string title= "")
       avg += h13->GetBinContent(i);
       avg += h23->GetBinContent(i);
       if (i!=2&&i!=3&&i!=11&&i!=10) avg/=3.0; else avg/=1.0;
+ //     if (i!=2&&i!=11) avg/=3.0; else avg/=1.0;
       double avgErr = avg*uncert/100.;
       
       hAvg->SetBinContent(i,avg);
@@ -189,10 +203,15 @@ uncert = 3.8,int par=0,string title= "")
    leg3->SetFillColor(0);
    leg3->SetFillStyle(0);
    TLegendEntry *entry3=leg3->AddEntry("hTruth",Form("%s",title.data()),"");
-   entry3=leg3->AddEntry(hAvg,"2360 GeV p+p by Tracklet (CMS)","pl");
-   if (UA5>=3) entry3=leg3->AddEntry(hPixelCounting,"2360 GeV p+#bar{p} by Pixel counting(CMS)","pl");
-   if (UA5>=2)  entry3=leg3->AddEntry(hTracklet900GeV,"900 GeV p+p by Tracklet (CMS)","pl");
-   entry3=leg3->AddEntry(hUA5,"900 GeV p+#bar{p} (UA5)","pl");
+   entry3=leg3->AddEntry(hAvg,"7.0 TeV p+p by Tracklet (CMS)","pl");
+   if (UA5>=3) entry3=leg3->AddEntry(hPixelCounting,"2.36 TeV p+#bar{p} by Pixel counting(CMS)","pl");
+   if (UA5>=2)  entry3=leg3->AddEntry(hTracklet900GeV,"0.9 TeV p+p by Tracklet (CMS)","pl");
+   if (UA5!=0) entry3=leg3->AddEntry(hUA5,"0.9 TeV p+#bar{p} (UA5)","pl");
+
+   TH1F *hPixelCounting7TeV = pixelCounting7TeV();  
+   pixelCounting7TeV()->Draw("same");
+   entry3=leg3->AddEntry(hPixelCounting7TeV,"7.0 TeV p+p by PixelCounting (CMS)","pl");
+   
    leg3->Draw();   
 
 
@@ -213,7 +232,9 @@ uncert = 3.8,int par=0,string title= "")
       avg += h12->GetBinContent(13-i);
       avg += h13->GetBinContent(13-i);
       avg += h23->GetBinContent(13-i);
+
       if (i!=2&&i!=3&&i!=11&&i!=10) avg/=6.0; else avg/=2.0;
+//      if (i!=2&&i!=11) avg/=6.0; else avg/=2.0;
       double avgErr = avg*8/100.;
       
       hAvg2->SetBinContent(i,avg);
@@ -270,12 +291,12 @@ uncert = 3.8,int par=0,string title= "")
    TLegendEntry *entry2=leg2->AddEntry("hTruth",Form("%s",title.data()),"");
    entry2=leg2->AddEntry(hAvg2,"7.0 TeV p+p by Tracklet (CMS)","pl");
    entry2=leg2->AddEntry(hTracklet2360GeVHF1,"2.36 TeV p+p by Tracklet (CMS)","pl");
-//   entry2=leg2->AddEntry(hAvg2,"900 GeV p+p by Tracklet HF1(CMS)","pl");
-//   entry2=leg2->AddEntry(hBSC900GeV,"900 GeV p+p by Tracklet BSC(CMS)","pl");
-   entry2=leg2->AddEntry(hHF900GeV,"900 GeV p+p by Tracklet (CMS)","pl");
+//   entry2=leg2->AddEntry(hAvg2,"0.9 TeV p+p by Tracklet HF1(CMS)","pl");
+//   entry2=leg2->AddEntry(hBSC900GeV,"0.9 TeV p+p by Tracklet BSC(CMS)","pl");
+   entry2=leg2->AddEntry(hHF900GeV,"0.9 TeV p+p by Tracklet (CMS)","pl");
    //entry2=leg2->AddEntry(hAvg2,"Run 124023 p+p by Tracklet (CMS)","pl");
    //entry2=leg2->AddEntry(hTracklet900GeV,"Run 123596 p+p by Tracklet (CMS)","pl");
-   //if (UA5) entry2=leg2->AddEntry(hUA5,"900 GeV p+#bar{p} (UA5)","pl");
+   //if (UA5) entry2=leg2->AddEntry(hUA5,"0.9 TeV p+#bar{p} (UA5)","pl");
    leg2->Draw();   
 
 

@@ -81,20 +81,24 @@ int plotFinalResult(int TrackletType,char* filename,
 		    string correctionName = "Official",                         // Correction file name
 		    Long64_t nentries = 1000000000,                             // Number of entries
 		    Long64_t firstentry = 0,                                    // First Entry
-		    int LumiL = 69,                                             // nLumi Lower cut
-		    int LumiH = 144,                                            // nLumi Higher cut
+		    int LumiL = 0,                                             // nLumi Lower cut
+		    int LumiH = 1000,                                            // nLumi Higher cut
 		    int verbose = 0,                                            // Set Verbose level
 		    int makePlot = 0,                                           // make alpha plots
 		    bool putUA5 = 1,                                            // overlap UA5 result
-		    bool doAcceptanceCorrection = 1,                            // do acceptance correction
-  		    bool doBetaCorrection = 0                                   // do acceptance correction
+		    bool doAcceptanceCorrection = 0,                            // do acceptance correction
+  		    bool doBetaCorrection = 0,                                  // do acceptance correction
+		    int doMult2 = 0,                                           // use # of cluster in the first layer
+		    bool doTriggerCorrection = 1,                                // correction on trigger eff
+                    bool UseD6T = 0   
 		   )
 {
+
+   // output log file:
    FILE *logFile = fopen("correction.log","w");
-   
    TFile *f= new TFile(filename);
    
-   
+   // Input trackletTree   
    TTree * TrackletTree= dynamic_cast<TTree*>(f->Get(Form("TrackletTree%d",TrackletType)));
    TrackletTree->SetName("TrackletTree");
    bool isMC = false;
@@ -106,14 +110,30 @@ int plotFinalResult(int TrackletType,char* filename,
       cout <<"This is a data analysis."<<endl;
    }
    
+   if (!doTriggerCorrection) {
+      cout <<"Trigger correction off!!!"<<endl;
+   }
+   
+   // choose multiplcity handle
+   char *multiplicity;
+   if (doMult2==1) {
+      multiplicity = "mult2";   // use # of cluster
+      cout <<"Use # of clusters as event multiplicity"<<endl;
+   } else if (doMult2==2){
+      multiplicity = "nTracklets";    // use # of Background subtracted tracklets
+      cout <<"Use # of tracklets as event multiplicity"<<endl;
+   } else {
+      multiplicity = "mult";    // use # of Background subtracted tracklets
+      cout <<"Use # of tracklets after background subtraction as event multiplicity"<<endl;
+   }
+      
    // Read alpha, beta, geometry correction from file.
    TFile *fCorrection;
    TFile *fAcceptance;
    if (useCorrectionFile) fCorrection = getCorrectionFile(correctionName,TrackletType);
    if (useCorrectionFile&&doAcceptanceCorrection) fAcceptance = getAcceptanceFile(TrackletType);
    
-   TFile *fCorrectionPhojet = new TFile("correction/correction-12-Phojet-2360GeV-HF1.root");
-   int usePHOJET = 0;   
+   TFile *fCorrectionD6T = new TFile(Form("correction/correction-%d-D6T-7TeV-HF1.root",TrackletType));
    
    TH3F *hAlphaA;
    TH3F *hAlphaB;
@@ -126,12 +146,14 @@ int plotFinalResult(int TrackletType,char* filename,
 
    // Definition of Vz, Eta, Hit bins
    selectionCut myCut(isMC,LumiL,LumiH);
-   const int nTrackletBin =14;// myCut.nTrackletBin;
+   const int nTrackletBin =20;// myCut.nTrackletBin;
    const int nEtaBin =12;// myCut.nEtaBin;
    const int nVzBin  =20;// myCut.nVzBin;
    int VzRangeL =myCut.VzRangeL;
    int VzRangeH =myCut.VzRangeH;
-   double TrackletBins[nTrackletBin+1] = {-5,2,4,6,8,10,15,20,25,30,35,40,45,50,300};
+//   double TrackletBins[nTrackletBin+1] = {-5,2,4,6,8,10,15,20,25,30,35,40,45,50,300};
+
+   double TrackletBins[nTrackletBin+1] = {-5,1,2,3,4,5,6,7,8,9,10,15,20,25,30,35,40,45,50,70,300};
    double EtaBins[nEtaBin+1];
    double VzBins[nVzBin+1];
    
@@ -140,22 +162,22 @@ int plotFinalResult(int TrackletType,char* filename,
 
 
    // Signal and Sideband regions ==================================================================================================
-   double signalRegionCut = 1;      //delta phi cut for signal region
+   double signalRegionCut = 1.0;      //delta phi cut for signal region
    double sideBandRegionCut = 2.0;    //delta phi cut for sideband
-
+   double detaCut = 0.1;              //delta eta cut
    
-   TCut signalRegion                  = Form("abs(dphi)<%f&&abs(deta)<0.1",signalRegionCut);
-   TCut signalRegionInEta             = Form("abs(dphi)<%f&&abs(deta)<0.1",signalRegionCut);
+   TCut signalRegion                  = Form("abs(dphi)<%f&&abs(deta)<%f",signalRegionCut,detaCut);
+   TCut signalRegionInEta             = Form("abs(dphi)<%f&&abs(deta)<%f",signalRegionCut,detaCut);
    TCut signalRegionInPhi             = Form("abs(dphi)<%f",signalRegionCut);
    TCut sideBandRegionInPhi           = Form("abs(dphi)>%f&&abs(dphi)<%f",signalRegionCut,sideBandRegionCut);
-   TCut sideBandRegion                =  Form("abs(dphi)>%f&&abs(dphi)<%f&&abs(deta)<0.1",signalRegionCut,sideBandRegionCut);
+   TCut sideBandRegion                =  Form("abs(dphi)>%f&&abs(dphi)<%f&&abs(deta)<%f",signalRegionCut,sideBandRegionCut,detaCut);
    TCut sideBandRegionEta          = Form("abs(dphi)>%f&&abs(dphi)<%f&&abs(deta)>1",signalRegionCut,sideBandRegionCut);
-   TCut sideBandRegionEtaSignalRegion = Form("abs(dphi)>%f&&abs(dphi)<%f&&abs(deta)<0.1",signalRegionCut,sideBandRegionCut);
+   TCut sideBandRegionEtaSignalRegion = Form("abs(dphi)>%f&&abs(dphi)<%f&&abs(deta)<%f",signalRegionCut,sideBandRegionCut,detaCut);
 
    TCut evtSelection = myCut.Cut;   // cut on Z position 
   // TCut NSDCut = "";
-//   TCut NSDCut = "evtType!=92&&evtType!=93"; cout <<"PYTHIA MC NSD definition"<<endl;
-   TCut NSDCut = "1"; cout <<"PYTHIA MC INEL definition"<<endl;
+   TCut NSDCut = "evtType!=92&&evtType!=93"; cout <<"PYTHIA MC NSD definition"<<endl;
+//   TCut NSDCut = "1"; cout <<"PYTHIA MC INEL definition"<<endl;
 
 //   TCut NSDCut = "!(evtType!=92&&evtType!=93)"; cout <<"PYTHIA MC SD definition"<<endl; // SD
 //   TCut NSDCut = "evtType!=5&&evtType!=6"; cout <<"PHOJET MC definition"<<endl; // NSD
@@ -243,8 +265,8 @@ int plotFinalResult(int TrackletType,char* filename,
       return 0;
    }
   
-   TrackletTree->Project("hnTracklet","mult",evtSelection,"",nentries,firstentry);   
-   TrackletTree->Project("hVzNTracklet","vz[1]:mult",evtSelection,"",nentries,firstentry);   
+   TrackletTree->Project("hnTracklet",Form("%s",multiplicity),evtSelection,"",nentries,firstentry);   
+   TrackletTree->Project("hVzNTracklet",Form("vz[1]:%s",multiplicity),evtSelection,"",nentries,firstentry);   
 
    TrackletTree->Project("hVz","vz[1]",evtSelection,"",nentries,firstentry);   
    hVz->Sumw2();
@@ -301,22 +323,22 @@ int plotFinalResult(int TrackletType,char* filename,
    hHadron->SetXTitle("#eta");
    hHadron->SetYTitle("N_{hit}^{Layer1} |#eta|<1");
    
-   TrackletTree->Project("hHadron","vz[1]:mult:eta","abs(eta)<3"&&evtSelection,"",nentries,firstentry);
-   TrackletTree->Project("hHadronWOSelection","vz[1]:mult:eta","abs(eta)<3"&&NSDCut,"",nentries,firstentry);
+   TrackletTree->Project("hHadron",Form("vz[1]:%s:eta",multiplicity),"abs(eta)<3"&&evtSelection,"",nentries,firstentry);
+   TrackletTree->Project("hHadronWOSelection",Form("vz[1]:%s:eta",multiplicity),"abs(eta)<3"&&NSDCut,"",nentries,firstentry);
    hHadron->Sumw2();
    hHadronWOSelection->Sumw2();
    
-   TrackletTree->Project("hHadronAccepted","vz[1]:mult:eta","abs(eta)<3"&&evtSelection,"",nentries,firstentry);
+   TrackletTree->Project("hHadronAccepted",Form("vz[1]:%s:eta",multiplicity),"abs(eta)<3"&&evtSelection,"",nentries,firstentry);
    hHadronAccepted = (TH3F*) hHadron->Clone();
    hHadronAccepted->SetName("hHadronAccepted");
  
    // Prepare Tracklet Three-Dimensional Histogram ================================================================================
    // signal region && evtSelection //
-   TrackletTree->Project("hEverything","vz[1]:mult:eta1",signalRegion&&evtSelection,"",nentries,firstentry);
+   TrackletTree->Project("hEverything",Form("vz[1]:%s:eta1",multiplicity),signalRegion&&evtSelection,"",nentries,firstentry);
    hEverything->Sumw2();
 
    // deltaPhi sideband region (with eta signal region cut) && evtSelection //
-   TrackletTree->Project("hReproducedBackground","vz[1]:mult:eta1",sideBandRegionEtaSignalRegion&&evtSelection,"",nentries,firstentry);   
+   TrackletTree->Project("hReproducedBackground",Form("vz[1]:%s:eta1",multiplicity),sideBandRegionEtaSignalRegion&&evtSelection,"",nentries,firstentry);   
    hReproducedBackground->Sumw2();
 
    // Read Acceptance ==================================================================================================
@@ -429,13 +451,13 @@ int plotFinalResult(int TrackletType,char* filename,
          }
       }
       hTruthRatio = (TH1F*) fCorrection->FindObjectAny("hTruthRatio");
-      if (usePHOJET==0) hTrigEff = (TH1F*) fCorrection->FindObjectAny("hTrigEff");  else  hTrigEff = (TH1F*) fCorrectionPhojet->FindObjectAny("hTrigEff");
+      if (UseD6T==0) hTrigEff = (TH1F*) fCorrection->FindObjectAny("hTrigEff");  else  hTrigEff = (TH1F*) fCorrectionD6T->FindObjectAny("hTrigEff");
 
-      if (usePHOJET==0) hSDFrac = (TH1F*) fCorrection->FindObjectAny("hSDFrac"); else hSDFrac = (TH1F*) fCorrectionPhojet->FindObjectAny("hSDFrac"); 
+      if (UseD6T==0) hSDFrac = (TH1F*) fCorrection->FindObjectAny("hSDFrac"); else hSDFrac = (TH1F*) fCorrectionD6T->FindObjectAny("hSDFrac"); 
       TCanvas *cSDFrac = new TCanvas("cSDFrac","SD Fraction After Cut",canvasSizeX,canvasSizeY);
       hSDFrac->Draw();
       cSDFrac->Update();
-      hEmptyEvtCorrection = (TH1F*) fCorrection->FindObjectAny("hEmptyEvtCorrection");
+      if (UseD6T==0) hEmptyEvtCorrection = (TH1F*) fCorrection->FindObjectAny("hEmptyEvtCorrection"); else hEmptyEvtCorrection = (TH1F*) fCorrectionD6T->FindObjectAny("hEmptyEvtCorrection");
    } else {
       for (int j=0;j<nVzBin;j++) 
       {
@@ -464,8 +486,8 @@ int plotFinalResult(int TrackletType,char* filename,
 
       // vtx and event selection efficiency
       TCanvas *cTrigEff = new TCanvas("cTrigEff","TrigEff",canvasSizeX,canvasSizeY);
-      TrackletTree->Project("hTrigEff","mult",TCut(myCut.evtSelection)&&"vz[1]>-99"&&NSDCut,"",nentries,firstentry);   
-      TrackletTree->Project("hTrigEffNoCut","mult",NSDCut&&"vz[1]>-99","",nentries,firstentry);   
+      TrackletTree->Project("hTrigEff",Form("%s",multiplicity),TCut(myCut.evtSelection)&&"vz[1]>-99"&&NSDCut,"",nentries,firstentry);   
+      TrackletTree->Project("hTrigEffNoCut",Form("%s",multiplicity),NSDCut&&"vz[1]>-99","",nentries,firstentry);   
       hTrigEff->Sumw2();
       hTrigEffNoCut->Sumw2();
       hTrigEff->Divide(hTrigEffNoCut);
@@ -474,8 +496,8 @@ int plotFinalResult(int TrackletType,char* filename,
 
       // Calculate SD'/IN'
       TCanvas *cSDFrac = new TCanvas("cSDFrac","SD Fraction After Cut",canvasSizeX,canvasSizeY);
-      TrackletTree->Project("hSDFrac","mult",evtSelection&&!(NSDCut),"",nentries,firstentry);   
-      TrackletTree->Project("hSD","mult",evtSelection,"",nentries,firstentry);   
+      TrackletTree->Project("hSDFrac",Form("%s",multiplicity),evtSelection&&!(NSDCut),"",nentries,firstentry);   
+      TrackletTree->Project("hSD",Form("%s",multiplicity),evtSelection,"",nentries,firstentry);   
       hSDFrac->Sumw2();
       hSD->Sumw2();
       hSDFrac->Divide(hSD);
@@ -523,7 +545,7 @@ int plotFinalResult(int TrackletType,char* filename,
       hEmptyEvtCorrection = new TH1F("hEmptyEvtCorrection","",1,0,2);
       TH1F *hNonEmptyEvt = new TH1F("hNonEmptyEvt","",1,0,2);
       TrackletTree->Project("hEmptyEvtCorrection","1",NSDCut,"",nentries,firstentry);   
-      TrackletTree->Project("hNonEmptyEvt","1",NSDCut&&"mult>0","",nentries,firstentry);   
+      TrackletTree->Project("hNonEmptyEvt","1",NSDCut&&Form("%s>0",multiplicity),"",nentries,firstentry);   
       hEmptyEvtCorrection->Sumw2();
       hNonEmptyEvt->Sumw2();
       hEmptyEvtCorrection->Divide(hNonEmptyEvt);
@@ -674,7 +696,9 @@ int plotFinalResult(int TrackletType,char* filename,
             double alpha,alphaErr;
 	    int y1=y;
 
-	    if  (y1>10) y1=10;
+
+//	    if  (y1>10) y1=10;
+	    if  (y1>17) y1=17;
 	    alpha = alphaPlots[x-1][z-1]->GetBinContent(y1);
             alphaErr = alphaPlots[x-1][z-1]->GetBinError(y1);
 
@@ -710,8 +734,9 @@ int plotFinalResult(int TrackletType,char* filename,
 
             // use extrapolated value if alpha is not available
  	    
-   	    if (alpha==0) {
 
+            if (alpha==0&&fAlpha[x-1][z-1]!=0)   alpha = fAlpha[x-1][z-1]->Eval(TrackletBins[y]);
+   	    if (alpha==0) {
 	       for (int  k=0;k<y;k++) {
 	          alpha = alphaPlots[x-1][z-1]->GetBinContent(y-k);
                   alphaErr = alphaPlots[x-1][z-1]->GetBinError(y-k);
@@ -905,6 +930,11 @@ int plotFinalResult(int TrackletType,char* filename,
    { 
       double SDFrac = hSDFrac->GetBinContent(y);
       double TrigEff = hTrigEff->GetBinContent(y);
+      
+      if (!doTriggerCorrection) {
+         SDFrac=0;
+	 TrigEff=1;
+      }
       if (TrigEff!=0) nEvt += hnTracklet->GetBinContent(y)/TrigEff*(1-SDFrac*SDFactor); 
       for (int x=1;x<=nEtaBin;x++) {
          for (int z=1;z<=nVzBin;z++) {
@@ -925,6 +955,11 @@ int plotFinalResult(int TrackletType,char* filename,
       for (int y=1;y<=nTrackletBin;y++) {
          double TrigEff = hTrigEff->GetBinContent(y);
          double SDFrac = hSDFrac->GetBinContent(y);
+         if (!doTriggerCorrection) {
+            SDFrac=0; 
+   	    TrigEff=1;
+         }
+
          if (TrigEff!=0) {
 	    hMeasuredEtanTracklet->SetBinContent(x,y,hMeasuredEtanTracklet->GetBinContent(x,y)/ TrigEff*(1-SDFrac*SDFactor));
 	    hMeasuredEtanTracklet->SetBinError(x,y,hMeasuredEtanTracklet->GetBinError(x,y)/ TrigEff*(1-SDFrac*SDFactor));
@@ -978,7 +1013,8 @@ int plotFinalResult(int TrackletType,char* filename,
    hMeasuredFinal->SetMarkerStyle(20);
    
    for (int x=1;x<nEtaBin;x++){
-      double emptyCorrection = hEmptyEvtCorrection->GetBinContent(x);
+      double emptyCorrection = (hEmptyEvtCorrection->GetBinContent(6)+hEmptyEvtCorrection->GetBinContent(7))/2;
+      if (!doTriggerCorrection) emptyCorrection = 1;
       double val = hMeasuredFinal->GetBinContent(x)*emptyCorrection;
       double valerr = hMeasuredFinal->GetBinError(x)*emptyCorrection;
       

@@ -15,17 +15,17 @@ using namespace std;
 
 void analyze_trackletTree(char * infile, char * outfile = "output.root", long startEntry = 0, long endEntry = 1000000000,
                           int addL1Bck = 0, int addL2Bck = 0, int addL3Bck = 0,
-   		          bool reWeight = 1,         // reweight to Run 123596 vtx distribution
+   		          bool reWeight = 0,         // reweight to Run 123596 vtx distribution
                           bool useRandomVertex= 0,
-			  bool cutOnClusterSize = 1,
-			  bool mimicPixelCounting = 1, 
+			  bool cutOnClusterSize = 0,
+			  bool mimicPixelCounting = 0, 
 			  int makeVzCut = 0,
 			  double splitProb = 0, double dropProb = 0, 
 			  int nPileUp = 0, 
 			  double beamHaloRatio = 0.2,
 			  bool putBeamHalo = false, char * beamHaloFile =
     			             "DataSample/PixelTree-Run123151-Full.root",
-                          double smearVertex = 0.0,
+                          double smearVertex = 0,
 			  bool putPixelTree = 0,
 			  bool useKKVertex = 1,
 			  bool useNSD = 0
@@ -141,17 +141,23 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", long st
   TH3D* hLayer3Hit = new TH3D("hLayer3Hit","",75,0,15,60,-3,3,64,-3.2,3.2);
 
   // Prepare hit spectra for random hit 
+  cout <<"Projecting...1"<<endl;
   if (addL1Bck!=0) t->Project("hLayer1Hit","phi1:eta1:r1");
+  cout <<"Projecting...2"<<endl;
   if (addL2Bck!=0) t->Project("hLayer2Hit","phi2:eta2:r2");
+  cout <<"Projecting...3"<<endl;
   if (addL3Bck!=0) t->Project("hLayer3Hit","phi3:eta3:r3");
+  cout <<"Projecting...done"<<endl;
 
-  if (t->GetEntries("npart!=0")!=0) {
+  if (t->FindBranch("npart")!=0) {
+     
      isMC=true;
      cout <<"This is a Monte Carlo study."<<endl;
      vzShift = -0.4847;
      cout <<"vzShift = "<<vzShift<<endl;
   } else {
      cout <<"This is a data analysis."<<endl;
+     smearVertex = 0;
   }
                                  
   
@@ -266,8 +272,21 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", long st
     tdata13.vz[0] = par.vz[0];
     
     // add background 
+    
+    int bckHits=0;
+    if (addL1Bck!=0||addL2Bck!=0||addL3Bck!=0){
+       TF1 *fBck = new TF1("fBck","-0.00478376+0.000435517*x",0,1000);
+       double val = fBck->Eval(par.nhits1)*2;
+       for (int i = 0; i<par.nhits1;i++) {
+          if (gRandom->Rndm()<val) {
+	     bckHits++;
+	  }
+       }
+       delete fBck;
+    }
+           
     if (addL1Bck!=0) {
-       int bckHits = (int) (addL1Bck*gRandom->Rndm()+0.5);
+       
        for (int i = par.nhits1; i < par.nhits1+bckHits; i++) {
           double eta, phi, r;
 	  hLayer1Hit->GetRandom3(r,eta,phi);
@@ -279,7 +298,8 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", long st
     }
 
     if (addL2Bck!=0) {
-       int bckHits = (int) (addL2Bck*gRandom->Rndm()+0.5);
+       //int bckHits = (int) (addL2Bck*gRandom->Rndm()+0.5);
+       
        for (int i = par.nhits2; i < par.nhits2+bckHits; i++) {
           double eta, phi, r;
 	  hLayer2Hit->GetRandom3(r,eta,phi);
@@ -290,7 +310,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", long st
        par.nhits2+=bckHits;
     }
     if (addL3Bck!=0) {
-       int bckHits = (int) (addL3Bck*gRandom->Rndm()+0.5);
+       //int bckHits = (int) (addL3Bck*gRandom->Rndm()+0.5);
        for (int i = par.nhits3; i < par.nhits3+bckHits; i++) {
           double eta, phi, r;
 	  hLayer3Hit->GetRandom3(r,eta,phi);
@@ -389,7 +409,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", long st
     prepareHits(layer3,par, cuts, 3, tdata12.vx[1], tdata12.vy[1], tdata12.vz[1], splitProb, dropProb, cutOnClusterSize, par.nRun, par.nLumi);
 
     vector<RecoHit> layer1Cut;
-    prepareHits(layer1,par, cuts, 1, tdata12.vx[1], tdata12.vy[1], tdata12.vz[1], splitProb, dropProb, 1, par.nRun, par.nLumi);
+    prepareHits(layer1Cut,par, cuts, 1, tdata12.vx[1], tdata12.vy[1], tdata12.vz[1], splitProb, dropProb, 1, par.nRun, par.nLumi);
 
     if (nPileUp!=0) {
        for (int j=1;j <= nPileUp ; j++) {

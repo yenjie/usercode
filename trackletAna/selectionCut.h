@@ -32,8 +32,12 @@ selectionCut::selectionCut(bool isMC,int nLumiL, int nLumiH)
 //   evtSelection      = ("(nHFp>=1&&nHFn==0)&&l1TBit[34]!=0&&l1TBit[36]!=1&&l1TBit[37]!=1&&l1TBit[38]!=1&&l1TBit[39]!=1");
 //   evtSelection      = ("(nHFn>=1&&nHFp==0)&&l1TBit[34]!=0&&l1TBit[36]!=1&&l1TBit[37]!=1&&l1TBit[38]!=1&&l1TBit[39]!=1");
 
-   if (!isMC) evtSelection += Form("&&nLumi>=%d&&nLumi<=%d&&l1ABit[0]==1&&l1ABit[82]==1",nLumiL,nLumiH);
-
+//   if (!isMC) evtSelection += Form("&&nLumi>=%d&&nLumi<=%d&&l1ABit[0]==1&&l1ABit[82]==1",nLumiL,nLumiH);
+   if (!isMC) {
+      evtSelection += Form("&&mult2>=%d&&mult2<=%d&&l1ABit[0]==1&&l1ABit[82]==1",nLumiL,nLumiH); 
+      cout <<"Selection on mult2 mode!"<<endl;
+   }
+     
    CutWOVtxCut = TCut(evtSelection);
    myCut = vtxCut + "&&" + evtSelection;
 

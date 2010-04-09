@@ -3,6 +3,7 @@
 #include "Math/Vector3D.h"
 #include <TRandom.h>
 #include <TTree.h>
+#include <TMath.h>
 
 using namespace std;
 #define maxEntry 2000
@@ -105,6 +106,52 @@ cutOnClusterSize = 0, double runNum = 0,double nLumi = 0)
   vector<RecoHit> hits;
   static Bool_t firstCall = 0;
   
+  double smearX=0,smearY=0;
+  /*
+  while (smearX!=0) {
+   double x = gRandom->Rndm()*2-1;
+     if (gRandom->Rndm()<TMath::Gaus(x,0,0.01,1)) {
+        smearX = x;
+     }
+  }
+
+  while (smearY!=0) {
+   double x = gRandom->Rndm()*2-1;
+     if (gRandom->Rndm()<TMath::Gaus(x,0,0.01,1)) {
+        smearY = x;
+     }
+  }
+  */
+  double x0,y0;
+
+  // The beamspot for each run
+  if (runNum == 123596) {
+     x0 = 0.174562;
+     y0 = 0.144887;
+  } else if (runNum == 124022||runNum == 124024) { // rough value
+     x0 = 0.193056;
+     y0 = 0.168689;
+  } else if (runNum == 124023) { 
+     x0 = 0.193056;
+     y0 = 0.168689;
+  } else if (runNum == 124120) {
+     x0 = 0.205124;
+     y0 = 0.164012;
+  } else if (runNum == 132422) { // no info
+     x0 = 0;
+     y0 = 0;
+  } else if (runNum == 132440) { // varying
+     x0 = 0.09419;// + nLumi*6.033e-7;
+     y0 = 0.007286;// - nLumi*3.087e-6;
+  } else {
+     //x0 = 0.2468185+smearX;
+     //y0 = 0.3983917+smearY;
+     x0 = 0.2417+smearX;
+     y0 = 0.3855+smearY;
+  }
+
+
+  
   if (layer == 1) {
     for(int ihit = 0; ihit < par.nhits1; ++ihit){
       // Reject
@@ -189,31 +236,6 @@ cutOnClusterSize = 0, double runNum = 0,double nLumi = 0)
 // MC 7000GeV Frank
 //   ROOT::Math::XYZVector tmpVector(x-0.2468185,y-0.3983917,z-vz); //vtx fit ?? (temporarily)
 
-    double x0,y0;
-
-    
-    if (runNum == 123596) {
-       x0 = 0.174562;
-       y0 = 0.144887;
-    } else if (runNum == 124022||runNum == 124024) { // rough value
-       x0 = 0.193056;
-       y0 = 0.168689;
-    } else if (runNum == 124023) { 
-       x0 = 0.193056;
-       y0 = 0.168689;
-    } else if (runNum == 124120) {
-       x0 = 0.205124;
-       y0 = 0.164012;
-    } else if (runNum == 132422) { // no info
-       x0 = 0;
-       y0 = 0;
-    } else if (runNum == 132440) { // varying
-       x0 = 0.09362 + nLumi*6.033e-7;
-       y0 = 0.006874 - nLumi*3.087e-6;
-    } else {
-       x0 = 0.2468185;
-       y0 = 0.3983917;
-    }
 
     if (vz!=0&&firstCall==0) {
        cout << "Beamspot X0 = "<<x0<<" Y0 = "<<y0<<endl;

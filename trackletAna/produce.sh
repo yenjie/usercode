@@ -49,9 +49,5 @@ mimicPixelCounting=0
 fi
 
 
-
-
-
-
-root -l "analyze_trackletTree.C+(\"$infile\",\"$outfile\",$startEntry,$endEntry,$addL1Bck,$addL2Bck,$addL3Bck,$reWeight,$useRandomVertex,$cutOnClusterSize,$mimicPixelCounting)"
+root -l -q "analyze_trackletTree.C+(\"$infile\",\"$outfile\",$startEntry,$endEntry,$addL1Bck,$addL2Bck,$addL3Bck,$reWeight,$useRandomVertex,$cutOnClusterSize,$mimicPixelCounting)"
 

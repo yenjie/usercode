@@ -436,7 +436,7 @@ void setTrackletTreeBranch(TTree* trackletTree,TrackletData &tdata)
   trackletTree->Branch("nhit1",&tdata.nhit1,"nhit1/I");
   trackletTree->Branch("nhit2",&tdata.nhit2,"nhit2/I");
   trackletTree->Branch("mult",&tdata.mult,"mult/I");
-  trackletTree->Branch("mult2",&tdata.mult2,"mult/I");
+  trackletTree->Branch("mult2",&tdata.mult2,"mult2/I");
   trackletTree->Branch("nv",&tdata.nv,"nv/I");
   trackletTree->Branch("vx",tdata.vx,"vx[nv]/F");
   trackletTree->Branch("vy",tdata.vy,"vy[nv]/F");
@@ -471,3 +471,4 @@ void setTrackletTreeBranch(TTree* trackletTree,TrackletData &tdata)
   trackletTree->SetAlias("y1","r1*sin(phi1)");
   trackletTree->SetAlias("y2","r2*sin(phi2)");
 }
+
