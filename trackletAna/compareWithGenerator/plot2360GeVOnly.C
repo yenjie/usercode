@@ -599,4 +599,7 @@
    MyCanvas->Modified();
    MyCanvas->cd();
    MyCanvas->SetSelected(MyCanvas);
+   MyCanvas->SaveAs("CompareWithPythia-2360GeV.C");
+   MyCanvas->SaveAs("CompareWithPythia-2360GeV.gif");
+   MyCanvas->SaveAs("CompareWithPythia-2360GeV.eps");
 }
