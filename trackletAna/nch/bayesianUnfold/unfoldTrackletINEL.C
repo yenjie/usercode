@@ -83,7 +83,7 @@ void unfoldTracklet(int trackletType = 12,
   selectionCut dataCut(1);
 
   TCut nonZeroCut = "";//Form("%s>0",varT);
-  TCut NSDCut = "(evtType!=92&&evtType!=93)";
+  TCut NSDCut = "";//"(evtType!=92&&evtType!=93)";
 
   // prepare histograms
 //  if (useCorrectionFile=="") {  
@@ -219,8 +219,8 @@ void unfoldTracklet(int trackletType = 12,
   hReco->SetMarkerStyle(4);
   hReco->SetMarkerSize(0.5);
   hReco->Scale(1./nevtScaled);
-//  hReco->Scale(1./(1.-hReco->Integral(0,11)));
-//  hReco->SetBinContent(11,0);
+  hReco->Scale(1./(1.-hReco->Integral(0,11)));
+  hReco->SetBinContent(11,0);
   hReco->Draw("");
 
 

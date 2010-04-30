@@ -186,7 +186,7 @@ int bayesianUnfold::doUnfolding()
       hUnfolded->SetBinError(t,sqrt(bErr));
    }
 
-   for (int t=1;t<=nBinsT;t++) {
+   for (int t=11;t<=nBinsT;t++) {
       double b = hUnfolded->GetBinContent(t);
       double bM = hUnfolded->GetBinContent(t-1);
       double bP = hUnfolded->GetBinContent(t+1);
@@ -202,6 +202,7 @@ int bayesianUnfold::doUnfolding()
       for (int t=1;t<=nBinsT;t++) {
          sum += hPrior->GetBinContent(t)*hConvMatrix->GetBinContent(t,m);
 	 //cout <<sum<<endl;
+	 //hResMatrix->SetBinContent(t,m,hSmearMatrix->GetBinContent(t,m))
       }
       hReproduced->SetBinContent(m,sum);      
    }
