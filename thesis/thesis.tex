@@ -1,0 +1,230 @@
+% koma-script manual at koma-script/scrguien.pdf
+%\documentclass[letterpaper,BCOR2.0cm,DIV14,twoside,1
+%2pt,abstracton,smallheadings,cleardoubleempty,
+%openright,pagesize,abstractoff,bibtotoc]{scrreprt}			
+
+\documentclass[letterpaper,twoside,12pt,cleardoubleempty,openright,pagesize,abstractoff,bibtotoc]{scrreprt}
+\addtocounter{secnumdepth}{1}
+\usepackage{setspace}
+\usepackage{textcomp}
+%\usepackage{mathptmx}
+\usepackage[adobe-utopia,sfscaled=true]{mathdesign}
+%\usepackage[scaled=0.92]{helvet}
+\usepackage{helvet}
+\usepackage{courier}
+\usepackage{amsmath}
+\usepackage{floatflt}
+\usepackage{tabularx,multirow}
+\usepackage[square,numbers,sort&compress,nonamebreak]{natbib}
+\usepackage{hypernat}
+\usepackage[linkbordercolor={0 .5 0},
+            citebordercolor={.8 0 0},
+            urlbordercolor={0 0 .5},
+            raiselinks=true,
+            pdfborder={0 0 1 [2]}]{hyperref}
+\usepackage{doc}
+\usepackage{url}
+\usepackage[tight]{subfigure}
+\usepackage[printonlyused,smaller]{acronym}
+\usepackage{fancyvrb}
+\usepackage{arydshln}
+\usepackage{feynmf}		%Package for feynman diagrams. 	
+
+% final?
+\newif\iffinal
+\finaltrue
+
+% abstract?
+\newif\ifabstract
+\abstracttrue
+
+% index?
+\newif\ifindex
+%\indextrue
+
+% tocs? table of contents
+\newif\iftocs
+\tocstrue
+
+% bib?
+\newif\ifbib
+\bibtrue
+
+% figure?
+\newif\iflof
+\loftrue
+
+% table?
+\newif\iflot
+\lottrue
+
+%make appendix
+\newif\ifappendix
+\appendixtrue
+
+% ---------------------
+% ------COMMANDS-------
+% ---------------------
+\input{srcs/commands}
+
+% testing, if PDFTex is running
+\newif\ifpdf
+\ifx\pdfoutput\undefined
+   \pdffalse
+\else
+   \pdftrue
+\fi
+
+\ifpdf
+   \usepackage[pdftex]{graphicx}
+   \usepackage{rotating}
+   \iffinal
+   \else
+      \usepackage{pdfdraftcopy}
+      \draftstring{Draft \today}
+   \fi
+   
+   \pdfoutput=1        % we are running pdflatex
+   \pdfcompresslevel=9 % compression level for text and image;
+   \pdfadjustspacing=1 % same spacing as latex
+
+   \pdfinfo{
+     /Title           (\thesistitle)
+     /Author          (\myname)
+     /Creator         (\myname)
+     /Producer        (pdfTeX \pdftexversion\pdftexrevision)
+     /CreationDate    (\today)
+     /Subject         ()
+     /Keywords        ()
+   }
+   \pdfcatalog{/PageMode(/UseOutlines)} % or UseNone
+\else %pdf=false
+   \usepackage[dvips]{graphicx}
+   \usepackage{rotating}
+
+   \iffinal
+   \else
+    \usepackage[dvips,english,all,light]{draftcopy}
+   \fi
+
+   \hypersetup{
+     pdfauthor   = {\myname},
+     pdftitle    = {\thesistitle},
+     pdfcreator  = {\myname},
+     pdfproducer = {},
+     pdfsubject  = {},
+     pdfkeywords = {}
+    }
+\fi %ifpdf
+
+
+\graphicspath{ {./img/} }
+\DeclareGraphicsRule{*}{mps}{*}{}
+
+\ifindex
+   \usepackage{makeidx}
+   \makeindex
+\fi
+
+
+% define global stuff here
+\typearea[.9in]{14}
+%\addtolength{\topmargin}{.48in}
+\addtolength{\footskip}{-.3in}
+
+% set line spacing
+\onehalfspacing
+% page counter
+\newcounter{constipagecounter}
+\pagenumbering{arabic}
+% footnote counter
+\newcounter{constifncounter}
+% hyphenation
+\input{srcs/hyphenation}
+
+
+% *******************************************************************
+% **                 D o c u m e n t - T e x t                     **
+% *******************************************************************
+\begin{document}
+\pagestyle{empty}
+\thispagestyle{empty}
+
+\addtolength{\topmargin}{.23in}
+\addtolength{\textheight}{.2in}
+% TITLE
+\maketitle
+
+\cleardoublepage
+
+% ABSTRACT
+\ifabstract
+   \begin{abstractpage}
+   \input{srcs/abstract}
+   \end{abstractpage}
+\fi
+
+\addtolength{\topmargin}{.25in}
+\addtolength{\textheight}{-.2in}
+
+\begin{dedication}
+%This work is dedicated to my beloved wife, Jie Meng.
+\end{dedication}
+
+% TOC
+\iftocs
+   %\addtocontents{toc}{\relax \protect \pagestyle{empty}}
+   %\addtocontents{toc}{\relax \protect \thispagestyle{empty}}
+   %\addtocontents{toc}{\relax \protect \enlargethispage{0.5cm}}
+   %\addtocontents{lof}{\relax \protect \pagestyle{empty}}
+   %\addtocontents{lof}{\relax \protect \thispagestyle{empty}}
+   %\addtocontents{lot}{\relax \protect \pagestyle{empty}}
+   %\addtocontents{lot}{\relax \protect \thispagestyle{empty}}
+   \tableofcontents
+   \thispagestyle{empty}
+   %\listoffigures
+   %\listoftables
+\fi
+
+% ****************************************
+% ** Chapter content is in separate files
+% ****************************************
+
+\pagestyle{headings}
+\thispagestyle{headings}
+\input{chaps}
+
+% APPENDIX
+\ifappendix
+   \begin{appendix}
+%   \input{srcs/appendix}
+%   \input{srcs/acronyms}
+   \end{appendix}
+\else
+   \input{srcs/acronyms}
+\fi
+
+\ifbib
+   %\setbibpreamble
+   \bibliographystyle{unsrtnat}
+   \bibliography{thesis}
+\fi
+
+\iflof
+  \listoffigures
+\fi
+
+\iflot
+  \listoftables
+\fi
+
+\ifindex
+   \IndexPrologue{\chapter*{Index}}
+   %\setindexpreamble
+   \printindex
+\fi
+
+\pagestyle{plain}
+%\input{srcs/acknowledge}
+
+\end{document}
