@@ -1,7 +1,7 @@
 {
 //=========Macro generated from canvas: MyCanvas/Final result
-//=========  (Thu Apr 29 11:48:31 2010) by ROOT version5.22/00a
-   TCanvas *MyCanvas = new TCanvas("MyCanvas", "Final result",440,223,550,600);
+//=========  (Tue May 18 17:03:49 2010) by ROOT version5.22/00a
+   TCanvas *MyCanvas = new TCanvas("MyCanvas", "Final result",0,0,550,600);
    gStyle->SetOptFit(1);
    gStyle->SetOptStat(0);
    MyCanvas->Range(-4.291139,-1.5,3.303797,8.5);
@@ -14,8 +14,6 @@
    MyCanvas->SetRightMargin(0.04);
    MyCanvas->SetTopMargin(0.05);
    MyCanvas->SetBottomMargin(0.15);
-   MyCanvas->SetFrameLineColor(0);
-   MyCanvas->SetFrameBorderMode(0);
    MyCanvas->SetFrameLineColor(0);
    MyCanvas->SetFrameBorderMode(0);
    
@@ -45,13 +43,9 @@
    hMeasuredFinal7->SetEntries(20);
    hMeasuredFinal7->SetFillColor(1);
    hMeasuredFinal7->SetFillStyle(0);
-
-   ci = TColor::GetColor("#ff0000");
-   hMeasuredFinal7->SetLineColor(ci);
+   hMeasuredFinal7->SetLineColor(2);
    hMeasuredFinal7->SetLineStyle(0);
-
-   ci = TColor::GetColor("#ff0000");
-   hMeasuredFinal7->SetMarkerColor(ci);
+   hMeasuredFinal7->SetMarkerColor(2);
    hMeasuredFinal7->SetMarkerStyle(20);
    hMeasuredFinal7->SetMarkerSize(1.8);
    hMeasuredFinal7->GetXaxis()->SetTitle("#eta");
@@ -74,16 +68,14 @@
    hMeasuredFinal7->GetZaxis()->SetLabelFont(42);
    hMeasuredFinal7->GetZaxis()->SetLabelSize(0.045);
    hMeasuredFinal7->GetZaxis()->SetTitleFont(42);
-   hMeasuredFinal7->Draw("pz"); 
-
+   hMeasuredFinal7->Draw("pz");
+   
    TGraph *graph = new TGraph(21);
    graph->SetName("Graph");
    graph->SetTitle("Graph");
    graph->SetFillColor(17);
    graph->SetFillStyle(1002);
-
-   ci = TColor::GetColor("#ff0000");
-   graph->SetLineColor(ci);
+   graph->SetLineColor(2);
    graph->SetLineStyle(0);
    graph->SetMarkerStyle(20);
    graph->SetMarkerSize(1.5);
@@ -109,34 +101,34 @@
    graph->SetPoint(19,-2.5,6.439908);
    graph->SetPoint(20,-2.5,5.944531);
    
-   TH1 *Graph3 = new TH1F("Graph3","Graph",100,-3,3);
-   Graph3->SetMinimum(5.492917);
-   Graph3->SetMaximum(6.628557);
-   Graph3->SetDirectory(0);
-   Graph3->SetStats(0);
-   Graph3->SetFillColor(1);
-   Graph3->SetFillStyle(0);
-   Graph3->SetLineStyle(0);
-   Graph3->SetMarkerStyle(20);
-   Graph3->SetMarkerSize(1.5);
-   Graph3->GetXaxis()->SetLabelFont(42);
-   Graph3->GetXaxis()->SetLabelOffset(0.01);
-   Graph3->GetXaxis()->SetLabelSize(0.045);
-   Graph3->GetXaxis()->SetTitleSize(0.055);
-   Graph3->GetXaxis()->SetTitleFont(42);
-   Graph3->GetYaxis()->SetLabelFont(42);
-   Graph3->GetYaxis()->SetLabelOffset(0.01);
-   Graph3->GetYaxis()->SetLabelSize(0.045);
-   Graph3->GetYaxis()->SetTitleSize(0.055);
-   Graph3->GetYaxis()->SetTitleOffset(1.6);
-   Graph3->GetYaxis()->SetTitleFont(42);
-   Graph3->GetZaxis()->SetLabelFont(42);
-   Graph3->GetZaxis()->SetLabelSize(0.045);
-   Graph3->GetZaxis()->SetTitleFont(42);
-   graph->SetHistogram(Graph3);
+   TH1 *Graph32 = new TH1F("Graph32","Graph",100,-3,3);
+   Graph32->SetMinimum(5.492917);
+   Graph32->SetMaximum(6.628557);
+   Graph32->SetDirectory(0);
+   Graph32->SetStats(0);
+   Graph32->SetFillColor(1);
+   Graph32->SetFillStyle(0);
+   Graph32->SetLineStyle(0);
+   Graph32->SetMarkerStyle(20);
+   Graph32->SetMarkerSize(1.5);
+   Graph32->GetXaxis()->SetLabelFont(42);
+   Graph32->GetXaxis()->SetLabelOffset(0.01);
+   Graph32->GetXaxis()->SetLabelSize(0.045);
+   Graph32->GetXaxis()->SetTitleSize(0.055);
+   Graph32->GetXaxis()->SetTitleFont(42);
+   Graph32->GetYaxis()->SetLabelFont(42);
+   Graph32->GetYaxis()->SetLabelOffset(0.01);
+   Graph32->GetYaxis()->SetLabelSize(0.045);
+   Graph32->GetYaxis()->SetTitleSize(0.055);
+   Graph32->GetYaxis()->SetTitleOffset(1.6);
+   Graph32->GetYaxis()->SetTitleFont(42);
+   Graph32->GetZaxis()->SetLabelFont(42);
+   Graph32->GetZaxis()->SetLabelSize(0.045);
+   Graph32->GetZaxis()->SetTitleFont(42);
+   graph->SetHistogram(Graph32);
    
    graph->Draw("f");
-     
+   
    TH1 *hATLAS = new TH1F("hATLAS","",40,-10,10);
    hATLAS->SetBinContent(0,0.08524267);
    hATLAS->SetBinContent(1,0.1512688);
@@ -356,8 +348,7 @@
    h->GetZaxis()->SetLabelSize(0.045);
    h->GetZaxis()->SetTitleFont(42);
    h->Draw("same");
-
-
+   
    TH1 *hX1 = new TH1F("hX1","",40,-10,10);
    hX1->SetBinContent(0,0.0645434);
    hX1->SetBinContent(1,0.1035777);
@@ -447,6 +438,7 @@
    hX1->SetFillColor(1);
    hX1->SetFillStyle(0);
    hX1->SetLineStyle(0);
+   hX1->SetMarkerColor(6);
    hX1->SetMarkerStyle(20);
    hX1->SetMarkerSize(1.25);
    hX1->GetXaxis()->SetTitle("#eta");
@@ -465,11 +457,9 @@
    hX1->GetZaxis()->SetLabelFont(42);
    hX1->GetZaxis()->SetLabelSize(0.045);
    hX1->GetZaxis()->SetTitleFont(42);
-   hX1->SetMarkerStyle(20);
-   hX1->SetMarkerColor(6);
    hX1->Draw("same");
- 
-    TH1 *hX2 = new TH1F("hX2","",40,-10,10);
+   
+   TH1 *hX2 = new TH1F("hX2","",40,-10,10);
    hX2->SetBinContent(0,0.06620447);
    hX2->SetBinContent(1,0.1030161);
    hX2->SetBinContent(2,0.2405528);
@@ -577,7 +567,7 @@
    hX2->GetZaxis()->SetLabelSize(0.045);
    hX2->GetZaxis()->SetTitleFont(42);
    hX2->Draw("same");
-  
+   
    TH1 *hPYTHIA8 = new TH1F("hPYTHIA8","",40,-10,10);
    hPYTHIA8->SetBinContent(0,0.09130465);
    hPYTHIA8->SetBinContent(1,0.1408552);
@@ -667,7 +657,7 @@
    hPYTHIA8->SetFillColor(1);
    hPYTHIA8->SetFillStyle(0);
    hPYTHIA8->SetLineStyle(0);
-   hPYTHIA8->SetMarkerStyle(20);
+   hPYTHIA8->SetMarkerStyle(22);
    hPYTHIA8->SetMarkerSize(1.25);
    hPYTHIA8->GetXaxis()->SetTitle("#eta");
    hPYTHIA8->GetXaxis()->SetLabelFont(42);
@@ -685,13 +675,171 @@
    hPYTHIA8->GetZaxis()->SetLabelFont(42);
    hPYTHIA8->GetZaxis()->SetLabelSize(0.045);
    hPYTHIA8->GetZaxis()->SetTitleFont(42);
-   hPYTHIA8->SetMarkerStyle(22);
    hPYTHIA8->Draw("same");
    
-   hMeasuredFinal7->Draw("pz same"); 
+   TH1 *hMeasuredFinal7 = new TH1D("hMeasuredFinal7","",12,-3,3);
+   hMeasuredFinal7->SetBinContent(2,6.19222);
+   hMeasuredFinal7->SetBinContent(3,6.282615);
+   hMeasuredFinal7->SetBinContent(4,6.160074);
+   hMeasuredFinal7->SetBinContent(5,6.029742);
+   hMeasuredFinal7->SetBinContent(6,5.820368);
+   hMeasuredFinal7->SetBinContent(7,5.820368);
+   hMeasuredFinal7->SetBinContent(8,6.029742);
+   hMeasuredFinal7->SetBinContent(9,6.160074);
+   hMeasuredFinal7->SetBinContent(10,6.282615);
+   hMeasuredFinal7->SetBinContent(11,6.19222);
+   hMeasuredFinal7->SetBinError(2,0.06368876);
+   hMeasuredFinal7->SetBinError(3,0.06596245);
+   hMeasuredFinal7->SetBinError(4,0.06396184);
+   hMeasuredFinal7->SetBinError(5,0.06255715);
+   hMeasuredFinal7->SetBinError(6,0.06147449);
+   hMeasuredFinal7->SetBinError(7,0.06147449);
+   hMeasuredFinal7->SetBinError(8,0.06255715);
+   hMeasuredFinal7->SetBinError(9,0.06396184);
+   hMeasuredFinal7->SetBinError(10,0.06596245);
+   hMeasuredFinal7->SetBinError(11,0.06368876);
+   hMeasuredFinal7->SetMinimum(0);
+   hMeasuredFinal7->SetMaximum(7);
+   hMeasuredFinal7->SetEntries(20);
+   hMeasuredFinal7->SetFillColor(1);
+   hMeasuredFinal7->SetFillStyle(0);
+   hMeasuredFinal7->SetLineColor(2);
+   hMeasuredFinal7->SetLineStyle(0);
+   hMeasuredFinal7->SetMarkerColor(2);
+   hMeasuredFinal7->SetMarkerStyle(20);
+   hMeasuredFinal7->SetMarkerSize(1.8);
+   hMeasuredFinal7->GetXaxis()->SetTitle("#eta");
+   hMeasuredFinal7->GetXaxis()->CenterTitle(true);
+   hMeasuredFinal7->GetXaxis()->SetNdivisions(405);
+   hMeasuredFinal7->GetXaxis()->SetLabelFont(42);
+   hMeasuredFinal7->GetXaxis()->SetLabelOffset(0.01);
+   hMeasuredFinal7->GetXaxis()->SetLabelSize(0.045);
+   hMeasuredFinal7->GetXaxis()->SetTitleSize(0.055);
+   hMeasuredFinal7->GetXaxis()->SetTitleFont(42);
+   hMeasuredFinal7->GetYaxis()->SetTitle("dN_{ch}/d#eta");
+   hMeasuredFinal7->GetYaxis()->CenterTitle(true);
+   hMeasuredFinal7->GetYaxis()->SetNdivisions(506);
+   hMeasuredFinal7->GetYaxis()->SetLabelFont(42);
+   hMeasuredFinal7->GetYaxis()->SetLabelOffset(0.01);
+   hMeasuredFinal7->GetYaxis()->SetLabelSize(0.045);
+   hMeasuredFinal7->GetYaxis()->SetTitleSize(0.055);
+   hMeasuredFinal7->GetYaxis()->SetTitleOffset(1.3);
+   hMeasuredFinal7->GetYaxis()->SetTitleFont(42);
+   hMeasuredFinal7->GetZaxis()->SetLabelFont(42);
+   hMeasuredFinal7->GetZaxis()->SetLabelSize(0.045);
+   hMeasuredFinal7->GetZaxis()->SetTitleFont(42);
+   hMeasuredFinal7->Draw("pz same");
+   
+   TH1 *hX2 = new TH1F("hX2","",40,-10,10);
+   hX2->SetBinContent(0,0.06620447);
+   hX2->SetBinContent(1,0.1030161);
+   hX2->SetBinContent(2,0.2405528);
+   hX2->SetBinContent(3,0.4932457);
+   hX2->SetBinContent(4,0.8665844);
+   hX2->SetBinContent(5,1.243107);
+   hX2->SetBinContent(6,1.528699);
+   hX2->SetBinContent(7,1.879116);
+   hX2->SetBinContent(8,2.395104);
+   hX2->SetBinContent(9,3.020665);
+   hX2->SetBinContent(10,3.662104);
+   hX2->SetBinContent(11,4.269698);
+   hX2->SetBinContent(12,4.821729);
+   hX2->SetBinContent(13,5.291612);
+   hX2->SetBinContent(14,5.694205);
+   hX2->SetBinContent(15,6.002103);
+   hX2->SetBinContent(16,6.204723);
+   hX2->SetBinContent(17,6.27005);
+   hX2->SetBinContent(18,6.160815);
+   hX2->SetBinContent(19,5.936235);
+   hX2->SetBinContent(20,5.715485);
+   hX2->SetBinContent(21,5.729806);
+   hX2->SetBinContent(22,5.922206);
+   hX2->SetBinContent(23,6.162377);
+   hX2->SetBinContent(24,6.260191);
+   hX2->SetBinContent(25,6.208189);
+   hX2->SetBinContent(26,6.002881);
+   hX2->SetBinContent(27,5.685189);
+   hX2->SetBinContent(28,5.279541);
+   hX2->SetBinContent(29,4.806985);
+   hX2->SetBinContent(30,4.266088);
+   hX2->SetBinContent(31,3.671626);
+   hX2->SetBinContent(32,3.011342);
+   hX2->SetBinContent(33,2.393572);
+   hX2->SetBinContent(34,1.886619);
+   hX2->SetBinContent(35,1.532958);
+   hX2->SetBinContent(36,1.240265);
+   hX2->SetBinContent(37,0.8680621);
+   hX2->SetBinContent(38,0.4965187);
+   hX2->SetBinContent(39,0.2405677);
+   hX2->SetBinContent(40,0.1034773);
+   hX2->SetBinContent(41,0.06575319);
+   hX2->SetBinError(0,0.0005729896);
+   hX2->SetBinError(1,0.0007147525);
+   hX2->SetBinError(2,0.001092215);
+   hX2->SetBinError(3,0.001563993);
+   hX2->SetBinError(4,0.002073044);
+   hX2->SetBinError(5,0.002482889);
+   hX2->SetBinError(6,0.002753366);
+   hX2->SetBinError(7,0.00305267);
+   hX2->SetBinError(8,0.003446397);
+   hX2->SetBinError(9,0.003870386);
+   hX2->SetBinError(10,0.004261558);
+   hX2->SetBinError(11,0.004601523);
+   hX2->SetBinError(12,0.00488995);
+   hX2->SetBinError(13,0.005122678);
+   hX2->SetBinError(14,0.005313976);
+   hX2->SetBinError(15,0.005455754);
+   hX2->SetBinError(16,0.005547078);
+   hX2->SetBinError(17,0.005576202);
+   hX2->SetBinError(18,0.005527416);
+   hX2->SetBinError(19,0.005425735);
+   hX2->SetBinError(20,0.005323896);
+   hX2->SetBinError(21,0.005330562);
+   hX2->SetBinError(22,0.00541932);
+   hX2->SetBinError(23,0.005528116);
+   hX2->SetBinError(24,0.005571817);
+   hX2->SetBinError(25,0.005548627);
+   hX2->SetBinError(26,0.005456107);
+   hX2->SetBinError(27,0.005309767);
+   hX2->SetBinError(28,0.005116832);
+   hX2->SetBinError(29,0.004882468);
+   hX2->SetBinError(30,0.004599577);
+   hX2->SetBinError(31,0.004267094);
+   hX2->SetBinError(32,0.003864409);
+   hX2->SetBinError(33,0.003445294);
+   hX2->SetBinError(34,0.003058758);
+   hX2->SetBinError(35,0.0027572);
+   hX2->SetBinError(36,0.002480049);
+   hX2->SetBinError(37,0.002074811);
+   hX2->SetBinError(38,0.001569173);
+   hX2->SetBinError(39,0.001092249);
+   hX2->SetBinError(40,0.0007163507);
+   hX2->SetBinError(41,0.0005710333);
+   hX2->SetEntries(2.897667e+07);
+   hX2->SetFillColor(1);
+   hX2->SetFillStyle(0);
+   hX2->SetLineStyle(0);
+   hX2->SetMarkerStyle(20);
+   hX2->SetMarkerSize(1.25);
+   hX2->GetXaxis()->SetTitle("#eta");
+   hX2->GetXaxis()->SetLabelFont(42);
+   hX2->GetXaxis()->SetLabelOffset(0.01);
+   hX2->GetXaxis()->SetLabelSize(0.045);
+   hX2->GetXaxis()->SetTitleSize(0.055);
+   hX2->GetXaxis()->SetTitleFont(42);
+   hX2->GetYaxis()->SetTitle("dN/d#eta");
+   hX2->GetYaxis()->SetLabelFont(42);
+   hX2->GetYaxis()->SetLabelOffset(0.01);
+   hX2->GetYaxis()->SetLabelSize(0.045);
+   hX2->GetYaxis()->SetTitleSize(0.055);
+   hX2->GetYaxis()->SetTitleOffset(1.3);
+   hX2->GetYaxis()->SetTitleFont(42);
+   hX2->GetZaxis()->SetLabelFont(42);
+   hX2->GetZaxis()->SetLabelSize(0.045);
+   hX2->GetZaxis()->SetTitleFont(42);
    hX2->Draw("same");
    
-   TLegend *leg = new TLegend(0.2930403,0.2115385,0.7234432,0.4615385,NULL,"brNDC");
+   TLegend *leg = new TLegend(-2.352864e+307,-2.352864e+307,-2.352864e+307,-2.352864e+307,NULL,"brNDC");
    leg->SetBorderSize(0);
    leg->SetTextFont(62);
    leg->SetTextSize(0.033);
@@ -737,13 +885,21 @@
    entry->SetMarkerStyle(22);
    entry->SetMarkerSize(1);
    entry=leg->AddEntry("hX2","PYTHIA X2 Tune","p");
-   entry=leg->AddEntry(hPYTHIA8,"PYTHIA8","p");
+   entry->SetLineColor(1);
+   entry->SetLineStyle(1);
+   entry->SetLineWidth(1);
+   entry->SetMarkerColor(1);
+   entry->SetMarkerStyle(21);
+   entry->SetMarkerSize(1);
+   entry=leg->AddEntry("hPYTHIA8","PYTHIA8","p");
+   entry->SetLineColor(1);
+   entry->SetLineStyle(1);
+   entry->SetLineWidth(1);
+   entry->SetMarkerColor(1);
+   entry->SetMarkerStyle(21);
+   entry->SetMarkerSize(1);
    leg->Draw();
    MyCanvas->Modified();
    MyCanvas->cd();
    MyCanvas->SetSelected(MyCanvas);
-   MyCanvas->SaveAs("CompareWithPythia-7000GeV.C");
-   MyCanvas->SaveAs("CompareWithPythia-7000GeV.gif");
-   MyCanvas->SaveAs("CompareWithPythia-7000GeV.eps");
-
 }
