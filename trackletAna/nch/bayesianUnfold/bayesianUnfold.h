@@ -46,7 +46,7 @@ class bayesianUnfold {
 
       nBinsM = hResponse->GetNbinsY();
       nBinsT = hResponse->GetNbinsX();
-      cout <<"Constructor"<<endl;
+      //cout <<"Constructor"<<endl;
 
 
       for (int m=1;m<=nBinsM;m++) {
@@ -77,9 +77,18 @@ class bayesianUnfold {
    }
    
    ~bayesianUnfold(){
+      delete hUnfolded;
+      delete hPrior;
+      delete hMeasured;
+      delete hReproduced;
+      delete hResMatrix;
+      delete hConvMatrix;
+      delete hSmearMatrix;
+      
    };
    
    int unfold(TH1D* hM, int n); // do unfolding
+   TH1D* reproduce(TH1D* hist); // do unfolding
    int doUnfolding();
    
     
@@ -117,14 +126,14 @@ int bayesianUnfold::unfold(TH1D* hM, int n)
       return 0;
    }
    
-   cout <<"Unfolding start..."<<endl;
+   //cout <<"Unfolding start..."<<endl;
    for (int i=0; i<n; i++) {
       int flag = doUnfolding();
       if (flag==0) {
          cout <<"Error unfolding."<<endl;
          return 0;
       }	    
-      cout <<"Unfolded iteration "<<i<<endl;
+     // cout <<"Unfolded iteration "<<i<<endl;
    }
 
    return 1;
@@ -154,39 +163,40 @@ int bayesianUnfold::doUnfolding()
   
 
    // (a)
-   cout <<"(a)"<<endl;
+   //cout <<"(a)"<<endl;
    for (int m=1;m<=nBinsM;m++) {
       double sumtp = 0; 
       //cout <<m<<" "<<t<<" "<<endl;
       for (int tp=1;tp<=nBinsT;tp++) {
-         sumtp += hResMatrix->GetBinContent(tp,m) * hPrior->GetBinContent(tp);
+         sumtp += hConvMatrix->GetBinContent(tp,m) * hPrior->GetBinContent(tp);
       }
+//	 cout <<"sumpt"<<sumtp<<endl;
 
       for (int t=1;t<=nBinsT;t++) {
 	 double a=0;
 	 if (sumtp!=0) {
-	    a = hResMatrix->GetBinContent(t,m) * hPrior->GetBinContent(t) / sumtp;
+	    a = hConvMatrix->GetBinContent(t,m) * hPrior->GetBinContent(t) / sumtp;
 	    hSmearMatrix->SetBinContent(t,m,a);
-	    a = hResMatrix->GetBinContent(t,m) * hPrior->GetBinError(t) / sumtp;
+	    a = hConvMatrix->GetBinContent(t,m) * hPrior->GetBinError(t) / sumtp;
 	    hSmearMatrix->SetBinError(t,m,a);
 	 }
       }
    }
 
-   cout <<"(b)"<<endl;
+   //cout <<"(b)"<<endl;
    // (b)
    for (int t=1;t<=nBinsT;t++) {
       double b = 0;
       double bErr = 0;
       for (int m=1;m<=nBinsM;m++) {
-         b += hResMatrix->GetBinContent(t,m) * hMeasured->GetBinContent(m);
-	 bErr += hResMatrix->GetBinContent(t,m) * hMeasured->GetBinError(m)*hResMatrix->GetBinContent(t,m) *	 hMeasured->GetBinError(m);
+         b += hSmearMatrix->GetBinContent(t,m) * hMeasured->GetBinContent(m);
+	 bErr += (hSmearMatrix->GetBinContent(t,m) * hMeasured->GetBinError(m)) * (hSmearMatrix->GetBinContent(t,m) * hMeasured->GetBinError(m));
       }
       hUnfolded->SetBinContent(t,b);
       hUnfolded->SetBinError(t,sqrt(bErr));
    }
 
-   for (int t=11;t<=nBinsT;t++) {
+   for (int t=1;t<=nBinsT;t++) {
       double b = hUnfolded->GetBinContent(t);
       double bM = hUnfolded->GetBinContent(t-1);
       double bP = hUnfolded->GetBinContent(t+1);
@@ -202,7 +212,7 @@ int bayesianUnfold::doUnfolding()
       for (int t=1;t<=nBinsT;t++) {
          sum += hPrior->GetBinContent(t)*hConvMatrix->GetBinContent(t,m);
 	 //cout <<sum<<endl;
-	 //hResMatrix->SetBinContent(t,m,hSmearMatrix->GetBinContent(t,m))
+	 //hResMatrix->SetBinContent(t,m,hSmearMatrix->GetBinContent(t,m));
       }
       hReproduced->SetBinContent(m,sum);      
    }
@@ -210,8 +220,31 @@ int bayesianUnfold::doUnfolding()
    return 1;
 }
 
+TH1D *bayesianUnfold::reproduce(TH1D* hist)
+{
+    TH1D *hRep = (TH1D*)hReproduced->Clone();
 
+    hRep->SetName("hRep");
+    for (int m=0;m<=nBinsM;m++) {
+      double sum=0;
+      double sum1=0;
+      for (int t=0;t<=nBinsT;t++) {
+         sum += hist->GetBinContent(t)*hConvMatrix->GetBinContent(t,m);
+	 sum1 +=hConvMatrix->GetBinContent(t,m);
+      }
+      //cout <<sum1<<endl;
+      hRep->SetBinContent(m,sum);      
+    }    
 
+   for (int t=0;t<=nBinsT;t++) {
+      double sum1=0;
+      for (int m=0;m<=nBinsM;m++) {
+         sum1 +=hConvMatrix->GetBinContent(t,m);
+      }
+      //cout <<sum1<<endl;
+   }
+   return hRep;
+}
 
 
 
