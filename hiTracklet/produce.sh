@@ -1,8 +1,5 @@
 #!/bin/bash
-echo produce.sh [infile][outfile][startEntry][endEntry][addBck][reweight][useRandomVertex][cutClusterSize][mimicPixelCounting][bck]
-echo Ex:
-echo ./produce.sh inf.root outf.root 0 1000000 0 0 0 1 0 0  # normal operation
-echo ./produce.sh inf.root outf.root 0 10000 0 0 0 1 0 1  # reproduce bck
+
 
 
 infile=$1
@@ -16,7 +13,9 @@ reWeight=$6
 useRandomVertex=$7
 cutOnClusterSize=$8
 mimicPixelCounting=$9
-reproduceBck = $(10)
+reproduceBck=${10}
+
+
 
 if [ -z $startEntry  ]; then
 startEntry=0
@@ -54,6 +53,17 @@ if [ -z $mimicPixelCounting  ]; then
 mimicPixelCounting=0
 fi
 
+if [ -z $reproduceBck  ]; then
+reproduceBck=0
+fi
 
-root -l -q "analyze_trackletTree.C+(\"$infile\",\"$outfile\",$startEntry,$endEntry,$addL1Bck,$addL2Bck,$addL3Bck,$reWeight,$useRandomVertex,$cutOnClusterSize,$mimicPixelCounting)"
+if [ -z $infile  ]; then
+echo produce.sh [infile][outfile][startEntry][endEntry][addBck][reweight][useRandomVertex][cutClusterSize][mimicPixelCounting][bck]
+echo Ex:
+echo ./produce.sh inf.root outf.root 0 1000000 0 0 0 1 0 0  # normal operation
+echo ./produce.sh inf.root outf.root 0 10000 0 0 0 1 0 1  # reproduce bck
 
+
+else
+root -l -q "analyze_trackletTree.C+(\"$infile\",\"$outfile\",$startEntry,$endEntry,$addL1Bck,$addL2Bck,$addL3Bck,$reWeight,$useRandomVertex,$cutOnClusterSize,$mimicPixelCounting,$reproduceBck)"
+fi
