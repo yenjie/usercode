@@ -49,12 +49,17 @@ int unfoldTracklet(int trackletType = 12, double _etaRange=2.5,
                     char *infName    = "TrackletTree-D6T-1.root",  // input data
 		    char *infMCName  = "TrackletTree-D6T-1.root",  // input MC
                     char *useCorrectionFile = "",                  // correction MC
-		    int toyCheck = 1                               // 
+		    int toyCheck = 1,                              // check on toyMC
+		    int errorType = 2,                             // err1: 4 unfolding, err2: 100 iteration
+		    int energy = 900                               // sqrt(s)
 		    )
 {
   bool usePythiaSD = 0;
   bool usePhojetSD = 0;
-  if (usePhojetSD == 1) usePythiaSD=0;
+
+
+  if (energy==900) usePythiaSD = 1;
+  if (usePhojetSD == 1) usePythiaSD = 0;
 
 
   //=====================================================================================================================
@@ -73,10 +78,10 @@ int unfoldTracklet(int trackletType = 12, double _etaRange=2.5,
   TFile *fCorrection = new TFile(correctionFileName);
 
   char *correctionFileName2 = Form("correction/correction-%d-%.1f-%s.root",trackletType,_etaRange,"D6T-900GeV");
-  TFile *fCorrection2 = new TFile(correctionFileName2);
+  TFile *fCorrectionPythiaD6T900GeV = new TFile(correctionFileName2);
 
   char *correctionFileName3 = Form("correction/correction-%d-%.1f-%s.root",trackletType,_etaRange,"PHOJET");
-  TFile *fCorrection3 = new TFile(correctionFileName3);
+  TFile *fCorrectionPhojet7TeV = new TFile(correctionFileName3);
 
   //=====================================================================================================================
   // Output files
@@ -116,8 +121,8 @@ int unfoldTracklet(int trackletType = 12, double _etaRange=2.5,
   TH1D *hMeas= new TH1D ("hMeas", "Test Measured", nBin,TrackletBin);
     
   // Selection Criteria
-  selectionCut MCCut(1);
-  selectionCut dataCut(1);
+  selectionCut MCCut(1,0,1000);
+  selectionCut dataCut(1,0,1000);
 
   TCut nonZeroCut = "";
   TCut NSDCut = "(evtType!=92&&evtType!=93)";
@@ -164,16 +169,16 @@ int unfoldTracklet(int trackletType = 12, double _etaRange=2.5,
   } else {
      cout << correctionFileName <<endl;
      if (usePythiaSD) {
-         hEffNSD = (TH1D*) fCorrection2->FindObjectAny("hEffNSD");
+         hEffNSD = (TH1D*) fCorrectionPythiaD6T900GeV->FindObjectAny("hEffNSD");
      } else {
          if (usePhojetSD) {
-            hEffNSD = (TH1D*) fCorrection3->FindObjectAny("hEffNSD");
+            hEffNSD = (TH1D*) fCorrectionPhojet7TeV->FindObjectAny("hEffNSD");
          } else {
             hEffNSD = (TH1D*) fCorrection->FindObjectAny("hEffNSD");
          }
      }
      if (usePythiaSD) {
-         hSDFracSelected = (TH1D*) fCorrection2->FindObjectAny("hSDFracSelected");
+         hSDFracSelected = (TH1D*) fCorrectionPythiaD6T900GeV->FindObjectAny("hSDFracSelected");
      } else {
          hSDFracSelected = (TH1D*) fCorrection->FindObjectAny("hSDFracSelected");
      }
@@ -240,11 +245,15 @@ int unfoldTracklet(int trackletType = 12, double _etaRange=2.5,
   prior myPrior(hR,hM,0.0);
   myPrior.unfold(hM,1);
   bayesianUnfold myUnfolding(hR,myPrior.hPrior,0.0);
+//  bayesianUnfold myUnfolding(hR,hT,0.0);
   myUnfolding.unfold(hM,4);
 
   bayesianUnfold myUnfolding2(hR,hT,0.0);
   myUnfolding2.unfold(hM,4);
 
+  bayesianUnfold myUnfolding3(hR,myPrior.hPrior,0.0);
+
+  if (errorType==2) myUnfolding3.unfold(hM,50); else myUnfolding3.unfold(hM,4);
   
   TCanvas *c = new TCanvas("c","",CanvasSizeX,CanvasSizeY);
 
@@ -266,9 +275,16 @@ int unfoldTracklet(int trackletType = 12, double _etaRange=2.5,
   TNtuple *nt = new TNtuple("nt","","i:val:val0:err");
      
   if (toyCheck) {
-     for (int exp =0; exp<200; exp++) {
+     int nIterMC=4;
+     int nExp = 300;
+     if (errorType==2) {
+        nIterMC=50;
+        nExp=300;
+     }
+     for (int exp =0; exp<nExp; exp++) {
         TH1D *hToy = (TH1D*)hM->Clone();
-	if (exp%100==0) cout <<"Pseudo-experiment "<<exp<<endl;
+	hToy->SetName("hToy");
+	if (exp%10==0) cout <<"Pseudo-experiment "<<exp<<endl;
         for (int i=1;i<=hToy->GetNbinsX();i++)
         {
            double value = gRandom->Poisson(hM->GetBinContent(i));
@@ -277,12 +293,13 @@ int unfoldTracklet(int trackletType = 12, double _etaRange=2.5,
         prior myPrior2(hR,hToy,0.0);
         myPrior2.unfold(hToy,1);
         bayesianUnfold myUnfolding1(hR,myPrior2.hPrior,0.0);
-        myUnfolding1.unfold(hToy,4);
+        myUnfolding1.unfold(hToy,nIterMC);
 	
 	for (int i=1;i<=hToy->GetNbinsX();i++)
 	{
-	   nt->Fill(i,myUnfolding1.hPrior->GetBinContent(i),myUnfolding.hPrior->GetBinContent(i),myUnfolding.hPrior->GetBinError(i));
+	   nt->Fill(i,myUnfolding1.hPrior->GetBinContent(i),myUnfolding3.hPrior->GetBinContent(i),myUnfolding.hPrior->GetBinError(i));
 	}
+	delete hToy;
     }
     nt->Write();
     
@@ -296,9 +313,11 @@ int unfoldTracklet(int trackletType = 12, double _etaRange=2.5,
      double sdFrac = hSDFracSelected->GetBinContent(i);
 //     eff=1;
 //     sdFrac=0;
+//     if (i==11) sdFrac=1;
+
      double errScaleFactor = 1;
      if (toyCheck){
-        TH1F *htemp = new TH1F("htemp","",100,-10,10);
+        TH1F *htemp = new TH1F("htemp","",50,-25,25);
         nt->Project("htemp","(val-val0)/err",Form("i==%i",i));
 	htemp->Fit("gaus","L q m");
         errScaleFactor = htemp->GetFunction("gaus")->GetParameter(2);
