@@ -90,7 +90,8 @@ int plotFinalResult(int TrackletType,char* filename,
   		    bool doBetaCorrection = 0,                                  // do acceptance correction
 		    int doMult2 = 0,                                           // use # of cluster in the first layer
 		    bool doTriggerCorrection = 1,                                // correction on trigger eff
-                    bool UseD6T = 0   
+                    int UseExternalSDEff = 0,
+		    bool useDR = 0  
 		   )
 {
 
@@ -133,7 +134,8 @@ int plotFinalResult(int TrackletType,char* filename,
    if (useCorrectionFile) fCorrection = getCorrectionFile(correctionName,TrackletType);
    if (useCorrectionFile&&doAcceptanceCorrection) fAcceptance = getAcceptanceFile(TrackletType);
    
-   TFile *fCorrectionD6T = new TFile(Form("correction/correction-%d-D6T-7TeV-HF1.root",TrackletType));
+   TFile *fCorrectionExternal = new TFile(Form("correction/correction-%d-PHOJET-7TeV-HF1.root",TrackletType));
+//   TFile *fCorrectionExternal = new TFile(Form("correction/correction-%d-ATLAS-7TeV-HF1.root",TrackletType));
    
    TH3F *hAlphaA;
    TH3F *hAlphaB;
@@ -153,7 +155,7 @@ int plotFinalResult(int TrackletType,char* filename,
    int VzRangeH =myCut.VzRangeH;
 //   double TrackletBins[nTrackletBin+1] = {-5,2,4,6,8,10,15,20,25,30,35,40,45,50,300};
 
-   double TrackletBins[nTrackletBin+1] = {-5,1,2,3,4,5,6,7,8,9,10,15,20,25,30,35,40,45,50,70,300};
+   double TrackletBins[nTrackletBin+1] = {-5,1,2,3,4,5,6,7,8,9,10,15,20,25,30,35,40,45,60,90,300};
    double EtaBins[nEtaBin+1];
    double VzBins[nVzBin+1];
    
@@ -167,12 +169,13 @@ int plotFinalResult(int TrackletType,char* filename,
    double detaCut = 0.1;              //delta eta cut
    
    TCut signalRegion                  = Form("abs(dphi)<%f&&abs(deta)<%f",signalRegionCut,detaCut);
-   TCut signalRegionInEta             = Form("abs(dphi)<%f&&abs(deta)<%f",signalRegionCut,detaCut);
-   TCut signalRegionInPhi             = Form("abs(dphi)<%f",signalRegionCut);
-   TCut sideBandRegionInPhi           = Form("abs(dphi)>%f&&abs(dphi)<%f",signalRegionCut,sideBandRegionCut);
-   TCut sideBandRegion                =  Form("abs(dphi)>%f&&abs(dphi)<%f&&abs(deta)<%f",signalRegionCut,sideBandRegionCut,detaCut);
-   TCut sideBandRegionEta          = Form("abs(dphi)>%f&&abs(dphi)<%f&&abs(deta)>1",signalRegionCut,sideBandRegionCut);
    TCut sideBandRegionEtaSignalRegion = Form("abs(dphi)>%f&&abs(dphi)<%f&&abs(deta)<%f",signalRegionCut,sideBandRegionCut,detaCut);
+
+   if (useDR) {
+      cout <<"Use dR for analysis"<<endl;
+      signalRegion                  = "dR<0.1";
+      sideBandRegionEtaSignalRegion = "dR>0.1&&dR<0.2";
+   }
 
    TCut evtSelection = myCut.Cut;   // cut on Z position 
   // TCut NSDCut = "";
@@ -292,10 +295,10 @@ int plotFinalResult(int TrackletType,char* filename,
 
          double minEta = EtaBins[i];
 	 double maxEta = EtaBins[i+1];
-//	 double maxEdge = VzBins[j+1]-rho2 / tan(atan(exp(maxEta-0.1))*2);
-//	 double minEdge = VzBins[j]-rho2 / tan(atan(exp(minEta+0.1))*2);
 	 double maxEdge = VzBins[j+1]-rho2 / tan(atan(exp(maxEta-0.1))*2);
 	 double minEdge = VzBins[j]-rho2 / tan(atan(exp(minEta+0.1))*2);
+//	 double maxEdge = VzBins[j+1]-rho2 / tan(atan(exp(maxEta))*2);
+//	 double minEdge = VzBins[j]-rho2 / tan(atan(exp(minEta))*2);
 	 if (verbose) cout <<minEta <<" "<<maxEta<<" "<<VzBins[j]<<" "<<maxEdge<<" "<<minEdge;
 	 
          for (int k=0;k<nTrackletBin;k++) {
@@ -451,13 +454,15 @@ int plotFinalResult(int TrackletType,char* filename,
          }
       }
       hTruthRatio = (TH1F*) fCorrection->FindObjectAny("hTruthRatio");
-      if (UseD6T==0) hTrigEff = (TH1F*) fCorrection->FindObjectAny("hTrigEff");  else  hTrigEff = (TH1F*) fCorrectionD6T->FindObjectAny("hTrigEff");
+      if (UseExternalSDEff==0) hTrigEff = (TH1F*) fCorrection->FindObjectAny("hTrigEff");  else  hTrigEff = (TH1F*) fCorrectionExternal->FindObjectAny("hTrigEff");
 
-      if (UseD6T==0) hSDFrac = (TH1F*) fCorrection->FindObjectAny("hSDFrac"); else hSDFrac = (TH1F*) fCorrectionD6T->FindObjectAny("hSDFrac"); 
+      TCanvas *cTrigEff = new TCanvas("cTrigEff","SD Fraction After Cut",canvasSizeX,canvasSizeY);
+      hTrigEff->Draw();
+      if (UseExternalSDEff==0) hSDFrac = (TH1F*) fCorrection->FindObjectAny("hSDFrac"); else hSDFrac = (TH1F*) fCorrectionExternal->FindObjectAny("hSDFrac"); 
       TCanvas *cSDFrac = new TCanvas("cSDFrac","SD Fraction After Cut",canvasSizeX,canvasSizeY);
       hSDFrac->Draw();
       cSDFrac->Update();
-      if (UseD6T==0) hEmptyEvtCorrection = (TH1F*) fCorrection->FindObjectAny("hEmptyEvtCorrection"); else hEmptyEvtCorrection = (TH1F*) fCorrectionD6T->FindObjectAny("hEmptyEvtCorrection");
+      if (UseExternalSDEff==0) hEmptyEvtCorrection = (TH1F*) fCorrection->FindObjectAny("hEmptyEvtCorrection"); else hEmptyEvtCorrection = (TH1F*) fCorrectionExternal->FindObjectAny("hEmptyEvtCorrection");
    } else {
       for (int j=0;j<nVzBin;j++) 
       {
@@ -698,7 +703,7 @@ int plotFinalResult(int TrackletType,char* filename,
 
 
 //	    if  (y1>10) y1=10;
-	    if  (y1>17) y1=17;
+	    if  (y1>19) y1=19;
 	    alpha = alphaPlots[x-1][z-1]->GetBinContent(y1);
             alphaErr = alphaPlots[x-1][z-1]->GetBinError(y1);
 
@@ -997,7 +1002,7 @@ int plotFinalResult(int TrackletType,char* filename,
          hEmptyEvtCorrection->SetBinError(x,0);
       }
    } else {
-      hEmptyEvtCorrection = (TH1F*) fCorrection->FindObjectAny("hEmptyEvtCorrection");
+      //hEmptyEvtCorrection = (TH1F*) fCorrection->FindObjectAny("hEmptyEvtCorrection");
    }
    
    TCanvas *cEmpty = new TCanvas("c","",canvasSizeX,canvasSizeY);

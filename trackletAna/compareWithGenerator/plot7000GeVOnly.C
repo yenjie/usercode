@@ -665,6 +665,8 @@
    hPYTHIA8->SetBinError(41,0.0006642367);
    hPYTHIA8->SetEntries(2.717017e+07);
    hPYTHIA8->SetFillColor(1);
+   hPYTHIA8->SetMarkerColor(kGreen+2);
+   hPYTHIA8->SetLineColor(kGreen+2);
    hPYTHIA8->SetFillStyle(0);
    hPYTHIA8->SetLineStyle(0);
    hPYTHIA8->SetMarkerStyle(20);

@@ -16,7 +16,7 @@ void plotDelta(char* infile,int type = 1)
    TTree * myTree = (TTree *)(f->FindObjectAny("TrackletTree12"));
    TNtuple * myNtuple = (TNtuple *)(f->FindObjectAny("ntmatched"));
 
-   selectionCut myCut;
+   selectionCut myCut(0);
    TCut dataCut = myCut.Cut;
    
    TCanvas *c = new TCanvas("c","#Delta#eta",400,400);

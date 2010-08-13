@@ -1,7 +1,7 @@
 {
 //=========Macro generated from canvas: MyCanvas/Final result
-//=========  (Tue May 18 17:03:49 2010) by ROOT version5.22/00a
-   TCanvas *MyCanvas = new TCanvas("MyCanvas", "Final result",0,0,550,600);
+//=========  (Thu May 27 13:12:49 2010) by ROOT version5.22/00a
+   TCanvas *MyCanvas = new TCanvas("MyCanvas", "Final result",445,247,550,600);
    gStyle->SetOptFit(1);
    gStyle->SetOptStat(0);
    MyCanvas->Range(-4.291139,-1.5,3.303797,8.5);
@@ -101,31 +101,31 @@
    graph->SetPoint(19,-2.5,6.439908);
    graph->SetPoint(20,-2.5,5.944531);
    
-   TH1 *Graph32 = new TH1F("Graph32","Graph",100,-3,3);
-   Graph32->SetMinimum(5.492917);
-   Graph32->SetMaximum(6.628557);
-   Graph32->SetDirectory(0);
-   Graph32->SetStats(0);
-   Graph32->SetFillColor(1);
-   Graph32->SetFillStyle(0);
-   Graph32->SetLineStyle(0);
-   Graph32->SetMarkerStyle(20);
-   Graph32->SetMarkerSize(1.5);
-   Graph32->GetXaxis()->SetLabelFont(42);
-   Graph32->GetXaxis()->SetLabelOffset(0.01);
-   Graph32->GetXaxis()->SetLabelSize(0.045);
-   Graph32->GetXaxis()->SetTitleSize(0.055);
-   Graph32->GetXaxis()->SetTitleFont(42);
-   Graph32->GetYaxis()->SetLabelFont(42);
-   Graph32->GetYaxis()->SetLabelOffset(0.01);
-   Graph32->GetYaxis()->SetLabelSize(0.045);
-   Graph32->GetYaxis()->SetTitleSize(0.055);
-   Graph32->GetYaxis()->SetTitleOffset(1.6);
-   Graph32->GetYaxis()->SetTitleFont(42);
-   Graph32->GetZaxis()->SetLabelFont(42);
-   Graph32->GetZaxis()->SetLabelSize(0.045);
-   Graph32->GetZaxis()->SetTitleFont(42);
-   graph->SetHistogram(Graph32);
+   TH1 *Graph31 = new TH1F("Graph31","Graph",100,-3,3);
+   Graph31->SetMinimum(5.492917);
+   Graph31->SetMaximum(6.628557);
+   Graph31->SetDirectory(0);
+   Graph31->SetStats(0);
+   Graph31->SetFillColor(1);
+   Graph31->SetFillStyle(0);
+   Graph31->SetLineStyle(0);
+   Graph31->SetMarkerStyle(20);
+   Graph31->SetMarkerSize(1.5);
+   Graph31->GetXaxis()->SetLabelFont(42);
+   Graph31->GetXaxis()->SetLabelOffset(0.01);
+   Graph31->GetXaxis()->SetLabelSize(0.045);
+   Graph31->GetXaxis()->SetTitleSize(0.055);
+   Graph31->GetXaxis()->SetTitleFont(42);
+   Graph31->GetYaxis()->SetLabelFont(42);
+   Graph31->GetYaxis()->SetLabelOffset(0.01);
+   Graph31->GetYaxis()->SetLabelSize(0.045);
+   Graph31->GetYaxis()->SetTitleSize(0.055);
+   Graph31->GetYaxis()->SetTitleOffset(1.6);
+   Graph31->GetYaxis()->SetTitleFont(42);
+   Graph31->GetZaxis()->SetLabelFont(42);
+   Graph31->GetZaxis()->SetLabelSize(0.045);
+   Graph31->GetZaxis()->SetTitleFont(42);
+   graph->SetHistogram(Graph31);
    
    graph->Draw("f");
    
@@ -656,7 +656,14 @@
    hPYTHIA8->SetEntries(2.717017e+07);
    hPYTHIA8->SetFillColor(1);
    hPYTHIA8->SetFillStyle(0);
+
+   Int_t ci;   // for color index setting
+   ci = TColor::GetColor("#009900");
+   hPYTHIA8->SetLineColor(ci);
    hPYTHIA8->SetLineStyle(0);
+
+   ci = TColor::GetColor("#009900");
+   hPYTHIA8->SetMarkerColor(ci);
    hPYTHIA8->SetMarkerStyle(22);
    hPYTHIA8->SetMarkerSize(1.25);
    hPYTHIA8->GetXaxis()->SetTitle("#eta");
@@ -839,7 +846,7 @@
    hX2->GetZaxis()->SetTitleFont(42);
    hX2->Draw("same");
    
-   TLegend *leg = new TLegend(-2.352864e+307,-2.352864e+307,-2.352864e+307,-2.352864e+307,NULL,"brNDC");
+   TLegend *leg = new TLegend(0,0,0,0,NULL,"brNDC");
    leg->SetBorderSize(0);
    leg->SetTextFont(62);
    leg->SetTextSize(0.033);

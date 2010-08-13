@@ -461,6 +461,10 @@ void setTrackletTreeBranch(TTree* trackletTree,TrackletData &tdata)
   trackletTree->Branch("pt",tdata.pt,"pt[npart]/F");
   trackletTree->Branch("evtType",&tdata.evtType,"evtType/I");
   trackletTree->Branch("pro2",&tdata.pro2,"evtType/F");
+  
+  trackletTree->Branch("vtxqual",&tdata.vtxqual,"vtxqual/F");
+  trackletTree->Branch("npxhits",&tdata.npxhits,"npxhits/F");
+  trackletTree->Branch("vtxQualCut",&tdata.vtxQualCut,"vtxQualCut/F");
 
   trackletTree->SetAlias("dR","sqrt(deta*deta+dphi*dphi)");
   trackletTree->SetAlias("dRR","sqrt(deta*deta+dphi*dphi+(r1-r2)*(r1-r2))") ;

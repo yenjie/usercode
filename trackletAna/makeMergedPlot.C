@@ -31,7 +31,9 @@ void clearBin0(TH1F* h)
    for (int i=2;i<=11;i++)
    {
       if (h->GetBinContent(i)>0) cout <<i<<" "<<h->GetBinError(i)/h->GetBinContent(i)<<endl;
-      h->SetBinError(i,h->GetBinContent(i)*8/100);
+      double e1 = h->GetBinContent(i)*3.8/100;
+      double e2 = h->GetBinError(i);
+      h->SetBinError(i,sqrt(e1*e1+e2*e2));
    }   
 
 }
@@ -46,7 +48,7 @@ void clearBin(TH1F* h)
    for (int i=2;i<=11;i++)
    {
       if (h->GetBinContent(i)>0) cout <<i<<" "<<h->GetBinError(i)/h->GetBinContent(i)<<endl;
-      h->SetBinError(i,h->GetBinContent(i)*8/100);
+      h->SetBinError(i,h->GetBinContent(i)*3.8/100);
    }   
 
 }
@@ -66,7 +68,7 @@ void clearBin2(TH1F* h)
    for (int i=2;i<=11;i++)
    {
       if (h->GetBinContent(i)>0) cout <<i<<" "<<h->GetBinError(i)/h->GetBinContent(i)<<endl;
-      h->SetBinError(i,h->GetBinContent(i)*8/100);
+      h->SetBinError(i,h->GetBinContent(i)*3.8/100);
    }   
 }
 
@@ -235,7 +237,7 @@ uncert = 3.8,int par=0,string title= "")
 
       if (i!=2&&i!=3&&i!=11&&i!=10) avg/=6.0; else avg/=2.0;
 //      if (i!=2&&i!=11) avg/=6.0; else avg/=2.0;
-      double avgErr = avg*8/100.;
+      double avgErr = avg*3.8/100.;
       
       hAvg2->SetBinContent(i,avg);
       hAvg2->SetBinError(i,0,avgErr);

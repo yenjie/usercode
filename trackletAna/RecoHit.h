@@ -72,6 +72,7 @@ class Parameters {
   float etaF2[maxEntry],phiF2[maxEntry],rF2[maxEntry],csF2[maxEntry],chF2[maxEntry];
   float eta[maxEntry],phi[maxEntry],pt[maxEntry];
   int nhits1,nhits2,nhits3,nhitsF2,mult,nv,npart,evtType,chg[maxEntry],pdg[maxEntry];
+  float npxhits,vtxqual;
 };
 
 class TrackletData {
@@ -89,6 +90,7 @@ class TrackletData {
   float eta[maxEntry2],phi[maxEntry2],nhad[12],pt[maxEntry2];
   int chg[maxEntry2],pdg[maxEntry2];
   float pro2;
+  float npxhits,vtxqual,vtxQualCut;
   int nTracklet,nhit1,nhit2,mult,mult2,nv,npart,evtType,trackletType;
 };
 
@@ -143,6 +145,9 @@ cutOnClusterSize = 0, double runNum = 0,double nLumi = 0)
   } else if (runNum == 132440) { // varying
      x0 = 0.09419;// + nLumi*6.033e-7;
      y0 = 0.007286;// - nLumi*3.087e-6;
+  } else if (runNum == 133242) { 
+     x0 = 0.095;// roughly
+     y0 = 0.002;// roughly
   } else {
      //x0 = 0.2468185+smearX;
      //y0 = 0.3983917+smearY;
@@ -348,5 +353,8 @@ void getPixelTreeBranch(TTree *t, Parameters &par)
   t->SetBranchAddress("phi",&par.phi);
   t->SetBranchAddress("pt",&par.pt);
   t->SetBranchAddress("chg",&par.chg);
-  t->SetBranchAddress("pdg",&par.pdg); 
+  t->SetBranchAddress("pdg",&par.pdg);
+  
+  t->SetBranchAddress("vtxqual",&par.vtxqual);
+  t->SetBranchAddress("npxhits",&par.npxhits);
 }
