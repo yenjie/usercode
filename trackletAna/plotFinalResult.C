@@ -2,7 +2,7 @@
 
 // Standard library
 #include <math.h>
-#include <iostream.h>
+#include <iostream>
 #include <fstream>
 
 // ROOT Library
