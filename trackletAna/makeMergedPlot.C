@@ -3,12 +3,12 @@
 #include <TCanvas.h>
 #include <TH1F.h>
 #include <TLegend.h>
-#include <fstream.h>
+#include <fstream>
 #include <TNtuple.h>
 #include "UA5Plot.h"
 #include "ResultPlots.h"
 #include "GraphErrorsBand.h"
-#define dndetaRange 7
+#define dndetaRange 20
 
 
 void correctBin(TH1F* h,double* a1,double*a2)
