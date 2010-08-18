@@ -1,4 +1,4 @@
-#include <iostream.h>
+#include <iostream>
 #include <TFile.h>
 #include <TCanvas.h>
 #include <TH1F.h>

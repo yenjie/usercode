@@ -4,7 +4,7 @@
 #include <TCanvas.h>
 #include <TH1F.h>
 #include <TH2F.h>
-#include <iostream.h>
+#include <iostream>
 #include <TText.h>
 
 #include "selectionCut.h"

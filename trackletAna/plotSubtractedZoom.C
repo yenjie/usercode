@@ -8,7 +8,7 @@
 #include <TCanvas.h>
 #include <TNtuple.h>
 #include <TTree.h>
-#include <iostream.h>
+#include <iostream>
 #include <TLine.h>
 #include <math.h>
 #include <TF1.h>

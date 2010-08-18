@@ -1,6 +1,6 @@
 #include <TCut.h>
 #include <TString.h>
-#include <iostream.h>
+#include <iostream>
 
 class selectionCut
 {  
