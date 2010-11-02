@@ -13,7 +13,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", long st
                           bool useRandomVertex= 0,
 			  bool cutOnClusterSize = 1,
 			  bool mimicPixelCounting = 0, 
-			  bool reproduceBck = 0,
+			  bool reproduceBck = 1,
 			  int makeVzCut = 0,
 			  double splitProb = 0, double dropProb = 0, 
 			  double nPileUp = 0,
