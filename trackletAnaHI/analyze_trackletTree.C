@@ -22,7 +22,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", long st
     			             "DataSample/PixelTree-Run123151-Full.root",
                           double smearVertex = 0,
 			  bool putPixelTree = 0,
-			  bool useKKVertex = 1,
+			  bool useKKVertex = 0,
 			  bool useNSD = 0,
 			  bool checkDoubleEvent = 0,
 			  bool reweightMultiplicity = 0
@@ -71,8 +71,8 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", long st
   double vzShift = 0;
   
   int nEtaBin = 10;
-  int nDeltaEtaBin = 1;    // 1
-  int nDeltaPhiBin = 80;   //64
+  int nDeltaEtaBin = 40;    // 1
+  int nDeltaPhiBin = 40;   //64
   int nPtBin = 50;
 
   double EtaBins[nEtaBin+1];
@@ -81,8 +81,8 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", long st
   double PtBins[nPtBin+1];
   
   for (int i=0;i<=nEtaBin;i++)      { EtaBins[i]=-2.5+(i)*5./nEtaBin; }
-  for (int i=0;i<=nDeltaEtaBin;i++) { DeltaEtaBins[i]=-0.05+(i)*0.1/nDeltaEtaBin; }
-  for (int i=0;i<=nDeltaPhiBin;i++) { DeltaPhiBins[i]=-3.1416+(i)*3.1416*2./nDeltaPhiBin; }
+  for (int i=0;i<=nDeltaEtaBin;i++) { DeltaEtaBins[i]=-0.25+(i)*0.5/nDeltaEtaBin;}
+  for (int i=0;i<=nDeltaPhiBin;i++) { DeltaPhiBins[i]=-0.25+(i)*0.5/nDeltaPhiBin; }
   for (int i=0;i<=nPtBin;i++)       {PtBins[i]=0+(i)*5.0/nPtBin; }
   
   TH1F *hRatio;

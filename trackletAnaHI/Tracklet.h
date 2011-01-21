@@ -156,7 +156,7 @@ vector<Tracklet> recoProtoTracklets(vector<RecoHit> hits1, vector<RecoHit> hits2
   nTracklet=0;
   mult=0;
 
-  double detaRange = 0.05;
+  double detaRange = 0.5;
   
   int startJ=0;
   sort (hits1.begin(),hits1.end(),compareEta);
@@ -169,6 +169,8 @@ vector<Tracklet> recoProtoTracklets(vector<RecoHit> hits1, vector<RecoHit> hits2
   for (int i = 0; i < h1s; ++i)
   {
       float minJ=0;
+      int selected = -10;
+      double minDR=1000;
       for (int j = startJ; j < h2s; ++j)
       {
           float deta = hits2[j].eta-hits1[i].eta;	  
@@ -177,18 +179,13 @@ vector<Tracklet> recoProtoTracklets(vector<RecoHit> hits1, vector<RecoHit> hits2
 	     mytracklet.setIt1(i);
    	     mytracklet.setIt2(j);
 	     
-	     float dphi = fabs(mytracklet.dphi());
-	     if (dphi<3.1416/16.) {
-                // signal
-	        ++mult;
-	     } else if (dphi>3.1416-3.1416/16.) {
-                // sideband
-	        --mult;
+	     double dR = fabs(mytracklet.dR());
+	     if (minDR>dR){
+	        selected = j;
+		minDR=dR;
 	     }
-   	     h->Fill(mytracklet.eta1(),mytracklet.deta(),mytracklet.dphi());
 	  }
 
-	  
 	  if (minJ==0&&deta>-detaRange) { 
 	        minJ=j;
                 startJ=minJ;
@@ -197,9 +194,22 @@ vector<Tracklet> recoProtoTracklets(vector<RecoHit> hits1, vector<RecoHit> hits2
 	  if (deta>detaRange) {
 	     j=h2s;
 	  }
-	  
+
 	  
       }
+      if (selected!=-10) {
+         Tracklet mytracklet(hits1[i].eta,hits2[selected].eta*shift,hits1[i].phi,hits2[selected].phi*shift,hits1[i].r,hits2[selected].r,hits1[i].cs,hits2[selected].cs);
+	 float dR = fabs(mytracklet.dR());
+	 if (dR<0.025) {
+            // signal
+	    ++mult;
+	 } else if (dR>0.025&&dR<0.5) {
+            // sideband
+	    --mult;
+	 }
+         h->Fill(mytracklet.eta1(),mytracklet.deta(),mytracklet.dphi());
+      }
+
   }
   nTracklet=h->GetEntries();
   return protoTracklets;
@@ -388,13 +398,17 @@ double TrackletVertexUnbin(vector<RecoHit> layer1, vector<RecoHit> layer2,double
     double nRecoZ=0;
     
     vector<double> vectorZ;
-    
+    cout <<layer1.size()<<" "<<layer2.size()<<endl;
     for(int ihit = 0; ihit< (int)layer1.size(); ++ihit) {
+       if (fabs(layer1[ihit].eta)>1) continue;
+       if (ihit%5!=0&&layer1.size()>1000) continue;
        double r1 = layer1[ihit].r;
        double phi1 = layer1[ihit].phi;
        double z1 = r1/tan(atan(exp(-layer1[ihit].eta))*2);
-       
+
        for(int ihit2 = 0; ihit2< (int)layer2.size(); ++ihit2) {
+          if (fabs(layer2[ihit2].eta)>1) continue;
+          if (ihit2%5!=0&&layer1.size()>1000) continue;
           double r2 = layer2[ihit2].r;
           double phi2 = layer2[ihit2].phi;
 	  if (fabs(calcDphi(phi1,phi2))>dPhiCut) continue;
