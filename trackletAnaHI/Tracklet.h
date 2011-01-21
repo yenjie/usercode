@@ -142,6 +142,7 @@ bool compareDeltaRWithRhoCut(Tracklet a,Tracklet b)   {
    if (fabs(b.r1()-b.r2()>0.2)) bWeight+=10000; // avoid double hit
    return aWeight<bWeight;   
 }
+
 bool compareDeltaR(Tracklet a,Tracklet b)   {return fabs(a.dR2())<fabs(b.dR2());}
 bool compareDeltaEta(Tracklet a,Tracklet b) {return fabs(a.deta())<fabs(b.deta());}
 
@@ -154,6 +155,8 @@ vector<Tracklet> recoProtoTracklets(vector<RecoHit> hits1, vector<RecoHit> hits2
   if (reproduceBck) shift=-1;
   nTracklet=0;
   mult=0;
+
+  double detaRange = 0.05;
   
   int startJ=0;
   sort (hits1.begin(),hits1.end(),compareEta);
@@ -164,21 +167,21 @@ vector<Tracklet> recoProtoTracklets(vector<RecoHit> hits1, vector<RecoHit> hits2
   
   
   for (int i = 0; i < h1s; ++i)
-    {
+  {
       float minJ=0;
       for (int j = startJ; j < h2s; ++j)
-	{
+      {
           float deta = hits2[j].eta-hits1[i].eta;	  
-	  if (fabs(deta)<0.05) {
+	  if (fabs(deta)<detaRange) {
 	     Tracklet mytracklet(hits1[i].eta,hits2[j].eta*shift,hits1[i].phi,hits2[j].phi*shift,hits1[i].r,hits2[j].r,hits1[i].cs,hits2[j].cs);
 	     mytracklet.setIt1(i);
    	     mytracklet.setIt2(j);
 	     
 	     float dphi = fabs(mytracklet.dphi());
-	     if (dphi<0.5) {
+	     if (dphi<3.1416/16.) {
                 // signal
 	        ++mult;
-	     } else if (dphi>0.5&&dphi<1.0) {
+	     } else if (dphi>3.1416-3.1416/16.) {
                 // sideband
 	        --mult;
 	     }
@@ -186,18 +189,18 @@ vector<Tracklet> recoProtoTracklets(vector<RecoHit> hits1, vector<RecoHit> hits2
 	  }
 
 	  
-	  if (minJ==0&&deta>-0.05) { 
+	  if (minJ==0&&deta>-detaRange) { 
 	        minJ=j;
                 startJ=minJ;
           }
 
-	  if (deta>0.05) {
+	  if (deta>detaRange) {
 	     j=h2s;
 	  }
 	  
 	  
-	}
-    }
+      }
+  }
   nTracklet=h->GetEntries();
   return protoTracklets;
 }
@@ -499,9 +502,16 @@ void setTrackletTreeBranch(TTree* trackletTree,TrackletData &tdata)
   trackletTree->Branch("evtType",&tdata.evtType,"evtType/I");
   
   trackletTree->Branch("vtxqual",&tdata.vtxqual,"vtxqual/F");
-  trackletTree->Branch("npxhits",&tdata.npxhits,"npxhits/F");
+  trackletTree->Branch("pixel",&tdata.pixel,"pixel/F");
   trackletTree->Branch("vtxQualCut",&tdata.vtxQualCut,"vtxQualCut/F");
 
+  trackletTree->Branch("beamSpotX",&tdata.beamSpotX,"beamSpotX/F");
+  trackletTree->Branch("beamSpotY",&tdata.beamSpotY,"beamSpotY/F");
+  trackletTree->Branch("beamSpotZ",&tdata.beamSpotZ,"beamSpotZ/F");
+
+
+  trackletTree->Branch("zdcp",&tdata.zdcp,"zdcp/F");
+  trackletTree->Branch("zdcm",&tdata.zdcm,"zdcm/F");
   trackletTree->Branch("hf",&tdata.hf,"hf/F");
   trackletTree->Branch("hftp",&tdata.hftp,"hftp/F");
   trackletTree->Branch("hftm",&tdata.hftm,"hftm/F");

@@ -13,7 +13,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", long st
                           bool useRandomVertex= 0,
 			  bool cutOnClusterSize = 1,
 			  bool mimicPixelCounting = 0, 
-			  bool reproduceBck = 1,
+			  bool reproduceBck = 0,
 			  int makeVzCut = 0,
 			  double splitProb = 0, double dropProb = 0, 
 			  double nPileUp = 0,
@@ -33,7 +33,8 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", long st
   gRandom->SetSeed(myTime.GetNanoSec());
   cout <<"Randomize "<<gRandom->Rndm()<<endl;
   
-  if (reproduceBck) cout <<"REPRODUCE BACKGROUND MODE!!!!!!!"<<endl;
+  
+
   // Input file =======================================================================================
   TFile* inf = new  TFile(infile);
   TTree* t = dynamic_cast<TTree*>(inf->FindObjectAny("PixelTree"));
@@ -46,6 +47,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", long st
       beamHaloInf = new TFile(beamHaloFile);
       beamHaloTree = dynamic_cast<TTree*>(beamHaloInf->FindObjectAny("PixelTree"));
   }
+  if (reproduceBck) cout <<"REPRODUCE BACKGROUND MODE!!!!!!!"<<endl;
   
   // Output file =======================================================================================
   TFile* outf = new TFile(outfile,"recreate");
@@ -62,7 +64,6 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", long st
   int zbins = 1;
   int hitbins = 100;
   int vertexHitRegion = 500000;
-  int nbins = zbins*hitbins;
   int nPrint = 100;
   double mult = 0;
   bool isMC = 0;
@@ -70,9 +71,10 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", long st
   double vzShift = 0;
   
   int nEtaBin = 10;
-  int nDeltaEtaBin = 1;
-  int nDeltaPhiBin = 640;
+  int nDeltaEtaBin = 1;    // 1
+  int nDeltaPhiBin = 80;   //64
   int nPtBin = 50;
+
   double EtaBins[nEtaBin+1];
   double DeltaEtaBins[nDeltaEtaBin+1];
   double DeltaPhiBins[nDeltaPhiBin+1];
@@ -80,7 +82,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", long st
   
   for (int i=0;i<=nEtaBin;i++)      { EtaBins[i]=-2.5+(i)*5./nEtaBin; }
   for (int i=0;i<=nDeltaEtaBin;i++) { DeltaEtaBins[i]=-0.05+(i)*0.1/nDeltaEtaBin; }
-  for (int i=0;i<=nDeltaPhiBin;i++) { DeltaPhiBins[i]=-3.2+(i)*3.2*2./nDeltaPhiBin; }
+  for (int i=0;i<=nDeltaPhiBin;i++) { DeltaPhiBins[i]=-3.1416+(i)*3.1416*2./nDeltaPhiBin; }
   for (int i=0;i<=nPtBin;i++)       {PtBins[i]=0+(i)*5.0/nPtBin; }
   
   TH1F *hRatio;
@@ -134,8 +136,8 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", long st
      cout <<"vzShift = "<<vzShift<<endl;
   } else {
      isMC=false;
-     cout <<"This is a data analysis. STILL SHIFT Vtx for the moment!!!"<<endl;
-     vzShift = -0.4847;
+     //cout <<"This is a data analysis. STILL SHIFT Vtx for the moment!!!"<<endl;
+     //vzShift = -0.4847;
      smearVertex = 0;
   }
   
@@ -156,6 +158,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", long st
   
   //  Parameters beamHaloPar;
   if (putBeamHalo) getPixelTreeBranch(beamHaloTree,par);  
+  //t->SetBranchStatus("*",false);
   getPixelTreeBranch(t,par);
   
   if(!makeVzCut) t->SetBranchAddress("evtType",&par.evtType);
@@ -183,14 +186,27 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", long st
             <<endl;
        if (reWeight) cout <<"Reweighted!!!!!!!"<<endl;    
     }       
-    //if (par.nhits1>300000) continue;
-    
+
+   // if (par.nhits1>300000) continue;
+   // if (par.nRun<150300) continue;
+   // if (par.nLumi<70) continue;
+
+    int flag=0;
+    flag=1;
+/*
+    if (par.hltBit[8]==1  
+         &&  (   (par.nLumi>=29&&par.nLumi<237)
+               ||(par.nLumi>=288&&par.nLumi<=1336)
+             )
+       ) flag=1;
+*/
+    if (flag==0&&!isMC) continue;
 
     bool flagDoubleEvent = 0;
 
     if (checkDoubleEvent)
     {
-       for (int j=0;j<events[par.nLumi].size();j++)
+       for (unsigned int j=0;j<events[par.nLumi].size();j++)
        {
           if (par.nEv==events[par.nLumi][j]) {
 	     flagDoubleEvent = 1;
@@ -201,8 +217,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", long st
     }
 
     if (flagDoubleEvent) continue;
-//    if (par.nRun!=124023||(par.nRun==124033&&(par.nLumi<41||par.nLumi>96))) continue;
-//    if (par.nRun!=132440||(par.nRun==132440&&(par.nLumi<141||par.nLumi>200))) continue;
+
     bool reWeightDropFlag = 0;
     if (reWeight) {
        reWeightDropFlag = 0;
@@ -423,7 +438,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", long st
        for (int j=1;j<endEntry-i;j++)
        {
           t->GetEntry(i+j);
-          if (fabs(par.vz[1]-myVz)<0.5&&fabs(par.nhits2-myhits2)<2000) {
+          if (fabs(par.vz[1]-myVz)<0.2&&fabs(par.nhits2-myhits2)<500000) {
 	     bckFlag=j;
 	     j=endEntry;
 	  }
@@ -546,13 +561,13 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", long st
 
     // Vertex Compatibility information
     float vtxQualCut=0;
-    if (par.npxhits<150) {
+    if (par.pixel<150) {
        vtxQualCut = 1;
     } else {
        if (par.vtxqual>2) {
           vtxQualCut = 1;
        } else {
-          if (par.vtxqual>0.0045*par.npxhits) {
+          if (par.vtxqual>0.0045*par.pixel) {
 	     vtxQualCut = 1;
  	  } else {
  	     vtxQualCut = 0;
@@ -576,8 +591,14 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", long st
     tdata12.nL1TBit = par.nL1TBit;
     tdata12.vtxQualCut = vtxQualCut;
     tdata12.vtxqual = par.vtxqual;
-    tdata12.npxhits = par.npxhits;
+    tdata12.pixel = par.pixel;
 
+    tdata12.beamSpotX = par.beamSpotX;
+    tdata12.beamSpotY = par.beamSpotY;
+    tdata12.beamSpotZ = par.beamSpotZ;
+
+    tdata12.zdcm = par.zdcm;
+    tdata12.zdcp = par.zdcp;
     tdata12.hf = par.hf;
     tdata12.hftp = par.hftp;
     tdata12.hftm = par.hftm;
@@ -644,10 +665,7 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", long st
 
     if (reweightMultiplicity) {
        reWeightMultDropFlag = 0;
-       double myVz = tdata12.vz[1];       
-       
        double Ratio = hRatio->GetBinContent(hRatio->FindBin(tdata12.mult));
-       //cout <<Ratio<<endl;
        double x=gRandom->Rndm()*1.6;
 
        if (x> Ratio) reWeightMultDropFlag=1;
@@ -677,7 +695,14 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", long st
     tdata13.nL1TBit = par.nL1TBit;
     tdata13.vtxQualCut = vtxQualCut;
     tdata13.vtxqual = par.vtxqual;
-    tdata13.npxhits = par.npxhits;
+    tdata13.pixel = par.pixel;
+
+    tdata13.beamSpotX = par.beamSpotX;
+    tdata13.beamSpotY = par.beamSpotY;
+    tdata13.beamSpotZ = par.beamSpotZ;
+
+    tdata13.zdcm = par.zdcm;
+    tdata13.zdcp = par.zdcp;
 
     tdata13.hf = par.hf;
     tdata13.hftp = par.hftp;
@@ -765,7 +790,14 @@ void analyze_trackletTree(char * infile, char * outfile = "output.root", long st
     tdata23.nL1TBit = par.nL1TBit;
     tdata23.vtxQualCut = vtxQualCut;
     tdata23.vtxqual = par.vtxqual;
-    tdata23.npxhits = par.npxhits;
+    tdata23.pixel = par.pixel;
+
+    tdata23.beamSpotX = par.beamSpotX;
+    tdata23.beamSpotY = par.beamSpotY;
+    tdata23.beamSpotZ = par.beamSpotZ;
+
+    tdata23.zdcm = par.zdcm;
+    tdata23.zdcp = par.zdcp;
 
     tdata23.hf = par.hf;
     tdata23.hftp = par.hftp;

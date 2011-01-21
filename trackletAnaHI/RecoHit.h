@@ -72,8 +72,10 @@ class Parameters {
   //float etaF2[maxEntry],phiF2[maxEntry],rF2[maxEntry],csF2[maxEntry],chF2[maxEntry];
   float eta[maxEntry],phi[maxEntry],pt[maxEntry];
   int nhits1,nhits2,nhits3,nhitsF2,mult,nv,npart,evtType,chg[maxEntry],pdg[maxEntry];
-  float npxhits,vtxqual;
+  float pixel,vtxqual;
+  float beamSpotX, beamSpotY, beamSpotZ;
   float hf,hftp,hftm,eb,eep,eem,nparti,npartiSigma,ncoll,ncollSigma,nhard,nhardSigma,b,bSigma;
+  float zdcp,zdcm;
   int cBin,nbins,binsize;
 };
 
@@ -93,10 +95,12 @@ class TrackletData {
   float eta[maxEntry2],phi[maxEntry2],nhad[12],pt[maxEntry2];
   int chg[maxEntry2],pdg[maxEntry2];
   ULong64_t weight2[maxEntry2];
-  float npxhits,vtxqual,vtxQualCut;
+  float pixel,vtxqual,vtxQualCut;
+  float beamSpotX, beamSpotY, beamSpotZ;
   int nTracklet,nhit1,nhit2,mult2,nv,npart,evtType,trackletType;
   ULong64_t mult,nProtoTracklet;
   float hf,hftp,hftm,eb,eep,eem,nparti,npartiSigma,ncoll,ncollSigma,nhard,nhardSigma,b,bSigma;
+  float zdcp,zdcm;
   int cBin,nbins,binsize;
 };
 
@@ -107,37 +111,43 @@ bool compareAbsEta(RecoHit a,RecoHit b) { return fabs(a.eta)<fabs(b.eta);}
 double calcDphi(double phi1,double phi2);
 
 
-void prepareHits(vector<RecoHit> &cleanedHits, Parameters par, SelectionCriteria cuts,Int_t
+void prepareHits(vector<RecoHit> &cleanedHits, Parameters &par, SelectionCriteria &cuts,Int_t
 layer, double vx, double vy, double vz, double splitProb = 0, double dropProb = 0, bool
 cutOnClusterSize = 0, double runNum = 0,double nLumi = 0, bool isMC = 0, bool
-useV = false)
+useV = true)
 {
   vector<RecoHit> hits;
   static Bool_t firstCall = 0;
-  
-  double smearX=0,smearY=0;
 
   double x0,y0;
 
   // The beamspot for each run
 
-  if (useV) {
+  if (useV&&!isMC) {
      x0 = vx;
      y0 = vy;
   } else {
+    if (runNum == 150590)
+    {
+       x0 = 0.242121-0.1475;
+       y0 = 0.40768-0.3782;
+    }
     if (runNum == 1) {
      
      if (isMC==0) {
         x0 = 0.2436;
         y0 = 0.3840;
      } else {
-        x0 = 0.03;
-        y0 = 0;
+        x0 = 0.09;
+        y0 = 0.03;
      }
         x0 = 0.2436;
         y0 = 0.3840;
 //        x0 = 0.03;
 //        y0 = 0.0;
+    } else {
+       x0 = 0.093;
+       y0 = 0.033;
     }
   }
 
@@ -147,7 +157,6 @@ useV = false)
       if (par.phi1[ihit]>-1.395&&par.phi1[ihit]<-1.105&&par.eta1[ihit]>1.085&&par.eta1[ihit]<1.725) continue;
 
       if (par.phi1[ihit]>1.57&&par.phi1[ihit]<1.77&&par.eta1[ihit]>-0.27&&par.eta1[ihit]<-0.02) continue;
-//      if (par.fl1[ihit]) continue;
       RecoHit tmp(par.eta1[ihit],par.phi1[ihit],par.r1[ihit],par.cs1[ihit]);
       if (gRandom->Rndm()<dropProb) continue;
       hits.push_back(tmp);
@@ -160,7 +169,6 @@ useV = false)
       // for Run 124120 && 12402x
       if (par.phi2[ihit]>2.98&&par.phi2[ihit]<3.2&&par.eta2[ihit]>-2.1&&par.eta2[ihit]<-1.71) continue;
 
-//      if (par.fl2[ihit]) continue;
       RecoHit tmp(par.eta2[ihit],par.phi2[ihit],par.r2[ihit],par.cs2[ihit]);
       if (gRandom->Rndm()<dropProb) continue;
       hits.push_back(tmp);
@@ -186,7 +194,7 @@ useV = false)
     float z = hits[ihit].r/tan(atan(exp(-hits[ihit].eta))*2);
 
     if (vz!=0&&firstCall==0) {
-       cout << "Beamspot X0 = "<<x0<<" Y0 = "<<y0<<endl;
+       cout << "X0 = "<<x0<<" Y0 = "<<y0<<endl;
        firstCall=1;
     }
 
@@ -252,7 +260,7 @@ void getPixelTreeBranch(TTree *t, Parameters &par)
   t->SetBranchAddress("nHFn",&par.nHFn);
   t->SetBranchAddress("nHFp",&par.nHFp);
 
-  t->SetBranchAddress("nHltBit",&par.nHltBit);
+  t->SetBranchAddress("nHLTBit",&par.nHltBit);
   t->SetBranchAddress("hltBit",par.hltBit);
 
   t->SetBranchAddress("nL1A",&par.nL1ABit);
@@ -260,10 +268,6 @@ void getPixelTreeBranch(TTree *t, Parameters &par)
 
   t->SetBranchAddress("nL1T",&par.nL1TBit);
   t->SetBranchAddress("L1T",par.l1TBit);
-
-//  t->SetBranchAddress("L1AVsBX",par.l1ABitVsBX);
-//  t->SetBranchAddress("L1TVsBX",par.l1TBitVsBX);
-
 
   t->SetBranchAddress("eta1",par.eta1);
   t->SetBranchAddress("phi1",par.phi1);
@@ -292,6 +296,13 @@ void getPixelTreeBranch(TTree *t, Parameters &par)
   t->SetBranchAddress("nhitsF2",&par.nhitsF2);
   */
   
+  t->SetBranchAddress("beamSpotX",&par.beamSpotX);
+  t->SetBranchAddress("beamSpotY",&par.beamSpotY);
+  t->SetBranchAddress("beamSpotZ",&par.beamSpotZ);
+
+
+  t->SetBranchAddress("vx",par.vx);
+  t->SetBranchAddress("vy",par.vy);
   t->SetBranchAddress("vz",par.vz);
   t->SetBranchAddress("nv",&par.nv);
   t->SetBranchAddress("npart",&par.npart);
@@ -300,6 +311,8 @@ void getPixelTreeBranch(TTree *t, Parameters &par)
   t->SetBranchAddress("pt",&par.pt);
   t->SetBranchAddress("chg",&par.chg);
   t->SetBranchAddress("pdg",&par.pdg);
+  t->SetBranchAddress("zdcp",&par.zdcp);
+  t->SetBranchAddress("zdcm",&par.zdcm);
   t->SetBranchAddress("hf",&par.hf);
   t->SetBranchAddress("hftp",&par.hftp);
   t->SetBranchAddress("hftm",&par.hftm);
@@ -319,7 +332,7 @@ void getPixelTreeBranch(TTree *t, Parameters &par)
   t->SetBranchAddress("bSigma",&par.bSigma);
   
   t->SetBranchAddress("vtxqual",&par.vtxqual);
-  t->SetBranchAddress("npxhits",&par.npxhits);
-  t->SetBranchAddress("npxhits",&par.npxhits);
+  t->SetBranchAddress("pixel",&par.pixel);
   t->SetBranchAddress("b",&par.b);
+
 }
