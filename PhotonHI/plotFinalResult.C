@@ -112,7 +112,9 @@ double doFit(parameter par, double minEt, double maxEt, double &result, double &
    TH1F *hBck = new TH1F(Form("hBck%d",count),"",par.nBin,par.binL,par.binH);
 
    par.tData->Draw(Form("%s>>hData%d",par.var,count),etCut&&par.selectionCut&&par.dataCut);
-   par.tSig->Draw(Form("%s>>hSig%d",par.var,count),   (etCut&&par.selectionCut&&sigCut&&par.dataCut)*"cBinWeight");
+//   par.tSig->Draw(Form("%s>>hSig%d",par.var,count),   (etCut&&par.selectionCut&&sigCut&&par.dataCut)*"cBinWeight");
+   par.tMulti->Draw(hSig,Form("%s",par.var,count),   (etCut&&par.selectionCut&&sigCut&&par.dataCut));
+   hSig->SetName(Form("hSig%d",count));
 //   par.tBck->Draw(Form("%s>>hBck%d",par.var,count),   etCut&&par.selectionCut&&!sigCut&&par.dataCut);//*"(49.7014*(exp((-0.943492e-3)*cBin*cBin*cBin+0.09106*cBin*cBin-0.44891*cBin+2.2789))+31.5117)");
    par.tData->Draw(Form("%s+%f>>hBck%d",par.var,par.shift,count), etCut&&par.selectionCut&&par.dataSidebandCut);
 
@@ -146,11 +148,11 @@ double doFit(parameter par, double minEt, double maxEt, double &result, double &
       sbStyle(hBck);
       hSigPdf = (TH1F*)hSig->Clone();
       hSigPdf->SetName(Form("hSigPdf%d",count));
-      hSigPdf->Scale(nev*ratio/hSigPdf->GetEntries());
+      hSigPdf->Scale(nev*ratio/hSigPdf->Integral(1,hSigPdf->GetNbinsX()));
 
       hBckPdf = (TH1F*)hBck->Clone();
       hBckPdf->SetName(Form("hBckPdf%d",count));
-      hBckPdf->Scale(nev*(1-ratio)/hBckPdf->GetEntries());
+      hBckPdf->Scale(nev*(1-ratio)/hBckPdf->Integral(1,hSigPdf->GetNbinsX()));
    
       count++;
       hBck->Add(hFinal);
@@ -170,8 +172,6 @@ double doFit(parameter par, double minEt, double maxEt, double &result, double &
 
 
       hFinal->Draw("e");
-
-
    
       hSigPdf->Draw("hist same");
       hBckPdf->Draw("hist same");
@@ -222,7 +222,33 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
 		    bool doResCorrection =1
                    )
 {
+
+   // Selection cut
+   selectionCriteria sel;
+   sel.eventCut     = "( !TTBit[36] && !TTBit[37] && !TTBit[38] && !TTBit[39] && !vtxIsFake && abs(vtxZ) <= 15)";
+   sel.centralityCut = Form("cBin>=%d&&cBin<%d",cBinL,cBinH);
+   TString swissCrx = "(1 - (eRight+eLeft+eTop+eBottom)/eMax)";
+   TCut hiSpikeCut       = Form("(  %s < 0.9 && abs(seedTime)<3  && sigmaIetaIeta>0.002 )  || isEE",swissCrx.Data());
+   
+   sel.removeSpikeCut = hiSpikeCut;
+   sel.photonCut ="r9>0.&&hadronicOverEm<0.1&&abs(eta)<1.44&&rawEnergy/energy>0.5\
+                   ";
+   sel.removeElectronCut = "!isEle";//"!isEle";//"!isEle";
+   
+   sel.selectionCut = sel.photonCut&&sel.centralityCut&&sel.eventCut&&sel.removeSpikeCut&&sel.removeElectronCut; 
+   sel.selectionCutWOElectronCut = sel.photonCut&&sel.centralityCut&&sel.eventCut&&sel.removeSpikeCut; 
+   sel.selectionCut2 =sel.photonCut&&sel.eventCut&&sel.removeSpikeCut; 
+
+
+   sel.sigCut = "isGenMatched && abs(genMomId) <= 22 && genCalIsoDR04 < 5.0 && genMatchedCollId ==0";
+
+//   TCut cutBased = "0.181<r9&&sigmaIetaIeta<0.019&&ct4PtCut<1.25177&&cr4<3.6135&&cc4<419";
+
    // Data sample
+
+   multiTreeUtil* trPho = new multiTreeUtil();
+   setupMultiTree(trPho, sel.selectionCut);
+
    TFile *infData = new TFile(infname);
    TTree *tData = (TTree*)infData->FindObjectAny("Analysis");
    TTree *tDataGen = (TTree*)infData->FindObjectAny("Generator");
@@ -257,26 +283,6 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    // ncoll ntuple
    
    TNtuple *ntColl = getNcoll();
-   // Selection cut
-   selectionCriteria sel;
-   sel.eventCut     = "( !TTBit[36] && !TTBit[37] && !TTBit[38] && !TTBit[39] && !vtxIsFake && abs(vtxZ) <= 15)";
-   sel.centralityCut = Form("cBin>=%d&&cBin<%d",cBinL,cBinH);
-   TString swissCrx = "(1 - (eRight+eLeft+eTop+eBottom)/eMax)";
-   TCut hiSpikeCut       = Form("(  %s < 0.9 && abs(seedTime)<3  && sigmaIetaIeta>0.002 )  || isEE",swissCrx.Data());
-   
-   sel.removeSpikeCut = hiSpikeCut;
-   sel.photonCut ="r9>0.&&hadronicOverEm<0.1&&abs(eta)<1.44&&rawEnergy/energy>0.5\
-                   ";
-   sel.removeElectronCut = "!isEle";//"!isEle";//"!isEle";
-   
-   sel.selectionCut = sel.photonCut&&sel.centralityCut&&sel.eventCut&&sel.removeSpikeCut&&sel.removeElectronCut; 
-   sel.selectionCutWOElectronCut = sel.photonCut&&sel.centralityCut&&sel.eventCut&&sel.removeSpikeCut; 
-   sel.selectionCut2 =sel.photonCut&&sel.eventCut&&sel.removeSpikeCut; 
-
-
-   sel.sigCut = "isGenMatched && abs(genMomId) <= 22 && genCalIsoDR04 < 5.0 && genMatchedCollId ==0";
-
-//   TCut cutBased = "0.181<r9&&sigmaIetaIeta<0.019&&ct4PtCut<1.25177&&cr4<3.6135&&cc4<419";
    
    // signal region 
    if (cBinL > -10) {
@@ -310,8 +316,8 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    // Binning
    const int nEtBin = 5;
    double myBin[nEtBin+1] = {20,25,30,40,50,80};
-//   const int nEtBin = 2;
-//   double myBin[nEtBin+1] = {20,25,30};
+//   const int nEtBin = 1;
+//   double myBin[nEtBin+1] = {20,25};
 
    // Histogram
    TH1F *hEtAll = new TH1F("hEtAll","",nEtBin,myBin);
@@ -419,6 +425,7 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    par.tData = tData;
    par.tSig = tSig;
    par.tBck = tBck;
+   par.tMulti = trPho;
    par.selectionCut = sel.selectionCut;
    par.var = "cc4+cr4";
    par.nBin = 20;
@@ -433,8 +440,9 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    par2.tData = tData;
    par2.tSig = tSig;
    par2.tBck = tBck;
+   par2.tMulti = trPho;
    par2.selectionCut = sel.selectionCut;
-   par2.var = "cc4+cr4+ct4PtCut-cc1-ct1PtCut";
+   par2.var = "cc4+cr4+ct4PtCut-cc05-ct05PtCut";
 //   par2.var = "ecalRecHitSumEtConeDR04 - compEcalIso + hcalTowerSumEtConeDR04 - compHcalIso + trkSumPtHollowConeDR04 - compTrackIso";
    par2.nBin = 20;
    par2.binL = -20;
@@ -453,6 +461,7 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    par3.tData = tData;
    par3.tSig = tSig;
    par3.tBck = tBck;
+   par3.tMulti = trPho;
    par3.selectionCut = sel.selectionCut;
    par3.dataCut = sel.dataCut;
    par3.dataSidebandCut = sel.dataSidebandCut;
@@ -470,6 +479,7 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    par31.tData = tData;
    par31.tSig = tSig;
    par31.tBck = tBck;
+   par31.tMulti = trPho;
    par31.selectionCut = sel.selectionCut;
    par31.dataCut = sel.dataCut;
    par31.dataSidebandCut = sel.dataSidebandCut;
@@ -487,6 +497,7 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    par4.tData = tData;
    par4.tSig = tSig;
    par4.tBck = tBck;
+   par4.tMulti = trPho;
    par4.selectionCut = sel.selectionCut;
    par4.dataCut = sel.dataCut;
    par4.dataSidebandCut = sel.dataSidebandCut;
@@ -511,6 +522,7 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    par5.tData = tData;
    par5.tSig = tSig;
    par5.tBck = tBck;
+   par5.tMulti = trPho;
    par5.selectionCut = sel.selectionCut;
    par5.var = "(-4.00626572)*eMax/e2x2+(5.07941193)*eMax/e3x3+(0.01855105)*eMax/e5x5+(-0.08046821)*eMax/energy+(-6.36218195)*e2x2/e3x3+(2.44924347)*e2x2/e5x5+(6.06287631)*e2x2/energy+(-3.01610493)*e3x3/e5x5+(-2.19817850)*e3x3/energy+(-1.81670490)*e5x5/energy+5.1982572901";   
    par5.nBin = 20;
