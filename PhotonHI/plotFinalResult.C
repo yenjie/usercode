@@ -12,10 +12,49 @@
 
 #include "common.h"
 #include "histFunction2.C"
-#include "multiPanel.h"
+#include "commonUtility.h"
 
 #define canvasX 800
 #define canvasY 600
+
+int correctRes(TH1F* h, int cBinL, int cBinH)
+{
+   double p0=0,p1=0,p2=0;
+   if (cBinL==0&&cBinH==4) {
+      p0 = 0.7718;
+      p1=0.01425;
+      p2=-0.0001432;
+   } 
+
+   if (cBinL==4&&cBinH==12) {
+      p0 = 0.8577;
+      p1=0.008235;
+      p2=-8.627e-5;
+   } 
+
+   if (cBinL==12&&cBinH==40) {
+      p0 = 1.007;
+      p1= -0.0003508;
+      p2=-5.535e-6;
+   } 
+   
+   if (p0==0){
+      cout <<"Bin setting not available!!! Not corrected!"<<endl;
+      return 0;
+   } else {
+      cout <<"Corrected!"<<endl;
+   }
+
+   for (int i=1;i<=h->GetNbinsX();i++)
+   {
+      double x = h->GetBinCenter(i);
+      double corr = p0+x*p1+x*x*p2;
+      h->SetBinContent(i,h->GetBinContent(i)/corr);
+      h->SetBinError(i,h->GetBinError(i)/corr);
+   }
+
+   return 1;
+}
 
 void scaleBin(TH1F *h,int i,double width)
 {
@@ -36,6 +75,21 @@ void cleanZeroBin(TH1 *h)
    }
 }
 
+
+void cleanError(TH1* h)
+{
+   for (int i=1;i<=h->GetNbinsX();i++)
+   {
+      h->SetBinError(i,0);
+   }
+}
+
+TGraphAsymmErrors *calcEff(TH1* h1, TH1* h2,char *hName="hEff")
+{
+   TGraphAsymmErrors *gEfficiency = new TGraphAsymmErrors();
+   gEfficiency->BayesDivide(h2,h1);
+   return gEfficiency;
+}
 
 
 double doFit(parameter par, double minEt, double maxEt, double &result, double &resultErr)
@@ -125,8 +179,8 @@ double doFit(parameter par, double minEt, double maxEt, double &result, double &
       delete myfun;
    }
 
-   TLegend *t3=new TLegend(0.52,0.59,0.95,0.78);
-   t3->AddEntry(hFinal,"Pb+Pb  #sqrt{s}_{_{NN}}=2.76 TeV","pl");
+   TLegend *t3=new TLegend(0.50,0.74,0.94,0.94);
+   t3->AddEntry(hFinal,"PbPb #sqrt{s}_{_{NN}}=2.76TeV","pl");
    t3->AddEntry(hSigPdf,"Final fit  results","lf");
    t3->AddEntry(hBckPdf,"Background fit","lf");
    t3->SetFillColor(0);
@@ -137,6 +191,15 @@ double doFit(parameter par, double minEt, double maxEt, double &result, double &
    if (minEt == 20) t3->Draw();
 //      drawCMS2(0.53,0.9,6.7,16);
 
+
+   TLegend *tPt=new TLegend(0.6,0.6,0.94,0.7);
+   tPt->AddEntry(hFinal,Form("%.0f-%.0f GeV",minEt,maxEt),"");
+   tPt->SetFillColor(0);
+   tPt->SetBorderSize(0);
+   tPt->SetFillStyle(0);
+   tPt->SetTextFont(63);
+   tPt->SetTextSize(15);
+   tPt->Draw();
 
    if (ratio>0) {
      result = nev*ratio;
@@ -154,7 +217,9 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
                     int cBinL = 0,
 		    int cBinH = 4,
 		    bool plotYongsun = 1,
-		    bool doElectronCorrection = 1
+		    bool doElectronCorrection = 1,
+		    bool ratioMode = 0,
+		    bool doResCorrection =1
                    )
 {
    // Data sample
@@ -163,7 +228,9 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    TTree *tDataGen = (TTree*)infData->FindObjectAny("Generator");
 
    // Signal sample
-   TFile *infSig = new TFile("PythiaData/mpaPhoton_correctedTree.root");
+   TFile *infSig = new TFile("PythiaData/mpaPhotonJetAll_mix_hiData_correctedTree.root");
+//   TFile *infSig = new TFile("PythiaData/mpaEmJet_correctedTree.root");
+//  TFile *infSig = new TFile("PythiaData/mpaPhotonJet15_mix_hiData_correctedTree.root");
    TTree *tSig = (TTree*)infSig->FindObjectAny("Analysis");
    TTree *tSigGen = (TTree*)infSig->FindObjectAny("Generator");
 
@@ -174,7 +241,7 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    // W sample
 //   TFile *infW = new TFile("ampt/mpa_w2ev_mix_ampt_april15_correctedTree.root");
    TFile *infW = new TFile("PythiaData/mpa_wEv_mix_hiData_correctedTree.root");
-   TFile *infWGen = new TFile("ampt/genTree_w2ev_mix_ampt_april15.root");
+   TFile *infWGen = new TFile("PythiaData/genTree_wEv_mix_hiData.root");
    TTree *tW = (TTree*)infW->FindObjectAny("Analysis");
    TTree *tWGen = (TTree*)infWGen->FindObjectAny("photon");
    
@@ -195,10 +262,10 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    sel.eventCut     = "( !TTBit[36] && !TTBit[37] && !TTBit[38] && !TTBit[39] && !vtxIsFake && abs(vtxZ) <= 15)";
    sel.centralityCut = Form("cBin>=%d&&cBin<%d",cBinL,cBinH);
    TString swissCrx = "(1 - (eRight+eLeft+eTop+eBottom)/eMax)";
-   TCut hiSpikeCut       = Form("(  %s < 0.9 && abs(seedTime)<4  && sigmaIetaIeta>0.002 )  || isEE",swissCrx.Data());
+   TCut hiSpikeCut       = Form("(  %s < 0.9 && abs(seedTime)<3  && sigmaIetaIeta>0.002 )  || isEE",swissCrx.Data());
    
    sel.removeSpikeCut = hiSpikeCut;
-   sel.photonCut = "r9>0&&hadronicOverEm<0.2&&abs(eta)<1.44&&rawEnergy/energy>0.5\
+   sel.photonCut ="r9>0.&&hadronicOverEm<0.1&&abs(eta)<1.44&&rawEnergy/energy>0.5\
                    ";
    sel.removeElectronCut = "!isEle";//"!isEle";//"!isEle";
    
@@ -207,14 +274,24 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    sel.selectionCut2 =sel.photonCut&&sel.eventCut&&sel.removeSpikeCut; 
 
 
-   sel.sigCut = "isGenMatched && abs(genMomId) <= 22 && genCalIsoDR04 < 5.0";
+   sel.sigCut = "isGenMatched && abs(genMomId) <= 22 && genCalIsoDR04 < 5.0 && genMatchedCollId ==0";
+
+//   TCut cutBased = "0.181<r9&&sigmaIetaIeta<0.019&&ct4PtCut<1.25177&&cr4<3.6135&&cc4<419";
    
    // signal region 
-   sel.dataCut = "sigmaIetaIeta<0.0125";
+   if (cBinL > -10) {
+      sel.dataCut = "sigmaIetaIeta<0.0115";
+   } else {
+      sel.dataCut = "sigmaIetaIeta<0.012";
+   }
    sel.dataCutShowerAna = "(cr4+cc4)<5&&ct4PtCut<3 ";
 
    // sideband region
-   sel.dataSidebandCut = "sigmaIetaIeta>0.0125&&sigmaIetaIeta<0.0135";
+   if (cBinL >0) {
+      sel.dataSidebandCut = "sigmaIetaIeta>0.0115&&sigmaIetaIeta<0.0145";
+   } else {
+      sel.dataSidebandCut = "sigmaIetaIeta>0.0120&&sigmaIetaIeta<0.014";
+   }
    sel.dataSidebandCutShowerAna =  "(cr4+cc4)<5&&ct4PtCut>6 ";
 
    TH1D *hNcoll = new TH1D("hNcoll","",1000,0,2000);
@@ -228,17 +305,18 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
 
    // Add friends 
    cout <<"Add Centrality reweighting to signal ..."<<endl;
-   addCentralityFriend(tSig,tData,sel.selectionCut);
+   addCentralityFriend(tSig,tData,sel.selectionCut&&"sigmaIetaIeta<0.0125&&(cr4+cc4)<5");
 
    // Binning
-   const int nEtBin = 6;
-   double myBin[nEtBin+1] = {20,25,30,40,50,80,140};
+   const int nEtBin = 5;
+   double myBin[nEtBin+1] = {20,25,30,40,50,80};
 //   const int nEtBin = 2;
 //   double myBin[nEtBin+1] = {20,25,30};
 
    // Histogram
    TH1F *hEtAll = new TH1F("hEtAll","",nEtBin,myBin);
    TH1F *hEtEle = new TH1F("hEtEle","",nEtBin,myBin);
+   TH1F *hEtEleAll = new TH1F("hEtEleAll","",nEtBin,myBin);
    TH1F *hEtCaloIso = new TH1F("hEtCaloIso","",nEtBin,myBin);
    TH1F *hEtSumIso = new TH1F("hEtSumIso","",nEtBin,myBin);
    TH1F *hEtSR = new TH1F("hEtSR","",nEtBin,myBin);
@@ -249,7 +327,9 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    TH1F *hEtEff = new TH1F("hEtEff","",nEtBin,myBin);
    TH1F *hEtEffShowerAna = new TH1F("hEtEffShowerAna","",nEtBin,myBin);
 
+  
    TH1F *hEtWEff = new TH1F("hEtWEff","",nEtBin,myBin);
+   TH1F *hEtWEffWOElectronCut = new TH1F("hEtWEffWOElectronCut","",nEtBin,myBin);
    TH1F *hEtWEffCut = new TH1F("hEtWEffCut","",nEtBin,myBin);
     
 
@@ -257,9 +337,11 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    
    // Data matched to Electron
    tData->Draw("etCorrected>>hEtEle", sel.selectionCutWOElectronCut&&"isEle&&sigmaIetaIeta<0.012&&cr4+cc4<10");
+   tData->Draw("etCorrected>>hEtEleAll", sel.selectionCutWOElectronCut&&"isEle&&sigmaIetaIeta<0.012&&cr4+cc4<10");
    
    // W sample matched to Electron
    tW->Draw("etCorrected>>hEtWEffCut", sel.selectionCutWOElectronCut&&"isEle&&sigmaIetaIeta<0.012&&cr4+cc4<10");
+   tW->Draw("etCorrected>>hEtWEffWOElectronCut", sel.selectionCutWOElectronCut&&"isEle&&sigmaIetaIeta<0.012&&cr4+cc4<10");
    tW->Draw("etCorrected>>hEtWEff", sel.selectionCut);
 
 
@@ -267,9 +349,9 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    TH1F *hEtWGen = new TH1F("hEtWGen","",nEtBin,myBin);
    TH1F *hEtTruth = new TH1F("hEtTruth","",nEtBin,myBin);
 
-   if (tDataGen!=0) tDataGen->Draw("pt>>hEtGen","abs(eta)<1.44 && calIsoDR04<5"&&sel.centralityCut);
+   if (tDataGen!=0) tDataGen->Draw("pt>>hEtGen","abs(eta)<1.44 && calIsoDR04<5 && collId==0"&&sel.centralityCut);
    cout <<"prepare truth"<<endl;
-   tSigGen->Draw("pt>>hEtTruth","abs(eta)<1.44 && calIsoDR04<5"&&sel.centralityCut);
+   tSigGen->Draw("pt>>hEtTruth","abs(eta)<1.44 && calIsoDR04<5 && collId==0"&&sel.centralityCut);
    
    
    cout <<"prepare Efficiency"<<endl;
@@ -282,8 +364,11 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    hEtEff->Sumw2();
    hEtEffShowerAna->Sumw2();
    hEtTruth->Sumw2();
+//   TGraphAsymmErrors *gEtEff = calcEff(hEtEff,hEtTruth);
    hEtEff->Divide(hEtTruth);
    hEtEffShowerAna->Divide(hEtTruth);
+//   cleanError(hEtEff);
+//   cleanError(hEtEffShowerAna);
 
 
    // W generator info
@@ -291,10 +376,17 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
 
    hEtWEff->Sumw2();
    hEtWEffCut->Sumw2();
-
+   hEtWEffWOElectronCut->Sumw2();
+   
    hEtWEffCut->Divide(hEtWEff);
    hEtWEff->Divide(hEtWGen);
-
+   hEtWEffWOElectronCut->Divide(hEtWGen);
+   hEtEleAll->Divide(hEtWEffWOElectronCut);
+   
+   TCanvas *cW = new TCanvas("cW","cW",600,600);
+   hEtWEffWOElectronCut->Draw();
+   
+   
    // Book canvas   
    TCanvas *c0 = new TCanvas("c0","Calo Iso",canvasX,canvasY);
    TCanvas *c1 = new TCanvas("c1","Sum Iso",canvasX,canvasY);
@@ -342,10 +434,15 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    par2.tSig = tSig;
    par2.tBck = tBck;
    par2.selectionCut = sel.selectionCut;
-   par2.var = "(cc4+cr4+ct4PtCut)";
+   par2.var = "cc4+cr4+ct4PtCut-cc1-ct1PtCut";
+//   par2.var = "ecalRecHitSumEtConeDR04 - compEcalIso + hcalTowerSumEtConeDR04 - compHcalIso + trkSumPtHollowConeDR04 - compTrackIso";
    par2.nBin = 20;
-   par2.binL = -30;
+   par2.binL = -20;
    par2.binH = 60;
+//   par2.var = "(cc4+cr4+ct4PtCut-ct1PtCut-cc1)";
+//   par2.nBin = 28;
+//   par2.binL = -20;
+//   par2.binH = 50;
    par2.xTitle = "sumIso (GeV)";
    par2.dataCut = sel.dataCut;
    par2.shift = -0;
@@ -423,7 +520,7 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    par5.dataCut = sel.dataCutShowerAna;
    par5.dataSidebandCut = sel.dataSidebandCutShowerAna;
 
-   double sys = 0.2;
+   double sys = 0.3;
    for (int i=0;i<nEtBin;i++)
    {
       double result,resultErr;
@@ -471,7 +568,7 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
       scaleBin(hEtAll,i+1,binWidth);
       scaleBin(hEtEle,i+1,binWidth);
       scaleBin(hEtGen,i+1,binWidth);
-
+      scaleBin(hEtEleAll,i+1,binWidth);
    }
 
    hEtCaloIso->SetLineColor(2);
@@ -479,24 +576,32 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    hEtSumIso->SetLineColor(1);
    hEtSumIso->SetMarkerColor(1);
    hEtSumIso->SetMarkerStyle(4);
+   hEtSumIso->SetMarkerSize(1.2);
    hEtSR->SetLineColor(6);
    hEtSR->SetMarkerColor(6);
    hEtSR->SetMarkerStyle(4);
+   hEtSR->SetMarkerSize(1.2);
    hEtSRCalo->SetLineColor(kGreen+2);
    hEtSRCalo->SetMarkerColor(kGreen+2);
    hEtSRCalo->SetMarkerStyle(4);
+   hEtSRCalo->SetMarkerSize(1.2);
    hEtSIEIE->SetLineColor(1);
    hEtSIEIE->SetMarkerColor(1);
    hEtSIEIE->SetMarkerStyle(20);
+   hEtSIEIE->SetMarkerSize(1.2);
    hEtSE->SetLineColor(kBlue+2);
    hEtSE->SetMarkerColor(kBlue+2);
    hEtSE->SetMarkerStyle(4);
+   hEtSE->SetMarkerSize(1.2);
    hEtGen->SetLineColor(1);
    hEtGen->SetMarkerColor(1);
    hEtEle->SetLineColor(kBlue);
    hEtEle->SetMarkerColor(kBlue);
    hEtEle->SetMarkerStyle(4);
-     
+   hEtEle->SetMarkerSize(1.2);
+   hEtEleAll->SetMarkerColor(4);
+   hEtEleAll->SetMarkerStyle(20);
+   hEtEleAll->SetLineColor(4);
 
    TCanvas *cEff = new TCanvas ("cEff","",600,600);
    hEtEff->SetXTitle("E_{T} (GeV)");
@@ -505,12 +610,16 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    hEtEffShowerAna->SetLineColor(2);
    hEtEffShowerAna->SetMarkerColor(2);
    hEtEffShowerAna->Draw("same");
-   
+//   gEtEff->SetLineColor(4);
+//   gEtEff->SetMarkerColor(4);
+//   gEtEff->Draw("pe same");   
 
 
    // Electron component correction
+   hEtEle->Divide(hEtWEffCut);
+   hEtEle->Scale(1./1.22);
+
    if (doElectronCorrection) {
-      hEtEle->Divide(hEtWEffCut);
       hEtSIEIE->Add(hEtEle,-1);
       hEtSumIso->Add(hEtEle,-1);
       hEtSR->Add(hEtEle,-1);
@@ -541,6 +650,16 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    hEtSECorrected->Divide(hEtEffShowerAna);
    hEtEle->Divide(hEtEffShowerAna);
 
+
+   if (doResCorrection) {
+      correctRes(hEtCorrected,cBinL,cBinH);
+      correctRes(hEtSRCorrected,cBinL,cBinH);
+      correctRes(hEtSRCaloCorrected,cBinL,cBinH);
+      correctRes(hEtSIEIECorrected,cBinL,cBinH);
+      correctRes(hEtSECorrected,cBinL,cBinH);
+      correctRes(hEtSumIsoCorrected,cBinL,cBinH);
+   }
+
    for (int i=0;i<nEtBin;i++)
    {
       nt->Fill((myBin[i+1]+myBin[i])/2,myBin[i],myBin[i+1],
@@ -561,6 +680,7 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
       hEtSECorrected->Divide(hEtGen);
       hEtSumIsoCorrected->Divide(hEtGen);
       hEtEle->Divide(hEtGen);
+      hEtEleAll->Divide(hEtGen);
       hEtGen->Divide(hEtGen);
       hEtCorrected->SetAxisRange(0,2,"Y");
    }
@@ -574,7 +694,7 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    
 //   hEtSRCorrected->Draw("same");
 //   hEtSRCaloCorrected->Draw("same");
-   hEtSIEIECorrected->Draw("same");
+   if (!ratioMode) hEtSIEIECorrected->Draw("same");
 //   hEtSECorrected->Draw("same");
    TH1D *hAvg = (TH1D*)hEtSIEIECorrected->Clone();
    hAvg->SetName("hAvg");
@@ -585,7 +705,8 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    hAvg->SetMarkerColor(1);
    hAvg->SetLineColor(1);
 //   hAvg->Draw("e same");
-   hEtEle->Draw("e same");
+   if (!ratioMode) hEtEle->Draw("e same");
+//   hEtEleAll->Draw("e same");
    hEtGen->Draw("hist same");
    
    double TAA=0;
@@ -609,8 +730,27 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
       hEtCorrected->SetAxisRange(0,2,"Y");
       hAvg->Divide(hRef);
    } else {
-      hEtSumIsoCorrected->SetAxisRange(1e-2,1e3,"Y");
+      hEtSumIsoCorrected->SetAxisRange(1e-1,5e3,"Y");
    }
+
+   if (ratioMode) {     
+      cSummary->SetLogy(0);
+      cleanError(hEtSIEIECorrected);
+      hEtCorrected->Divide(hEtSIEIECorrected);
+      hEtSRCorrected->Divide(hEtSIEIECorrected);
+      hEtSRCaloCorrected->Divide(hEtSIEIECorrected);
+      hEtSECorrected->Divide(hEtSIEIECorrected);
+      hEtSumIsoCorrected->Divide(hEtSIEIECorrected);
+      hEtEle->Divide(hEtSIEIECorrected);
+      hEtGen->Divide(hEtSIEIECorrected);
+      hEtEleAll->Divide(hEtSIEIECorrected);
+      hEtSIEIECorrected->Divide(hEtSIEIECorrected);
+      hEtSumIsoCorrected->SetAxisRange(0,3,"Y");
+      hEtSumIsoCorrected->SetYTitle("Ratio");
+      TLine *l = new TLine(myBin[0],1,myBin[nEtBin],1);
+      l->Draw();
+   }
+
 
    ntY->SetLineColor(2);
    ntY->SetMarkerColor(2);
@@ -621,27 +761,28 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    leg2->SetFillStyle(0);
    leg2->SetBorderSize(0);
    leg2->AddEntry(hEtSumIsoCorrected,"CMS Preliminary","");
-   leg2->AddEntry(hEtSumIsoCorrected,Form("PbPb %.0f%%-%.0f%%",cBinL*2.5,(cBinH)*2.5),"");
+   leg2->AddEntry(hEtSumIsoCorrected,Form("PbPb %.0f-%.0f%%",cBinL*2.5,(cBinH)*2.5),"");
    leg2->AddEntry(hEtSumIsoCorrected,"","");
 //   leg2->AddEntry(hEtCorrected,"Calo Iso method","pl");
 //   leg2->AddEntry(hEtSRCorrected,"S_{R} method","pl");
 //   leg2->AddEntry(hEtSRCaloCorrected,"S_{R}^{Calo} method","pl");
-   leg2->AddEntry(hEtSIEIECorrected,"#sigma_{i #eta i #eta} method","pl");
+   if (!ratioMode)leg2->AddEntry(hEtSIEIECorrected,"#sigma_{i #eta i #eta} method","pl");
    leg2->AddEntry(hEtSumIsoCorrected,"Sum Iso method","pl");
-   leg2->AddEntry(hEtEle,"Electron Contamination","pl");
+   if (!ratioMode) leg2->AddEntry(hEtEle,"Electron Contamination","pl");
 //   leg2->AddEntry(hEtSECorrected,"S_{E} method","pl");
    
    if (hEtGen->Integral(1,2))   leg2->AddEntry(hEtGen,"MC Truth","l");
    leg2->Draw();
    c0->SaveAs("plot/result.gif");   
    c0->SaveAs("plot/result.C");   
-   cSummary->SaveAs(Form("plot/resultCorrected-%d-%d.gif",cBinL,cBinH));   
-   cSummary->SaveAs(Form("plot/resultCorrected-%d-%d.C",cBinL,cBinH));    
+
+   cSummary->SaveAs(Form("plot/resultCorrected-%d-%d-%d.gif",cBinL,cBinH,ratioMode));   
+   cSummary->SaveAs(Form("plot/resultCorrected-%d-%d-%d.eps",cBinL,cBinH,ratioMode));   
+   cSummary->SaveAs(Form("plot/resultCorrected-%d-%d-%d.C",cBinL,cBinH,ratioMode));    
    cEff->SaveAs("plot/eff.gif");   
    cEff->SaveAs("plot/eff.C");   
 
-   
-   
+  
    outfile->Write();   
    
 }

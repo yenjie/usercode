@@ -2,6 +2,8 @@
 #include <TTree.h>
 #include <TH1.h>
 #include <TH2.h>
+#include <TNtuple.h>
+#include <iostream>
 
 class parameter 
 {
@@ -89,12 +91,14 @@ void mcStyle(TH1* h=0) {
    h->SetLineColor(kRed);
    h->SetFillColor(kRed-9);
    h->SetFillStyle(3004);
+   h->GetXaxis()->SetNdivisions(905,true);
 }
 
 void sbStyle(TH1* h=0) {
    h->SetLineColor(kBlue);
    h->SetFillColor(kAzure-8);
    h->SetFillStyle(3001);
+   h->GetXaxis()->SetNdivisions(905,true);
 }
 
 void addCentralityFriend(TTree *tSig, TTree *tData,TCut selectionCut)
@@ -249,8 +253,8 @@ nt->Fill(39,2.7877,1.76851);
 
 TH1D *getReference(double TAA, double centFrac){
    // iso 5 GeV
-   double bins[7]={20,25,30,40,50,80,140};
-   TH1D *h = new TH1D("h","",6,bins);
+   double bins[6]={20,25,30,40,50,80};
+   TH1D *h = new TH1D("h","",5,bins);
    h->SetBinContent(1,2099.6);
    h->SetBinContent(2,853.508);
    h->SetBinContent(3,306.346);
