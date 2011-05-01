@@ -21,21 +21,21 @@ int correctRes(TH1F* h, int cBinL, int cBinH)
 {
    double p0=0,p1=0,p2=0;
    if (cBinL==0&&cBinH==4) {
-      p0 = 0.7718;
-      p1=0.01425;
-      p2=-0.0001432;
+      p0 = 1.30516;
+      p1= -0.0135709;
+      p2= 0.000174825;
    } 
 
    if (cBinL==4&&cBinH==12) {
-      p0 = 0.8577;
-      p1=0.008235;
-      p2=-8.627e-5;
+      p0 = 0.826699;
+      p1=0.00937776;
+      p2=-9.81877e-5;
    } 
 
    if (cBinL==12&&cBinH==40) {
-      p0 = 1.007;
-      p1= -0.0003508;
-      p2=-5.535e-6;
+      p0 = 0.994673;
+      p1=  0.00141017;
+      p2=  -2.56372e-5;
    } 
    
    if (p0==0){
@@ -54,6 +54,16 @@ int correctRes(TH1F* h, int cBinL, int cBinH)
    }
 
    return 1;
+}
+
+void replaceStat(TH1 *h,TH1 *hStat)
+{
+   double sys = 0;
+   for (int i=1;i<=h->GetNbinsX();i++)
+   {    
+      h->SetBinError(i,sqrt(h->GetBinContent(i)*hStat->GetBinContent(i)*h->GetBinContent(i)*hStat->GetBinContent(i)+h->GetBinContent(i)*h->GetBinContent(i)*sys*sys));
+      cout <<hStat->GetBinContent(i)<<endl;
+   }
 }
 
 void scaleBin(TH1F *h,int i,double width)
@@ -91,7 +101,6 @@ TGraphAsymmErrors *calcEff(TH1* h1, TH1* h2,char *hName="hEff")
    return gEfficiency;
 }
 
-
 double doFit(parameter par, double minEt, double maxEt, double &result, double &resultErr)
 {
 
@@ -102,7 +111,7 @@ double doFit(parameter par, double minEt, double maxEt, double &result, double &
 
    // Selection cut
    TCut etCut = Form("abs(eta)<1.44&&(etCorrected)>%f&&(etCorrected)<%f",minEt,maxEt);
-   TCut sigCut = "isGenMatched && abs(genMomId) <= 22 && genCalIsoDR04 < 5.0";
+   TCut sigCut = "isGenMatched && abs(genMomId) <= 22 && genCalIsoDR04 < 5.0 ";
 
    char *title = Form("%.0f<E_{T}<%.0f GeV",minEt,maxEt);
 
@@ -112,11 +121,15 @@ double doFit(parameter par, double minEt, double maxEt, double &result, double &
    TH1F *hBck = new TH1F(Form("hBck%d",count),"",par.nBin,par.binL,par.binH);
 
    par.tData->Draw(Form("%s>>hData%d",par.var,count),etCut&&par.selectionCut&&par.dataCut);
-//   par.tSig->Draw(Form("%s>>hSig%d",par.var,count),   (etCut&&par.selectionCut&&sigCut&&par.dataCut)*"cBinWeight");
-   par.tMulti->Draw(hSig,Form("%s",par.var,count),   (etCut&&par.selectionCut&&sigCut&&par.dataCut));
+   if (!par.useMultiTree) { 
+      par.tSig->Draw(Form("%s>>hSig%d",par.var,count),   (etCut&&par.selectionCut&&sigCut&&par.dataCut)*"cBinWeight");
+   } else {
+      par.tMulti->Draw(hSig,Form("%s",par.var,count),   (etCut&&par.selectionCut&&sigCut&&par.dataCut));
+   }
    hSig->SetName(Form("hSig%d",count));
 //   par.tBck->Draw(Form("%s>>hBck%d",par.var,count),   etCut&&par.selectionCut&&!sigCut&&par.dataCut);//*"(49.7014*(exp((-0.943492e-3)*cBin*cBin*cBin+0.09106*cBin*cBin-0.44891*cBin+2.2789))+31.5117)");
    par.tData->Draw(Form("%s+%f>>hBck%d",par.var,par.shift,count), etCut&&par.selectionCut&&par.dataSidebandCut);
+//   par.tMulti->Draw(hBck,Form("%s",par.var,count),   (etCut&&par.selectionCut&&(!sigCut)&&par.dataCut));
 
    TH1F *hFinal = (TH1F*)hData->Clone();
    hFinal->SetName(Form("hFinal%d",count));
@@ -132,9 +145,10 @@ double doFit(parameter par, double minEt, double maxEt, double &result, double &
       histFunction2 *myfun = new histFunction2(hSig,hBck);
       TF1 *f = new TF1("f",myfun,&histFunction2::evaluate,par.binL,par.binH,2);
       f->SetParameters(hData->GetEntries(),0.5);
+      f->FixParameter(0,hData->GetEntries());
       f->SetParLimits(1,0,1);
-      hData->Fit("f","LL m");
-      hData->Fit("f","LL m");
+      hData->Fit("f","LL m","",0,40);
+      hData->Fit("f","LL m","",0,40);
       hData->Draw("pe");
       result=0;
       resultErr=0;
@@ -169,7 +183,7 @@ double doFit(parameter par, double minEt, double maxEt, double &result, double &
 
       hFinal->SetYTitle("Entries");
 
-
+      
 
       hFinal->Draw("e");
    
@@ -202,11 +216,13 @@ double doFit(parameter par, double minEt, double maxEt, double &result, double &
    tPt->Draw();
 
    if (ratio>0) {
-     result = nev*ratio;
+     result = nev*ratio*hSig->Integral(0,hSigPdf->FindBin(4.99))/hSig->Integral(0,hSigPdf->FindBin(1000));
+;
      resultErr = nev*ratio*sqrt(1./nev+(ratioErr/ratio)*(ratioErr/ratio));
      cout <<hData->GetEntries()<<endl;
      cout <<nev<<endl;
      cout <<minEt<<" "<<maxEt<<"Nsig : "<<result<<" +- "<<resultErr<<endl;
+
    }
    
    
@@ -216,10 +232,11 @@ double doFit(parameter par, double minEt, double maxEt, double &result, double &
 int plotFinalResult(char* infname = "data/mpaData_march17th.root",
                     int cBinL = 0,
 		    int cBinH = 4,
-		    bool plotYongsun = 1,
 		    bool doElectronCorrection = 1,
 		    bool ratioMode = 0,
-		    bool doResCorrection =1
+		    bool doResCorrection =1,
+		    bool doCorrection=0,
+		    bool useStatFile=0
                    )
 {
 
@@ -231,8 +248,14 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    TCut hiSpikeCut       = Form("(  %s < 0.9 && abs(seedTime)<3  && sigmaIetaIeta>0.002 )  || isEE",swissCrx.Data());
    
    sel.removeSpikeCut = hiSpikeCut;
-   sel.photonCut ="r9>0.&&hadronicOverEm<0.1&&abs(eta)<1.44&&rawEnergy/energy>0.5\
-                   ";
+   if (cBinL == 0 ) {
+      sel.photonCut ="r9>0.0&&hadronicOverEm<0.2&&abs(eta)<1.44&&rawEnergy/energy>0.5";
+   } else if (cBinL == 4) {
+      sel.photonCut ="r9>0.0&&hadronicOverEm<0.2&&abs(eta)<1.44&&rawEnergy/energy>0.5";
+   } else if (cBinL == 12) {
+      sel.photonCut ="r9>0.0&&hadronicOverEm<0.2&&abs(eta)<1.44&&rawEnergy/energy>0.5";
+   }
+
    sel.removeElectronCut = "!isEle";//"!isEle";//"!isEle";
    
    sel.selectionCut = sel.photonCut&&sel.centralityCut&&sel.eventCut&&sel.removeSpikeCut&&sel.removeElectronCut; 
@@ -254,9 +277,9 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    TTree *tDataGen = (TTree*)infData->FindObjectAny("Generator");
 
    // Signal sample
-   TFile *infSig = new TFile("PythiaData/mpaPhotonJetAll_mix_hiData_correctedTree.root");
+   TFile *infSig = new TFile("PythiaData/mpa_photonAll_hiData_april26_correctedTree.root");
+//   TFile *infSig = new TFile("PythiaData/mpa_photon15_hiData_april26_correctedTree.root");
 //   TFile *infSig = new TFile("PythiaData/mpaEmJet_correctedTree.root");
-//  TFile *infSig = new TFile("PythiaData/mpaPhotonJet15_mix_hiData_correctedTree.root");
    TTree *tSig = (TTree*)infSig->FindObjectAny("Analysis");
    TTree *tSigGen = (TTree*)infSig->FindObjectAny("Generator");
 
@@ -276,29 +299,65 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    TTree *ntY = (TTree*) infYongsun->FindObjectAny("nt");
    ntY->SetName("ntY");   
 
+   // Trigger file
+   TFile *triggerFile = new TFile("correction/Photon15HLT_efficiency.root");
+   TH1D *hTrigCorrection = (TH1D*)triggerFile->FindObjectAny(Form("efficiencyHist_photon15_cBin_%d_to_%d",cBinL,cBinH-1));
+   if (hTrigCorrection) cleanError(hTrigCorrection);
+
+   // stat Err file
+   TFile *statSumIsoFile = new TFile("stat/statError_iTemp12776_variedBothDataSignal.root");
+   TH1D *hStatSumIso;
+   int statBin =0;
+   if (cBinL==0&&cBinH==4) statBin=1;
+   if (cBinL==4&&cBinH==12) statBin=2;
+   if (cBinL==12&&cBinH==40) statBin=3;
+   hStatSumIso = (TH1D*)statSumIsoFile->FindObjectAny(Form("statError_%d",statBin));
+   
+   TFile *statSIEIEFile = new TFile("stat/statError_iTemp12777_variedBothDataSignal.root");
+   TH1D *hStatSIEIE;
+   hStatSIEIE = (TH1D*)statSIEIEFile->FindObjectAny(Form("statError_%d",statBin));
+
+
    // Correction file
    TFile *correctionFile = new TFile("correction/correction-PYTHIAData.root");
    TH2D *hEtCorrection = (TH2D*)correctionFile->FindObjectAny("hEtCorrection");
    
+
+   TFile *correctionEffFile = new TFile(Form("correction/output-%d-%d.root",cBinL,cBinH));
+   TH1D *corSIEIE;
+   if (correctionEffFile&&doCorrection){
+      corSIEIE = (TH1D*)correctionEffFile->FindObjectAny("hEtSIEIECorrected");
+      if (corSIEIE) corSIEIE->SetName("corSIEIE");
+   }
+   TH1D *corSumIso;
+   if (correctionEffFile){
+      corSumIso = (TH1D*)correctionEffFile->FindObjectAny("hEtSumIsoCorrected");
+      if (corSumIso) corSumIso->SetName("corSumIso");
+   }
    // ncoll ntuple
    
    TNtuple *ntColl = getNcoll();
    
    // signal region 
-   if (cBinL > -10) {
-      sel.dataCut = "sigmaIetaIeta<0.0115";
+   if (cBinL == 0) {
+      sel.dataCut = "sigmaIetaIeta<0.0120";
    } else {
-      sel.dataCut = "sigmaIetaIeta<0.012";
+//      sel.dataCut = "(sigmaIetaIeta<0.0115&&etCorrected<25)||(sigmaIetaIeta<0.011&&etCorrected>25)";
+      sel.dataCut = "(sigmaIetaIeta<0.0115)";
    }
-   sel.dataCutShowerAna = "(cr4+cc4)<5&&ct4PtCut<3 ";
+   sel.dataCutShowerAna = "(cr4+cc4+ct4PtCut)<5";
 
    // sideband region
-   if (cBinL >0) {
-      sel.dataSidebandCut = "sigmaIetaIeta>0.0115&&sigmaIetaIeta<0.0145";
-   } else {
+   if (cBinL ==0) {
       sel.dataSidebandCut = "sigmaIetaIeta>0.0120&&sigmaIetaIeta<0.014";
+   } else if (cBinL == 4){
+      sel.dataSidebandCut = //"(sigmaIetaIeta>0.0115&&sigmaIetaIeta<0.0135&&etCorrected<25)||(sigmaIetaIeta>0.0110&&sigmaIetaIeta<0.013&&etCorrected>25)";
+      sel.dataSidebandCut = "sigmaIetaIeta>0.0115&&sigmaIetaIeta<0.0145";
+   } else if (cBinL == 12){
+      sel.dataSidebandCut = "sigmaIetaIeta>0.0115&&sigmaIetaIeta<0.0145";
    }
-   sel.dataSidebandCutShowerAna =  "(cr4+cc4)<5&&ct4PtCut>6 ";
+//   sel.dataSidebandCutShowerAna =  "(cr4+cc4)<5 ";
+   sel.dataSidebandCutShowerAna =  "(cr4+cc4+ct4PtCut)>6 && (cr4+cc4+ct4PtCut)< 10  ";
 
    TH1D *hNcoll = new TH1D("hNcoll","",1000,0,2000);
    ntColl->Project("hNcoll","ncoll",sel.centralityCut);
@@ -311,7 +370,7 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
 
    // Add friends 
    cout <<"Add Centrality reweighting to signal ..."<<endl;
-   addCentralityFriend(tSig,tData,sel.selectionCut&&"sigmaIetaIeta<0.0125&&(cr4+cc4)<5");
+   addCentralityFriend(tSig,tSigGen,tData,sel.selectionCut&&"sigmaIetaIeta<0.011&&(cr4+cc4)<5");
 
    // Binning
    const int nEtBin = 5;
@@ -357,14 +416,14 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
 
    if (tDataGen!=0) tDataGen->Draw("pt>>hEtGen","abs(eta)<1.44 && calIsoDR04<5 && collId==0"&&sel.centralityCut);
    cout <<"prepare truth"<<endl;
-   tSigGen->Draw("pt>>hEtTruth","abs(eta)<1.44 && calIsoDR04<5 && collId==0"&&sel.centralityCut);
+   tSigGen->Draw("pt>>hEtTruth",("abs(eta)<1.44 && calIsoDR04<5 && collId==0"&&sel.centralityCut)*"cBinWeight");
    
    
    cout <<"prepare Efficiency"<<endl;
 
-   tSig->Draw("genMatchedPt>>hEtEff",sel.sigCut&&sel.selectionCut&&sel.dataCut);
+   tSig->Draw("genMatchedPt>>hEtEff",(sel.sigCut&&sel.selectionCut&&sel.dataCut&&"(cr4+cc4+ct4PtCut)<5")*"cBinWeight");
    cout <<"prepare Efficiency showerana"<<endl;
-   tSig->Draw("genMatchedPt>>hEtEffShowerAna",sel.sigCut&&sel.selectionCut&&sel.dataCutShowerAna);
+   tSig->Draw("genMatchedPt>>hEtEffShowerAna",(sel.sigCut&&sel.selectionCut&&sel.dataCutShowerAna)*"cBinWeight");
    
 
    hEtEff->Sumw2();
@@ -428,8 +487,8 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    par.tMulti = trPho;
    par.selectionCut = sel.selectionCut;
    par.var = "cc4+cr4";
-   par.nBin = 20;
-   par.binL = -20;
+   par.nBin = 36;
+   par.binL = -30;
    par.binH = 60;
    par.xTitle = "calo Iso (GeV)";
    par.dataCut = sel.dataCut;
@@ -442,20 +501,21 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    par2.tBck = tBck;
    par2.tMulti = trPho;
    par2.selectionCut = sel.selectionCut;
-   par2.var = "cc4+cr4+ct4PtCut-cc05-ct05PtCut";
+//   par2.var = "cc4+cr4+ct4PtCut-cc05-ct05PtCut";
+   par2.var = "cc4+cr4+ct4PtCut";
 //   par2.var = "ecalRecHitSumEtConeDR04 - compEcalIso + hcalTowerSumEtConeDR04 - compHcalIso + trkSumPtHollowConeDR04 - compTrackIso";
-   par2.nBin = 20;
+   par2.nBin = 28;
    par2.binL = -20;
-   par2.binH = 60;
+   par2.binH = 50;
 //   par2.var = "(cc4+cr4+ct4PtCut-ct1PtCut-cc1)";
 //   par2.nBin = 28;
 //   par2.binL = -20;
 //   par2.binH = 50;
    par2.xTitle = "sumIso (GeV)";
    par2.dataCut = sel.dataCut;
-   par2.shift = -0;
+   par2.shift = 0;
    par2.dataSidebandCut = sel.dataSidebandCut;
-
+   par2.useMultiTree = 1;
    // SR
    parameter par3;
    par3.tData = tData;
@@ -501,10 +561,11 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    par4.selectionCut = sel.selectionCut;
    par4.dataCut = sel.dataCut;
    par4.dataSidebandCut = sel.dataSidebandCut;
+   par4.useMultiTree = 0;
 
    par4.var = "sigmaIetaIeta";
-   par4.nBin = 40;
-   par4.binL = 0;
+   par4.nBin = 25;
+   par4.binL = 0.000;
    par4.binH = 0.025;
  /*
    par4.var = "sigmaIetaIeta";
@@ -532,7 +593,7 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    par5.dataCut = sel.dataCutShowerAna;
    par5.dataSidebandCut = sel.dataSidebandCutShowerAna;
 
-   double sys = 0.3;
+   double sys = 0.0;
    for (int i=0;i<nEtBin;i++)
    {
       double result,resultErr;
@@ -566,6 +627,11 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
       //doFit(par5,myBin[i],myBin[i+1],result,resultErr);
       hEtSE->SetBinContent(i+1,result);
       hEtSE->SetBinError(i+1,sqrt(resultErr*resultErr+sys*result*sys*result));
+   }
+
+   if (useStatFile) {
+      replaceStat(hEtSIEIE,hStatSIEIE);
+      replaceStat(hEtSumIso,hStatSumIso);
    }
 
    for (int i=0;i<nEtBin;i++)
@@ -639,6 +705,7 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
       hEtSumIso->Scale(1./0.98);  // Photon -> W fake rate;
       hEtSR->Scale(1./0.98);
    }   
+
    
    TCanvas *cSummary = new TCanvas ("cSummary","",600,600);
    cSummary->SetLogy();
@@ -661,6 +728,21 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    hEtSIEIECorrected->Divide(hEtEffShowerAna);
    hEtSECorrected->Divide(hEtEffShowerAna);
    hEtEle->Divide(hEtEffShowerAna);
+
+   // Trigger correction   
+   hEtSumIsoCorrected->Divide(hTrigCorrection);
+   hEtCorrected->Divide(hTrigCorrection);
+   hEtSRCorrected->Divide(hTrigCorrection);
+   hEtSRCaloCorrected->Divide(hTrigCorrection);
+   hEtSIEIECorrected->Divide(hTrigCorrection);
+   hEtSECorrected->Divide(hTrigCorrection);
+
+
+   if (doCorrection)
+   {
+      hEtSIEIECorrected->Divide(corSIEIE);
+      hEtSumIsoCorrected->Divide(corSumIso);
+   }
 
 
    if (doResCorrection) {
@@ -739,7 +821,7 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
       hEtSumIsoCorrected->Divide(hRef);
       hEtEle->Divide(hRef);
       hEtGen->Divide(hRef);
-      hEtCorrected->SetAxisRange(0,2,"Y");
+      hEtSumIsoCorrected->SetAxisRange(0,3,"Y");
       hAvg->Divide(hRef);
    } else {
       hEtSumIsoCorrected->SetAxisRange(1e-1,5e3,"Y");
@@ -764,9 +846,11 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    }
 
 
-   ntY->SetLineColor(2);
-   ntY->SetMarkerColor(2);
-   if (plotYongsun) ntY->Draw(Form("val:et"),Form("cBinL==%d",cBinL,cBinH),"same");
+   
+
+//   ntY->SetLineColor(2);
+//   ntY->SetMarkerColor(2);
+//   if (plotYongsun) ntY->Draw(Form("val:et"),Form("cBinL==%d",cBinL,cBinH),"same");
 
    TLegend *leg2 ;
    leg2 = new TLegend(0.4,0.65,0.9,0.9);
@@ -793,6 +877,12 @@ int plotFinalResult(char* infname = "data/mpaData_march17th.root",
    cSummary->SaveAs(Form("plot/resultCorrected-%d-%d-%d.C",cBinL,cBinH,ratioMode));    
    cEff->SaveAs("plot/eff.gif");   
    cEff->SaveAs("plot/eff.C");   
+   c1->SaveAs(Form("plot/fitSumIso-%d-%d-%d.gif",cBinL,cBinH,ratioMode));   
+   c1->SaveAs(Form("plot/fitSumIso-%d-%d-%d.eps",cBinL,cBinH,ratioMode));   
+   c1->SaveAs(Form("plot/fitSumIso-%d-%d-%d.C",cBinL,cBinH,ratioMode));    
+   c4->SaveAs(Form("plot/fitSIEIE-%d-%d-%d.gif",cBinL,cBinH,ratioMode));   
+   c4->SaveAs(Form("plot/fitSIEIE-%d-%d-%d.eps",cBinL,cBinH,ratioMode));   
+   c4->SaveAs(Form("plot/fitSIEIE-%d-%d-%d.C",cBinL,cBinH,ratioMode));    
 
   
    outfile->Write();   

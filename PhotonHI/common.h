@@ -9,7 +9,7 @@
 class parameter 
 {
    public:
-   parameter(){ shift=0;}
+   parameter(){ shift=0; useMultiTree=0;}
    TTree *tData;
    TTree *tSig;
    TTree *tBck;
@@ -24,6 +24,7 @@ class parameter
    char *xTitle;
    double shift;
    multiTreeUtil *tMulti;
+   bool useMultiTree;
 };
 
 class selectionCriteria
@@ -102,7 +103,7 @@ void sbStyle(TH1* h=0) {
    h->GetXaxis()->SetNdivisions(905,true);
 }
 
-void addCentralityFriend(TTree *tSig, TTree *tData,TCut selectionCut)
+void addCentralityFriend(TTree *tSig,TTree* tSigGen, TTree *tData,TCut selectionCut)
 {
    static int counter=0;
    TH1D *hSigCent = new TH1D("hSigCent","",40,-0.5,39.5);
@@ -115,9 +116,12 @@ void addCentralityFriend(TTree *tSig, TTree *tData,TCut selectionCut)
    hSigCent->Scale(1./hSigCent->GetEntries());
    hDataCent->Divide(hSigCent);
    TNtuple *nt = new TNtuple(Form("ntCentFriend%d",counter),"","cBinWeight");
+   TNtuple *nt2 = new TNtuple(Form("nt2CentFriend%d",counter),"","cBinWeight");
    
    Int_t cBin;
    tSig->SetBranchAddress("cBin",&cBin);
+   Int_t cBin2;
+   tSigGen->SetBranchAddress("cBin",&cBin2);
    
    for (int i=0;i<tSig->GetEntries();i++)
    {
@@ -126,11 +130,23 @@ void addCentralityFriend(TTree *tSig, TTree *tData,TCut selectionCut)
       //cout <<cBin<<" "<<hDataCent->GetBinContent(bin)<<endl;
       nt->Fill(hDataCent->GetBinContent(bin));
    }
+
+   for (int i=0;i<tSigGen->GetEntries();i++)
+   {
+      tSigGen->GetEntry(i);
+      int bin = hDataCent->FindBin(cBin2);
+      //cout <<cBin<<" "<<hDataCent->GetBinContent(bin)<<endl;
+      nt2->Fill(hDataCent->GetBinContent(bin));
+   }
+
    counter++;   
    delete hSigCent;
    delete hDataCent;
    tSig->AddFriend(nt);
+   tSigGen->AddFriend(nt2);
 }
+
+
 
 void addCentralityFriendEB(TTree *tSig, TTree *tData,TCut selectionCut)
 {
@@ -264,6 +280,29 @@ TH1D *getReference(double TAA, double centFrac){
    h->SetBinContent(4,91.0847);
    h->SetBinContent(5,19.6313);
    h->SetBinContent(6,1.57827);
+   h->SetBinError(1,0);
+   h->SetBinError(2,0);
+   h->SetBinError(3,0);
+   h->SetBinError(4,0);
+   h->SetBinError(5,0);
+   h->SetBinError(6,0);
+   h->SetBinError(7,0);
+
+   h->SetBinContent(1,1522.73);
+   h->SetBinContent(2,578.396);
+   h->SetBinContent(3,251.538);
+   h->SetBinContent(4,83.9347);
+   h->SetBinContent(5,16.6288);
+   h->SetBinContent(6,1.55218);
+
+/*
+1522.73  +/- 23.2593
+578.396  +/- 14.335
+251.538  +/- 668455
+83.9347  +/- 0.544
+16.6288  +/- 0.140
+1.55218  +/ 0.03
+*/
    h->SetXTitle("Photon p_{T} GeV/c");
    h->SetYTitle("dN/d#p_{T} (nb)");
    cout <<"TAA = "<<TAA<<endl;
@@ -285,10 +324,10 @@ double getNoEmc (TString theFname="",TString treeName="Analysis", TCut theCut=""
 
 void setupMultiTree(multiTreeUtil *trPho, TCut selectionCut)
 {
-   TString fnamePho15 = "PythiaData/mpaPhotonJet15_mix_hiData_correctedTree.root";
-   TString fnamePho30 = "PythiaData/mpaPhotonJet30_mix_hiData_correctedTree.root";
-   TString fnamePho50 = "PythiaData/mpaPhotonJet50_mix_hiData_correctedTree.root";
-   TString fnamePho80 = "PythiaData/mpaPhotonJet80_mix_hiData_correctedTree.root";
+   TString fnamePho15 = "PythiaData/mpa_photon15_hiData_april26_correctedTree.root";
+   TString fnamePho30 = "PythiaData/mpa_photon30_hiData_april26_correctedTree.root";
+   TString fnamePho50 = "PythiaData/mpa_photon50_hiData_april26_correctedTree.root";
+   TString fnamePho80 = "PythiaData/mpa_photon80_hiData_april26_correctedTree.root";
    
    //photons
    const double csPho15 =   3.761e-05 ; 
@@ -296,18 +335,18 @@ void setupMultiTree(multiTreeUtil *trPho, TCut selectionCut)
    const double csPho50 =   5.987e-07 ;
    const double csPho80 =   8.566e-08 ;  
    //dijets
-   const double csDij18 =   9.507e-02 ;
+   const double csDij15 =   9.507e-02 ;
    const double csDij30 =   1.073e-02 ;
    const double csDij50 =   1.018e-03 ;
    const double csDij80 =   9.968e-05 ;
    
 //   const double emFilter15 =  0.025 ;
-   const double emFilter18 =  0.025 ;
+   const double emFilter15 =  0.014 ;
    const double emFilter30 =  0.054 ;
    const double emFilter50 =  0.143 ;
    const double emFilter80 =  0.390 ;
 
-   double csEmj18 =  csDij18 * emFilter18 ;
+   double csEmj15 =  csDij15 * emFilter15 ;
    double csEmj30 =  csDij30 * emFilter30 ;
    double csEmj50 =  csDij50 * emFilter50 ;
    double csEmj80 =  csDij80 * emFilter80 ; 
@@ -328,42 +367,40 @@ void setupMultiTree(multiTreeUtil *trPho, TCut selectionCut)
    double noePho15 = getNoEmc( fnamePho15, "Analysis" , ptHatCutPho15 );                                               
    double noePho30 = getNoEmc( fnamePho30, "Analysis" , ptHatCutPho30 );                                               
    double noePho50 = getNoEmc( fnamePho50, "Analysis" , ptHatCutPho50 );                                               
-   double noePho80 = getNoEmc( fnamePho80, "Analysis" , ptHatCutPho80 );                                               
+   //double noePho80 = getNoEmc( fnamePho80, "Analysis" , ptHatCutPho80 );                                               
    
    double weightPho15 = csPho15 / noePho15;
    double weightPho30 = csPho30 / noePho30;
    double weightPho50 = csPho50 / noePho50;
-   double weightPho80 = csPho80 / noePho80;
+   //double weightPho80 = csPho80 / noePho80;
    
    trPho->addFile( fnamePho15, "Analysis", selectionCut && ptHatCutPho15,weightPho15);
    trPho->addFile( fnamePho30, "Analysis", selectionCut && ptHatCutPho30,weightPho30);
    trPho->addFile( fnamePho50, "Analysis", selectionCut && ptHatCutPho50,weightPho50);
-   trPho->addFile( fnamePho80, "Analysis", selectionCut && ptHatCutPho80,weightPho80);
+   //trPho->addFile( fnamePho80, "Analysis", selectionCut && ptHatCutPho80,weightPho80);
 
    // dijet
+   TString fnameEmj15 = "PythiaData/mpa_emJet15_hiData_april26_correctedTree.root";
+   TString fnameEmj30 = "PythiaData/mpa_emJet30_hiData_april26_correctedTree.root";
+   TString fnameEmj50 = "PythiaData/mpa_emJet50_hiData_april26_correctedTree.root";
+   TString fnameEmj80 = "PythiaData/mpa_emJet80_hiData_april26_correctedTree.root";
 /*
-   TString fnameEmj18 = "PythiaData/mpaEmJet15_mix_hiData_correctedTree.root";
-   TString fnameEmj30 = "PythiaData/mpaEmJet30_mix_hiData_correctedTree.root";
-   TString fnameEmj50 = "PythiaData/mpaEmJet50_mix_hiData_correctedTree.root";
-   TString fnameEmj80 = "PythiaData/mpaEmJet80_mix_hiData_correctedTree.root";
-*/
-
    TString fnameEmj18 = "ampt/mpaEmJet18_mix_ampt_correctedTree.root";
    TString fnameEmj30 = "ampt/mpaEmJet30_mix_ampt_correctedTree.root";
    TString fnameEmj50 = "ampt/mpaEmJet50_mix_ampt_correctedTree.root";
    TString fnameEmj80 = "ampt/mpaEmJet80_mix_ampt_correctedTree.root";
-
-   double noeEmj18 = getNoEmc( fnameEmj18, "Analysis" , ptHatCutDij18 );
+*/
+   double noeEmj15 = getNoEmc( fnameEmj15, "Analysis" , ptHatCutDij15 );
    double noeEmj30 = getNoEmc( fnameEmj30, "Analysis" , ptHatCutDij30 );
    double noeEmj50 = getNoEmc( fnameEmj50, "Analysis" , ptHatCutDij50 );
    double noeEmj80 = getNoEmc( fnameEmj80, "Analysis" , ptHatCutDij80 );
-   double weightEmj18 = csEmj18 / noeEmj18 ;
+   double weightEmj15 = csEmj15 / noeEmj15 ;
    double weightEmj30 = csEmj30 / noeEmj30 ;
    double weightEmj50 = csEmj50 / noeEmj50 ;
    double weightEmj80 = csEmj80 / noeEmj80 ;
 
-//   trPho->addFile(fnameEmj18,"Analysis", selectionCut && ptHatCutDij18, weightEmj18 );
-   trPho->addFile(fnameEmj30,"Analysis", selectionCut && ptHatCutDij30, weightEmj30 );
-   trPho->addFile(fnameEmj50,"Analysis", selectionCut && ptHatCutDij50, weightEmj50 );
-   trPho->addFile(fnameEmj80,"Analysis", selectionCut && ptHatCutDij80, weightEmj80 );
+//   trPho->addFile(fnameEmj15,"Analysis", selectionCut && ptHatCutDij15, weightEmj15 );
+//   trPho->addFile(fnameEmj30,"Analysis", selectionCut && ptHatCutDij30, weightEmj30 );
+//   trPho->addFile(fnameEmj50,"Analysis", selectionCut && ptHatCutDij50, weightEmj50 );
+//   trPho->addFile(fnameEmj80,"Analysis", selectionCut && ptHatCutDij80, weightEmj80 );
 }
