@@ -17,8 +17,8 @@ void electronEff(bool isEff=0){
 //TFile *inf = new TFile("ampt/mpa_w2ev_mix_ampt_april15_correctedTree.root");
 TFile *inf = new TFile("PythiaData/mpa_wEv_mix_hiData_correctedTree.root");
 TTree *Analysis = (TTree*)inf->FindObjectAny("Analysis");
-const int nEtBin = 6;
-double myBin[nEtBin+1] = {20,25,30,40,50,80,140};
+const int nEtBin = 5;
+double myBin[nEtBin+1] = {20,25,30,40,50,80};
 
 TCut  eventCut     = "( !TTBit[36] && !TTBit[37] && !TTBit[38] && !TTBit[39] && !vtxIsFake && abs(vtxZ) <= 15)";
 TCut   centralityCut = "cBin>=0&&cBin<40";
@@ -26,7 +26,7 @@ TCut   photonCut = "r9>0&&hadronicOverEm<0.2&&abs(eta)<1.44&&rawEnergy/energy>0.
                    ";   
 TCut   removeElectronCut = "!isEle";
    TString swissCrx = "(1 - (eRight+eLeft+eTop+eBottom)/eMax)";
-   TCut hiSpikeCut       = Form("(  %s < 0.90 && abs(seedTime)<4  && sigmaIetaIeta>0.002 )  || isEE",swissCrx.Data());
+   TCut hiSpikeCut       = Form("(  %s < 0.90 && abs(seedTime)<3  && sigmaIetaIeta>0.002 )  || isEE",swissCrx.Data());
    
 TCut   removeSpikeCut = hiSpikeCut;
   
@@ -44,10 +44,10 @@ TH1D *h1 = new TH1D("h1","",nEtBin,myBin);
 TH1D *h2 = new TH1D("h2","",nEtBin,myBin);
 //Analysis->AddFriend("genParticleCounter/photon","ampt/genTree_w2ev_mix_ampt_april15.root");
 Analysis->AddFriend("genParticleCounter/photon","PythiaData/genTree_wEv_mix_hiData.root");
-Analysis->Draw("photon.et>>h","abs(photon.id)==11&&abs(photon.eta)<1.44&&photon.et>20&&status==1");
-Analysis->Draw("etCorrected>>h0","isEB&&abs(eta)<1.44&&etCorrected>20&&sigmaIetaIeta<0.012&&cr4+cc4<15");
-Analysis->Draw("etCorrected>>h1","isEB&&abs(eta)<1.44&&etCorrected>20&&sigmaIetaIeta<0.012&&cr4+cc4<15"&&selectionCut1);
-Analysis->Draw("etCorrected>>h2","isEB&&abs(eta)<1.44&&etCorrected>20&&sigmaIetaIeta<0.012&&cr4+cc4<15&&!isEle"&&selectionCut);
+Analysis->Draw("photon.et>>h","abs(photon.id)==11&&abs(photon.eta)<1.44&&photon.et>20&&status==1"&&centralityCut);
+Analysis->Draw("etCorrected>>h0","isEB&&abs(eta)<1.44&&etCorrected>20&&sigmaIetaIeta<0.012&&cr4+cc4+ct4PtCut<5*0.9");
+Analysis->Draw("etCorrected>>h1","isEB&&abs(eta)<1.44&&etCorrected>20&&sigmaIetaIeta<0.012&&cr4+cc4+ct4PtCut<5*0.9"&&selectionCut1);
+Analysis->Draw("etCorrected>>h2","isEB&&abs(eta)<1.44&&etCorrected>20&&sigmaIetaIeta<0.012&&cr4+cc4+ct4PtCut<5*0.9&&!isEle"&&selectionCut);
 
 h->Sumw2();
 h0->Sumw2();

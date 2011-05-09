@@ -14,6 +14,7 @@ class parameter
    TTree *tSig;
    TTree *tBck;
    TCut selectionCut;
+   TCut selectionCutMC;
    TCut selectionCut2;
    TCut dataCut;
    TCut dataSidebandCut;
@@ -40,6 +41,7 @@ class selectionCriteria
    TCut photonCut;
    
    TCut selectionCut;
+   TCut selectionCutMC;
    TCut selectionCutWOElectronCut;
    TCut selectionCut2;
    TCut selectionCut3;
@@ -65,12 +67,13 @@ selectionCriteria::selectionCriteria()
                     &&!isEBGap&&!isEEGap&&!isEBEEGap";   
    removeElectronCut = "!isEle";
    TString swissCrx = "(1 - (eRight+eLeft+eTop+eBottom)/eMax)";
-   TCut hiSpikeCut       = Form("(  %s < 0.90 && abs(seedTime)<4  && sigmaIetaIeta>0.002 )  || isEE",swissCrx.Data());
+   TCut hiSpikeCut       = Form("(  %s < 0.90 && abs(seedTime)<3  && sigmaIetaIeta>0.002 )  || isEE",swissCrx.Data());
    
    removeSpikeCut = hiSpikeCut;
   
 
    selectionCut = photonCut&&centralityCut&&eventCut&&removeSpikeCut&&removeElectronCut; 
+   selectionCutMC = photonCut&&centralityCut&&eventCut&&removeElectronCut; 
    selectionCutWOElectronCut = photonCut&&centralityCut&&eventCut&&removeSpikeCut; 
    selectionCut2 =photonCut&&eventCut&&removeSpikeCut; 
    selectionCut3 =photonCut&&eventCut; 
@@ -273,13 +276,21 @@ nt->Fill(39,2.7877,1.76851);
 TH1D *getReference(double TAA, double centFrac){
    // iso 5 GeV
    double bins[6]={20,25,30,40,50,80};
-   TH1D *h = new TH1D("h","",5,bins);
+   TH1D *h = new TH1D("hRef__","",5,bins);
+/*
    h->SetBinContent(1,2099.6);
    h->SetBinContent(2,853.508);
    h->SetBinContent(3,306.346);
    h->SetBinContent(4,91.0847);
    h->SetBinContent(5,19.6313);
    h->SetBinContent(6,1.57827);
+*/
+   h->SetBinContent(1,2110.69);
+   h->SetBinContent(2,868.026);
+   h->SetBinContent(3,313.801);
+   h->SetBinContent(4,95.8761);
+   h->SetBinContent(5,18.4381);
+//   h->SetBinContent(6,1.57827);
    h->SetBinError(1,0);
    h->SetBinError(2,0);
    h->SetBinError(3,0);
@@ -287,22 +298,34 @@ TH1D *getReference(double TAA, double centFrac){
    h->SetBinError(5,0);
    h->SetBinError(6,0);
    h->SetBinError(7,0);
+   h->SetXTitle("Photon p_{T} GeV/c");
+   h->SetYTitle("dN/d#p_{T} (nb)");
+   cout <<"TAA = "<<TAA<<endl;
+   cout <<"CentFrac = "<<centFrac<<endl;
+   double nMB = 5.5e7;
+   h->Scale(nMB*TAA*centFrac*1e-9);
+   return h;
+   
+}
 
-   h->SetBinContent(1,1522.73);
-   h->SetBinContent(2,578.396);
-   h->SetBinContent(3,251.538);
-   h->SetBinContent(4,83.9347);
-   h->SetBinContent(5,16.6288);
-   h->SetBinContent(6,1.55218);
+TH1D *getAAReference(double TAA, double centFrac){
+   // iso 5 GeV
+   double bins[6]={20,25,30,40,50,80};
+   TH1D *h = new TH1D("hAARef__","",5,bins);
+   h->SetBinContent(1,2050.65);
+   h->SetBinContent(2,790.806);
+   h->SetBinContent(3,301.664);
+   h->SetBinContent(4,96.1452);
+   h->SetBinContent(5,18.9252);
+   h->SetBinContent(6,1.55566);
 
-/*
-1522.73  +/- 23.2593
-578.396  +/- 14.335
-251.538  +/- 668455
-83.9347  +/- 0.544
-16.6288  +/- 0.140
-1.55218  +/ 0.03
-*/
+   h->SetBinError(1,0);
+   h->SetBinError(2,0);
+   h->SetBinError(3,0);
+   h->SetBinError(4,0);
+   h->SetBinError(5,0);
+   h->SetBinError(6,0);
+   h->SetBinError(7,0);
    h->SetXTitle("Photon p_{T} GeV/c");
    h->SetYTitle("dN/d#p_{T} (nb)");
    cout <<"TAA = "<<TAA<<endl;
@@ -324,10 +347,10 @@ double getNoEmc (TString theFname="",TString treeName="Analysis", TCut theCut=""
 
 void setupMultiTree(multiTreeUtil *trPho, TCut selectionCut)
 {
-   TString fnamePho15 = "PythiaData/mpa_photon15_hiData_april26_correctedTree.root";
-   TString fnamePho30 = "PythiaData/mpa_photon30_hiData_april26_correctedTree.root";
-   TString fnamePho50 = "PythiaData/mpa_photon50_hiData_april26_correctedTree.root";
-   TString fnamePho80 = "PythiaData/mpa_photon80_hiData_april26_correctedTree.root";
+   TString fnamePho15 = "PythiaData/mpa_photon15_hiData_may01_correctedTree.root";
+   TString fnamePho30 = "PythiaData/mpa_photon30_hiData_may01_correctedTree.root";
+   TString fnamePho50 = "PythiaData/mpa_photon50_hiData_may01_correctedTree.root";
+   TString fnamePho80 = "PythiaData/mpa_photon80_hiData_may01_correctedTree.root";
    
    //photons
    const double csPho15 =   3.761e-05 ; 
@@ -403,4 +426,89 @@ void setupMultiTree(multiTreeUtil *trPho, TCut selectionCut)
 //   trPho->addFile(fnameEmj30,"Analysis", selectionCut && ptHatCutDij30, weightEmj30 );
 //   trPho->addFile(fnameEmj50,"Analysis", selectionCut && ptHatCutDij50, weightEmj50 );
 //   trPho->addFile(fnameEmj80,"Analysis", selectionCut && ptHatCutDij80, weightEmj80 );
+}
+
+TH1D *getMuon()
+{   
+   TH1D *ptMu = new TH1D("ptMu","Muon transverse momentum [GeV] (includ Z cand)",150,0,150);
+   ptMu->SetBinContent(2,40);
+   ptMu->SetBinContent(3,24740);
+   ptMu->SetBinContent(4,92311);
+   ptMu->SetBinContent(5,95100);
+   ptMu->SetBinContent(6,50504);
+   ptMu->SetBinContent(7,23131);
+   ptMu->SetBinContent(8,11216);
+   ptMu->SetBinContent(9,6146);
+   ptMu->SetBinContent(10,3537);
+   ptMu->SetBinContent(11,2118);
+   ptMu->SetBinContent(12,1340);
+   ptMu->SetBinContent(13,904);
+   ptMu->SetBinContent(14,601);
+   ptMu->SetBinContent(15,397);
+   ptMu->SetBinContent(16,312);
+   ptMu->SetBinContent(17,234);
+   ptMu->SetBinContent(18,173);
+   ptMu->SetBinContent(19,141);
+   ptMu->SetBinContent(20,96);
+   ptMu->SetBinContent(21,76);
+   ptMu->SetBinContent(22,71);
+   ptMu->SetBinContent(23,51);
+   ptMu->SetBinContent(24,39);
+   ptMu->SetBinContent(25,33);
+   ptMu->SetBinContent(26,52);
+   ptMu->SetBinContent(27,20);
+   ptMu->SetBinContent(28,24);
+   ptMu->SetBinContent(29,21);
+   ptMu->SetBinContent(30,27);
+   ptMu->SetBinContent(31,25);
+   ptMu->SetBinContent(32,30);
+   ptMu->SetBinContent(33,27);
+   ptMu->SetBinContent(34,27);
+   ptMu->SetBinContent(35,28);
+   ptMu->SetBinContent(36,23);
+   ptMu->SetBinContent(37,27);
+   ptMu->SetBinContent(38,22);
+   ptMu->SetBinContent(39,23);
+   ptMu->SetBinContent(40,29);
+   ptMu->SetBinContent(41,14);
+   ptMu->SetBinContent(42,9);
+   ptMu->SetBinContent(43,16);
+   ptMu->SetBinContent(44,13);
+   ptMu->SetBinContent(45,11);
+   ptMu->SetBinContent(46,15);
+   ptMu->SetBinContent(47,5);
+   ptMu->SetBinContent(48,4);
+   ptMu->SetBinContent(49,5);
+   ptMu->SetBinContent(50,2);
+   ptMu->SetBinContent(51,1);
+   ptMu->SetBinContent(52,7);
+   ptMu->SetBinContent(53,1);
+   ptMu->SetBinContent(54,2);
+   ptMu->SetBinContent(55,1);
+   ptMu->SetBinContent(56,4);
+   ptMu->SetBinContent(58,1);
+   ptMu->SetBinContent(59,1);
+   ptMu->SetBinContent(61,1);
+   ptMu->SetBinContent(64,1);
+   ptMu->SetBinContent(70,1);
+   ptMu->SetBinContent(73,2);
+   ptMu->SetBinContent(74,1);
+   ptMu->SetBinContent(83,1);
+   ptMu->SetBinContent(86,1);
+   ptMu->SetBinContent(110,1);
+   ptMu->SetEntries(313837);
+   ptMu->SetDirectory(0);
+   ptMu->GetXaxis()->SetTitle("pT (GeV/c)");
+   ptMu->Draw("");
+
+   double bins[6]={20,25,30,40,50,80};
+
+   TH1D *hMu = new TH1D("hMu","",5,bins);
+   for (int i=1;i<=ptMu->GetNbinsX();i++)
+   {
+      cout <<ptMu->GetBinCenter(i)<<" "<<ptMu->GetBinContent(i)<<endl;
+      double width = hMu->GetBinWidth(hMu->FindBin(ptMu->GetBinCenter(i)));
+      hMu->Fill(ptMu->GetBinCenter(i),ptMu->GetBinContent(i)/width);
+   }
+   return hMu;
 }
