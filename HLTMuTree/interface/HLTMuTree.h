@@ -30,6 +30,7 @@
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
+#include "DataFormats/MuonReco/interface/MuonSelectors.h"
 #include "DataFormats/MuonReco/interface/MuonFwd.h"
 #include "DataFormats/MuonReco/interface/MuonTrackLinks.h"
 #include "DataFormats/RecoCandidate/interface/TrackAssociation.h"
@@ -41,6 +42,19 @@
 #include "DataFormats/HeavyIonEvent/interface/CentralityProvider.h"
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingParticle.h"
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingParticleFwd.h"
+
+#include "DataFormats/TrackReco/interface/Track.h"
+#include "DataFormats/TrackReco/interface/TrackFwd.h"
+#include "DataFormats/RecoCandidate/interface/RecoChargedCandidate.h"
+#include "DataFormats/RecoCandidate/interface/RecoChargedCandidateFwd.h"
+#include "DataFormats/L1Trigger/interface/L1MuonParticle.h" 
+#include "DataFormats/L1Trigger/interface/L1MuonParticleFwd.h" 
+#include "TrackingTools/PatternTools/interface/ClosestApproachInRPhi.h"
+
+//services and tools
+#include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
+#include "RecoVertex/KalmanVertexFit/interface/KalmanVertexFitter.h"
+#include "TrackingTools/Records/interface/TransientTrackRecord.h"
 
 // root include files
 #include "TROOT.h"
@@ -72,11 +86,13 @@ class HLTMuTree : public edm::EDAnalyzer {
     edm::InputTag   tagGenPtl;
     edm::InputTag   tagSimTrk;
     edm::InputTag   tagVtx;
-    edm::InputTag   tagL1gtReadout;
+    edm::InputTag   MuCandTag1;
+    edm::InputTag   MuCandTag2;
+    edm::InputTag   MuCandTag3;
 
     Bool_t    doReco;
     Bool_t    doGen;
-    Bool_t    accRecoMu;
+    Bool_t    doHLT;
 
     CentralityProvider *centrality;
 
@@ -115,6 +131,7 @@ class HLTMuTree : public edm::EDAnalyzer {
       int pixLayerWMeas[nmax];
       float trkDxy[nmax];
       float trkDz[nmax];
+      int isArbitrated[nmax];
     } GLBMU;
 
     typedef struct {
@@ -127,10 +144,45 @@ class HLTMuTree : public edm::EDAnalyzer {
       float dxy[nmax];
       float dz[nmax];
     } STAMU;
+	
+	typedef struct {
+	  int npair;
+	  float vProb[nmax];
+	  // float mass[nmax];
+	  float pt1[nmax];
+	  float pt2[nmax];
+	  float eta1[nmax];
+	  float eta2[nmax];
+    float phi1[nmax];
+	  float phi2[nmax];
+    int charge1[nmax];
+    int charge2[nmax];
+	  int isArb1[nmax];
+	  int isArb2[nmax];
+	  float nTrkHit1[nmax];
+	  float nTrkHit2[nmax];
+	  float trkChi2_1[nmax];
+	  float trkChi2_2[nmax];
+	  float glbChi2_1[nmax];
+	  float glbChi2_2[nmax];
+    float dxy1[nmax];
+	  float dxy2[nmax];
+    float dz1[nmax];
+	  float dz2[nmax];
+	}DIMU;
 
-  GENMU GenMu;
-  GLBMU GlbMu;
-  STAMU StaMu;
+    GENMU GenMu;
+    GLBMU GlbMu;
+    STAMU StaMu;
+	DIMU DiMu;
+
+    float muonl2pt[nmax], muonl2eta[nmax], muonl2phi[nmax], muonl2dr[nmax], muonl2dz[nmax], muonl2vtxz[nmax];
+    float muonl3pt[nmax], muonl3eta[nmax], muonl3phi[nmax], muonl3dr[nmax], muonl3dz[nmax], muonl3vtxz[nmax], muonl3normchi2[nmax];
+    float muonl2pterr[nmax], muonl3pterr[nmax];
+    int nmu2cand, nmu3cand;
+    int muonl2chg[nmax], muonl2nhits[nmax], muonl3chg[nmax], muonl3nhits[nmax];
+    int muonl3ntrackerhits[nmax], muonl3nmuonhits[nmax];
+
 
 };
 //

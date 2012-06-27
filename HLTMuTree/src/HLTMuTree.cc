@@ -18,6 +18,10 @@
 //
 
 #include "MuTrig/HLTMuTree/interface/HLTMuTree.h"
+#include <iostream>
+#include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
+#include "RecoVertex/KalmanVertexFit/interface/KalmanVertexFitter.h"
+#include "TrackingTools/Records/interface/TransientTrackRecord.h"
 
 using namespace std;
 using namespace reco;
@@ -36,6 +40,9 @@ HLTMuTree::HLTMuTree(const edm::ParameterSet& iConfig)
   doGen = iConfig.getUntrackedParameter<bool>("doGen");
   tagGenPtl = iConfig.getParameter<edm::InputTag>("genparticle");
   tagSimTrk = iConfig.getParameter<edm::InputTag>("simtrack");
+  // tagCompVtx = iConfig.getParameter<edm::InputTag>("
+  //higherPuritySelection_(iConfig.getParameter<std::string>("higherPuritySelection")),
+  //lowerPuritySelection_(iConfig.getParameter<std::string>("lowerPuritySelection")),
 
 }
 
@@ -61,7 +68,7 @@ HLTMuTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   using namespace std;
   
   //Initialization
-  GenMu.nptl = GlbMu.nptl = StaMu.nptl = 0;
+  GenMu.nptl = GlbMu.nptl = StaMu.nptl = DiMu.npair = 0;
   for (int i=0; i<nmax; i++) {
     GenMu.pid[i] = 10;
     GenMu.status[i] = 0;
@@ -92,6 +99,29 @@ HLTMuTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     StaMu.phi[i] = 0;
     StaMu.dxy[i] = 0;
     StaMu.dz[i] = 0;
+    GlbMu.isArbitrated[i] = -1;
+	  DiMu.vProb[i] = -1;
+	  // DiMu.mass[i] = -1;
+	  DiMu.pt1[i] = 0;
+	  DiMu.pt2[i] = 0;
+	  DiMu.eta1[i] = 0;
+	  DiMu.eta2[i] = 0;
+    DiMu.phi1[i] = 0;
+    DiMu.phi2[i] = 0;
+    DiMu.charge1[i] = 0;
+    DiMu.charge2[i] = 0;
+	  DiMu.isArb1[i] = -1;
+	  DiMu.isArb2[i] = -1;
+    DiMu.nTrkHit1[i] = 0;
+  	DiMu.nTrkHit2[i] = 0;
+  	DiMu.trkChi2_1[i] = 0; 
+    DiMu.trkChi2_2[i] = 0;
+    DiMu.glbChi2_1[i] = 0;
+    DiMu.glbChi2_2[i] = 0;
+    DiMu.dxy1[i] = 0;
+    DiMu.dxy2[i] = 0;
+    DiMu.dz1[i] = 0;
+    DiMu.dz2[i] = 0;
   }
 
   //Get run, event, centrality
@@ -164,7 +194,8 @@ HLTMuTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       }
     } //End of gen collection
     
-/*    edm::Handle<TrackingParticleCollection> simColl;
+/*  
+    edm::Handle<TrackingParticleCollection> simColl;
     iEvent.getByLabel(tagSimTrk,simColl);
     if (simColl.isValid()) {
       for (TrackingParticleCollection::size_type i=0; i+1<simColl.product()->size(); i++) {
@@ -219,11 +250,16 @@ HLTMuTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       vy = -1;
       vz = -1; 
     }
-
+    
+    // edm::Handle <reco::VertexCompositeCandidate> compvertex;
+    // iEvent.getByLabel(
+    
     edm::Handle< edm::View<reco::Muon> > muons;
     iEvent.getByLabel(tagRecoMu,muons);
+    
     int nGlb = 0;
     int nSta = 0;
+    
     for (unsigned int i=0; i<muons->size(); i++) {
       edm::RefToBase<reco::Muon> muCand(muons,i);
       if (muCand.isNull()) continue;
@@ -243,6 +279,9 @@ HLTMuTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
           GlbMu.trkDxy[nGlb] = fabs(trk->dxy(vertex->begin()->position()));
           GlbMu.trkDz[nGlb] = fabs(trk->dz(vertex->begin()->position()));
 
+          muon::SelectionType st = muon::selectionTypeFromString("TrackerMuonArbitrated");
+          GlbMu.isArbitrated[nGlb] = muon::isGoodMuon(*muCand.get(), st);
+          
           GlbMu.charge[nGlb] = glb->charge();
           GlbMu.pt[nGlb] = glb->pt();
           GlbMu.p[nGlb] = glb->p();
@@ -250,6 +289,8 @@ HLTMuTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
           GlbMu.phi[nGlb] = glb->phi();
           GlbMu.dxy[nGlb] = glb->dxy(vertex->begin()->position()); 
           GlbMu.dz[nGlb] = glb->dz(vertex->begin()->position());
+          
+          cout<<nGlb<<" Glb muon pt  " << GlbMu.pt[nGlb]<<endl;
           nGlb++;
         }
         
@@ -278,6 +319,80 @@ HLTMuTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     }
     GlbMu.nptl = nGlb;
     StaMu.nptl = nSta;
+    
+  
+    //vertex probability cuts
+    edm::Handle< edm::View<reco::Muon> > muons2;
+    iEvent.getByLabel(tagRecoMu,muons2);
+	
+    edm::ESHandle<TransientTrackBuilder> theTTBuilder;
+    iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",theTTBuilder);
+    KalmanVertexFitter vtxFitter;
+    
+	int nDiMu = 0;
+	
+   for(unsigned int i=0; i<muons->size(); i++){
+	   edm::RefToBase<reco::Muon> muCand(muons,i);
+	   if (muCand.isNull()) continue;
+	   if (muCand->globalTrack().isNonnull() && muCand->innerTrack().isNonnull()) {
+       if (muCand->isGlobalMuon() && muCand->isTrackerMuon() && fabs(muCand->combinedMuon()->eta()) < 2.4) {
+         for (unsigned int j=i+1; j<muons->size(); j++){
+	         edm::RefToBase<reco::Muon> muCand2(muons,j);
+           if (muCand2.isNull()) continue;
+		       if (muCand2->globalTrack().isNonnull() && muCand2->innerTrack().isNonnull()) {
+			        if (muCand2->isGlobalMuon() && muCand2->isTrackerMuon() && fabs(muCand2->combinedMuon()->eta()) < 2.4) {
+                vector<TransientTrack> t_tks;
+                t_tks.push_back(theTTBuilder->build(*muCand->track()));  // pass the reco::Track, not  the reco::TrackRef (which can be transient)
+                t_tks.push_back(theTTBuilder->build(*muCand2->track())); // otherwise the vertex will have transient refs inside.
+                TransientVertex myVertex = vtxFitter.vertex(t_tks);
+                if (myVertex.isValid()) {
+                  edm::RefToBase<reco::Track> trk = edm::RefToBase<reco::Track>(muCand->innerTrack());
+                  edm::RefToBase<reco::Track> glb = edm::RefToBase<reco::Track>(muCand->combinedMuon());
+	                edm::RefToBase<reco::Track> trk2 = edm::RefToBase<reco::Track>(muCand2->innerTrack());
+                  edm::RefToBase<reco::Track> glb2 = edm::RefToBase<reco::Track>(muCand2->combinedMuon());
+                  float vChi2 = myVertex.totalChiSquared();
+	                float vNDF  = myVertex.degreesOfFreedom();
+	                float vProb(TMath::Prob(vChi2,(int)vNDF));
+				          DiMu.vProb[nDiMu] = vProb;
+
+                  DiMu.glbChi2_1[nDiMu] = glb->chi2()/glb->ndof();
+                  DiMu.trkChi2_1[nDiMu] = trk->chi2()/trk->ndof();
+                  DiMu.glbChi2_2[nDiMu] = glb2->chi2()/glb2->ndof();
+                  DiMu.trkChi2_2[nDiMu] = trk2->chi2()/trk2->ndof();
+                  
+                  DiMu.pt1[nDiMu] = glb->pt();
+                  DiMu.eta1[nDiMu] = glb->eta();
+                  DiMu.phi1[nDiMu] = glb->phi();
+                  DiMu.dxy1[nDiMu] = glb->dxy(vertex->begin()->position()); 
+                  DiMu.dz1[nDiMu] = glb->dz(vertex->begin()->position());
+                  DiMu.charge1[nDiMu] = glb->charge();
+                  DiMu.pt2[nDiMu] = glb2->pt();
+                  DiMu.eta2[nDiMu] = glb2->eta();
+                  DiMu.phi2[nDiMu] = glb2->phi();
+                  DiMu.dxy2[nDiMu] = glb2->dxy(vertex->begin()->position()); 
+                  DiMu.dz2[nDiMu] = glb2->dz(vertex->begin()->position());
+				          DiMu.charge2[nDiMu] = glb2->charge();
+                  
+			            DiMu.nTrkHit1[nDiMu] = muCand->innerTrack().get()->hitPattern().numberOfValidTrackerHits();
+			            DiMu.nTrkHit2[nDiMu] = muCand2->innerTrack().get()->hitPattern().numberOfValidTrackerHits();
+				  
+                  muon::SelectionType st = muon::selectionTypeFromString("TrackerMuonArbitrated");
+                  DiMu.isArb1[nDiMu] = muon::isGoodMuon(*muCand.get(), st);
+                  muon::SelectionType st2 = muon::selectionTypeFromString("TrackerMuonArbitrated");
+                  DiMu.isArb2[nDiMu] = muon::isGoodMuon(*muCand2.get(), st2);
+                  
+                  cout<<nDiMu<<" first muon pt  " << DiMu.pt1[nDiMu]<<" second muon pt  " << DiMu.pt2[nDiMu] << endl;
+                  
+          				nDiMu++;
+	                cout << nDiMu << endl;
+			          }
+			        }
+            }
+          }
+        } 
+	    } 
+ 	  }
+    DiMu.npair = nDiMu;
   } // End of doReco
   else {
     vx = -1;
@@ -287,7 +402,9 @@ HLTMuTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   }
 
   // Fill a muon tree
-  treeMu->Fill();
+  // if (DiMu.npair>0){
+    treeMu->Fill();
+  // }
 }
 
 
@@ -333,12 +450,39 @@ HLTMuTree::beginJob()
 
   treeMu->Branch("Sta_nptl",&StaMu.nptl,"Sta_nptl/I");
   treeMu->Branch("Sta_charge",StaMu.charge,"Sta_charge[Sta_nptl]/I");
+
   treeMu->Branch("Sta_p",StaMu.p,"Sta_p[Sta_nptl]/F");
   treeMu->Branch("Sta_pt",StaMu.pt,"Sta_pt[Sta_nptl]/F");
   treeMu->Branch("Sta_eta",StaMu.eta,"Sta_eta[Sta_nptl]/F");
   treeMu->Branch("Sta_phi",StaMu.phi,"Sta_phi[Sta_nptl]/F");
   treeMu->Branch("Sta_dxy",StaMu.dxy,"Sta_dx[Sta_nptl]/F");
   treeMu->Branch("Sta_dz",StaMu.dz,"Sta_dz[Sta_nptl]/F");
+  
+  treeMu->Branch("Glb_isArbitrated",GlbMu.isArbitrated,"Glb_isArbitrated[Glb_nptl]/I");
+  
+  treeMu->Branch("Di_npair",&DiMu.npair,"Di_npair/I");
+  treeMu->Branch("Di_vProb",DiMu.vProb,"Di_vProb[Di_npair]/F");
+  // treeMu->Branch("Di_mass",DiMu.mass,"Di_mass[Di_npair]/F");
+  treeMu->Branch("Di_pt1",DiMu.pt1,"Di_pt1[Di_npair]/F");
+  treeMu->Branch("Di_pt2",DiMu.pt2,"Di_pt2[Di_npair]/F");
+  treeMu->Branch("Di_eta1",DiMu.eta1,"Di_eta1[Di_npair]/F");
+  treeMu->Branch("Di_eta2",DiMu.eta2,"Di_eta2[Di_npair]/F");
+  treeMu->Branch("Di_phi1",DiMu.phi1,"Di_phi1[Di_npair]/F");
+  treeMu->Branch("Di_phi2",DiMu.phi2,"Di_phi2[Di_npair]/F");
+  treeMu->Branch("Di_charge1",DiMu.charge1,"Di_charge1[Di_npair]/I");
+  treeMu->Branch("Di_charge2",DiMu.charge2,"Di_charge2[Di_npair]/I");
+  treeMu->Branch("Di_isArb1",DiMu.isArb1,"Di_isArb1[Di_npair]/I");
+  treeMu->Branch("Di_isArb2",DiMu.isArb2,"Di_isArb2[Di_npair]/I");
+  treeMu->Branch("Di_nTrkHit1",DiMu.nTrkHit1,"Di_nTrkHit1[Di_npair]/F");
+  treeMu->Branch("Di_nTrkHit2",DiMu.nTrkHit2,"Di_nTrkHit2[Di_npair]/F");
+  treeMu->Branch("Di_trkChi2_1",DiMu.trkChi2_1,"Di_trkChi2_1[Di_npair]/F");
+  treeMu->Branch("Di_trkChi2_2",DiMu.trkChi2_2,"Di_trkChi2_2[Di_npair]/F");
+  treeMu->Branch("Di_glbChi2_1",DiMu.glbChi2_1,"Di_glbChi2_1[Di_npair]/F");
+  treeMu->Branch("Di_glbChi2_2",DiMu.glbChi2_2,"Di_glbChi2_2[Di_npair]/F");
+  treeMu->Branch("Di_dxy1",DiMu.dxy1,"Di_dxy1[Di_npair]/F");
+  treeMu->Branch("Di_dxy2",DiMu.dxy2,"Di_dxy2[Di_npair]/F");
+  treeMu->Branch("Di_dz1",DiMu.dz1,"Di_dz1[Di_npair]/F");
+  treeMu->Branch("Di_dz2",DiMu.dz2,"Di_dz2[Di_npair]/F");
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
