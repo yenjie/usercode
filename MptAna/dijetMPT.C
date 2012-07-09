@@ -7,7 +7,7 @@
 #include <iostream>
 
 
-void dijetMPT(double tag=0, char *infName = "/d102/yjlee/hiForest2MC/Pythia120_HydjetDrum_mix01_HiForest2_v21_ivan.root")
+void dijetMPT(double tag=0, char *infName = "/d102/yjlee/hiForest2MC/Pythia80_HydjetDrum_mix01_HiForest2_v22_simTrack05.root")
 {
    // Define the input file and HiForest
    HiForest *c = new HiForest(infName);
