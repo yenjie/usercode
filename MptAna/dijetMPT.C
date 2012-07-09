@@ -7,7 +7,7 @@
 #include <iostream>
 
 
-void dijetMPT(double etCut=40, char *infName = "/d102/yjlee/hiForest2MC/Pythia120_HydjetDrum_mix01_HiForest2_v21_ivan.root")
+void dijetMPT(double tag=0, char *infName = "/d102/yjlee/hiForest2MC/Pythia120_HydjetDrum_mix01_HiForest2_v21_ivan.root")
 {
    // Define the input file and HiForest
    HiForest *c = new HiForest(infName);
@@ -17,15 +17,15 @@ void dijetMPT(double etCut=40, char *infName = "/d102/yjlee/hiForest2MC/Pythia12
    c->hasHbheTree=0;
    c->hasEbTree=0;
    c->hasGenpTree=0;
-   c->hasGenParticleTree=0;
-   
+   c->hasGenParticleTree=0;   
    c->hasAkPu2CaloJetTree=0;
    c->hasAkPu3CaloJetTree=0;
    c->hasAkPu4CaloJetTree=0;
    c->doTrackCorrections=1;
    c->InitTree();
+   
    // Output file
-   TFile *output = new TFile(Form("output-%.0f.root",etCut),"recreate");
+   TFile *output = new TFile(Form("output-%.0f.root",tag),"recreate");
    
    // Output
    TTree * t = new TTree("t","gammajet");
