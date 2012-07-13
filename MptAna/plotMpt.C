@@ -13,7 +13,7 @@ void plotMpt(char *infname)
    TProfile *hGenMpt = new TProfile("hGenMpt","",10,0.0,0.5);
    TProfile *hGenPMpt = new TProfile("hGenPMpt","",10,0.0,0.5);
    
-   TCut sel = "leadingJetPt>120&&subleadingJetPt>50&&acos(cos(leadingJetPhi-subleadingJetPhi))>7./8*3.1415926";
+   TCut sel = "leadingJetPt>120&&subleadingJetPt>50&&acos(cos(leadingJetPhi-subleadingJetPhi))>7./8*3.1415926&&abs(leadingJetEta)<1&&abs(subleadingJetEta)<1";
    
    t->Draw("mpt:Aj>>hRecoMpt",sel,"prof");
    t->Draw("cormpt:Aj>>hCorMpt",sel,"prof");

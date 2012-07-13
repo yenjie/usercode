@@ -107,9 +107,9 @@ void dijetMPT(double tag=0, char *infName = "/d102/yjlee/hiForest2MC/Pythia80_Hy
 	 if (c->track.trkAlgo[j]>=4&&!(c->track.highPurity[j])) continue;
          
 	 double dphi1 = acos(cos(c->track.trkPhi[j]-data.leadingJetPhi));
-         double deta1 = acos(cos(c->track.trkEta[j]-data.leadingJetEta));
+         double deta1 = fabs(c->track.trkEta[j]-data.leadingJetEta));
          double dphi2 = acos(cos(c->track.trkPhi[j]-data.subleadingJetPhi));
-         double deta2 = acos(cos(c->track.trkEta[j]-data.subleadingJetEta));
+         double deta2 = fabs(c->track.trkEta[j]-data.subleadingJetEta));
 	 
 	 double dr1 = sqrt(dphi1*dphi1+deta1*deta1);
 	 double dr2 = sqrt(dphi2*dphi2+deta2*deta2);
@@ -169,7 +169,7 @@ void dijetMPT(double tag=0, char *infName = "/d102/yjlee/hiForest2MC/Pythia80_Hy
 	 data.genPMpt+=mptPTrk;
 
 	 double dphi1 = acos(cos(c->track.pPhi[j]-data.leadingJetPhi));
-         double deta1 = acos(cos(c->track.pEta[j]-data.leadingJetEta));
+         double deta1 = fabs(c->track.pEta[j]-data.leadingJetEta));
 	 
 	 double dr1 = sqrt(dphi1*dphi1+deta1*deta1);
 	 double ptWeight = c->track.pPt[j];

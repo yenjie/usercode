@@ -20,6 +20,7 @@
 #include <TLegend.h>
 #include <TLine.h>
 #include <TLatex.h>
+#include <TGraphAsymmErrors.h>
 
 static const int nColor = 5;
 static const int colorCode[nColor] = {
@@ -468,3 +469,29 @@ void drawText(const char *text, float xp, float yp, int size){
 	tex->Draw();
 }
 
+
+TGraphAsymmErrors *getEfficiency(TH1 *hPass,TH1 *hTotal)
+{
+   TGraphAsymmErrors *g = new TGraphAsymmErrors;
+   g->BayesDivide(hPass,hTotal);
+   return g;
+}
+
+TGraphAsymmErrors *getEfficiency(TTree *t,char *variable,int nBin, double binL, double binH, TCut selection, TCut preselection, TCut weight = "1")
+{
+   TH1F *hPass = new TH1F("hPass","",nBin,binL,binH);
+   TH1F *hTotal = new TH1F("hTotal","",nBin,binL,binH);
+   hPass->Sumw2();
+   hTotal->Sumw2();
+   cout <<Form("%s*(%s)",weight.GetTitle(),(selection && preselection).GetTitle())<<endl;
+   t->Project("hPass",variable, Form("%s*(%s)",weight.GetTitle(),(selection && preselection).GetTitle()));
+   t->Project("hTotal",variable,Form("%s",preselection.GetTitle()) );
+   
+//   TGraphAsymmErrors *g = getEfficiency(hPass,hTotal);
+   
+   hPass->Divide(hPass,hTotal,1,1,"B");
+   
+   TGraphAsymmErrors *g = new TGraphAsymmErrors(hPass);
+   delete hPass,hTotal;
+   return g;
+}
