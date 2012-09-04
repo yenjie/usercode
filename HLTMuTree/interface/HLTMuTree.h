@@ -102,7 +102,7 @@ class HLTMuTree : public edm::EDAnalyzer {
     int run, event, lumi, cbin;
     float vx, vy, vz;
     
-    static const int nmax = 1000000;
+    static const int nmax = 100;
     typedef struct {
       int nptl;
       int pid[nmax];
