@@ -132,6 +132,9 @@ class HLTMuTree : public edm::EDAnalyzer {
       float trkDxy[nmax];
       float trkDz[nmax];
       int isArbitrated[nmax];
+      int trkLayerWMeas[nmax];
+      int nValPixHits[nmax];
+      int nMatchedStations[nmax];
     } GLBMU;
 
     typedef struct {

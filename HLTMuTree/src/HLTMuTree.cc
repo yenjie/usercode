@@ -13,7 +13,7 @@
 //
 // Original Author:  Mihee Jo,588 R-012,+41227673278,
 //         Created:  Thu Jul  7 11:47:28 CEST 2011
-// $Id: HLTMuTree.cc,v 1.5 2011/10/31 07:32:25 frankma Exp $
+// $Id: HLTMuTree.cc,v 1.2 2012/06/27 09:37:01 dgulhan Exp $
 //
 //
 
@@ -289,6 +289,10 @@ HLTMuTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
           GlbMu.phi[nGlb] = glb->phi();
           GlbMu.dxy[nGlb] = glb->dxy(vertex->begin()->position()); 
           GlbMu.dz[nGlb] = glb->dz(vertex->begin()->position());
+
+          GlbMu.trkLayerWMeas[nGlb] = muCand->globalTrack()->hitPattern().trackerLayersWithMeasurement();
+          GlbMu.nValPixHits[nGlb] = p.numberOfValidPixelHits();
+          GlbMu.nMatchedStations[nGlb] = muCand->numberOfMatchedStations();
           
           cout<<nGlb<<" Glb muon pt  " << GlbMu.pt[nGlb]<<endl;
           nGlb++;
@@ -429,6 +433,8 @@ HLTMuTree::beginJob()
   treeMu->Branch("Gen_pt",GenMu.pt,"Gen_pt[Gen_nptl]/F");
   treeMu->Branch("Gen_eta",GenMu.eta,"Gen_eta[Gen_nptl]/F");
   treeMu->Branch("Gen_phi",GenMu.phi,"Gen_phi[Gen_nptl]/F");
+      int trkLayerWMeas[nmax];
+      int nMatchedStations[nmax];
 
   treeMu->Branch("Glb_nptl",&GlbMu.nptl,"Glb_nptl/I");
   treeMu->Branch("Glb_charge",GlbMu.charge,"Glb_charge[Glb_nptl]/I");
@@ -441,6 +447,9 @@ HLTMuTree::beginJob()
 
   treeMu->Branch("Glb_nValMuHits",GlbMu.nValMuHits,"Glb_nValMuHits[Glb_nptl]/I");
   treeMu->Branch("Glb_nValTrkHits",GlbMu.nValTrkHits,"Glb_nValTrkHits[Glb_nptl]/I");
+  treeMu->Branch("Glb_nValPixHits",GlbMu.nValPixHits,"Glb_nValPixHits[Glb_nptl]/I");
+  treeMu->Branch("Glb_trkLayerWMeas",GlbMu.trkLayerWMeas,"Glb_trkLayerWMeas[Glb_nptl]/I");
+  treeMu->Branch("Glb_nMatchedStations",GlbMu.nMatchedStations,"Glb_nMatchedStations[Glb_nptl]/I");
   treeMu->Branch("Glb_nTrkFound",GlbMu.nTrkFound,"Glb_nTrkFound[Glb_nptl]/I");
   treeMu->Branch("Glb_glbChi2_ndof",GlbMu.glbChi2_ndof,"Glb_glbChi2_ndof[Glb_nptl]/F");
   treeMu->Branch("Glb_trkChi2_ndof",GlbMu.trkChi2_ndof,"Glb_trkChi2_ndof[Glb_nptl]/F");
