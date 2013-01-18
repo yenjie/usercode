@@ -151,7 +151,8 @@ class HLTMuTree : public edm::EDAnalyzer {
 	typedef struct {
 	  int npair;
 	  float vProb[nmax];
-	  // float mass[nmax];
+	  float mass[nmax];
+	  float pt[nmax];
 	  float pt1[nmax];
 	  float pt2[nmax];
 	  float eta1[nmax];

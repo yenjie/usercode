@@ -13,7 +13,7 @@
 //
 // Original Author:  Mihee Jo,588 R-012,+41227673278,
 //         Created:  Thu Jul  7 11:47:28 CEST 2011
-// $Id: HLTMuTree.cc,v 1.2 2012/06/27 09:37:01 dgulhan Exp $
+// $Id: HLTMuTree.cc,v 1.3 2013/01/16 13:31:26 yjlee Exp $
 //
 //
 
@@ -101,7 +101,8 @@ HLTMuTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     StaMu.dz[i] = 0;
     GlbMu.isArbitrated[i] = -1;
 	  DiMu.vProb[i] = -1;
-	  // DiMu.mass[i] = -1;
+	  DiMu.mass[i] = -1;
+	  DiMu.pt[i] = -1;
 	  DiMu.pt1[i] = 0;
 	  DiMu.pt2[i] = 0;
 	  DiMu.eta1[i] = 0;
@@ -363,7 +364,9 @@ HLTMuTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                   DiMu.trkChi2_1[nDiMu] = trk->chi2()/trk->ndof();
                   DiMu.glbChi2_2[nDiMu] = glb2->chi2()/glb2->ndof();
                   DiMu.trkChi2_2[nDiMu] = trk2->chi2()/trk2->ndof();
-                  
+                  const math::XYZTLorentzVector ZRecoGlb (muCand->px()+muCand2->px(), muCand->py()+muCand2->py() , muCand->pz()+muCand2->pz(), muCand->p()+muCand2->p());
+                  DiMu.mass[nDiMu] = ZRecoGlb.mass();
+                  DiMu.pt[nDiMu] = ZRecoGlb.pt();
                   DiMu.pt1[nDiMu] = glb->pt();
                   DiMu.eta1[nDiMu] = glb->eta();
                   DiMu.phi1[nDiMu] = glb->phi();
@@ -471,7 +474,8 @@ HLTMuTree::beginJob()
   
   treeMu->Branch("Di_npair",&DiMu.npair,"Di_npair/I");
   treeMu->Branch("Di_vProb",DiMu.vProb,"Di_vProb[Di_npair]/F");
-  // treeMu->Branch("Di_mass",DiMu.mass,"Di_mass[Di_npair]/F");
+  treeMu->Branch("Di_mass",DiMu.mass,"Di_mass[Di_npair]/F");
+  treeMu->Branch("Di_pt",DiMu.pt,"Di_pt[Di_npair]/F");
   treeMu->Branch("Di_pt1",DiMu.pt1,"Di_pt1[Di_npair]/F");
   treeMu->Branch("Di_pt2",DiMu.pt2,"Di_pt2[Di_npair]/F");
   treeMu->Branch("Di_eta1",DiMu.eta1,"Di_eta1[Di_npair]/F");
