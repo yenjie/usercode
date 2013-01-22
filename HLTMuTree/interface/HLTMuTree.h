@@ -152,15 +152,20 @@ class HLTMuTree : public edm::EDAnalyzer {
 	  int npair;
 	  float vProb[nmax];
 	  float mass[nmax];
+          float e[nmax];
+
 	  float pt[nmax];
 	  float pt1[nmax];
 	  float pt2[nmax];
+          float eta[nmax];
 	  float eta1[nmax];
 	  float eta2[nmax];
-    float phi1[nmax];
+
+	  float phi[nmax];
+	  float phi1[nmax];
 	  float phi2[nmax];
-    int charge1[nmax];
-    int charge2[nmax];
+	  int charge1[nmax];
+	  int charge2[nmax];
 	  int isArb1[nmax];
 	  int isArb2[nmax];
 	  float nTrkHit1[nmax];
@@ -169,9 +174,9 @@ class HLTMuTree : public edm::EDAnalyzer {
 	  float trkChi2_2[nmax];
 	  float glbChi2_1[nmax];
 	  float glbChi2_2[nmax];
-    float dxy1[nmax];
+	  float dxy1[nmax];
 	  float dxy2[nmax];
-    float dz1[nmax];
+	  float dz1[nmax];
 	  float dz2[nmax];
 	}DIMU;
 
