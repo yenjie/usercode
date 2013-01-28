@@ -13,7 +13,7 @@
 //
 // Original Author:  Mihee Jo,588 R-012,+41227673278,
 //         Created:  Thu Jul  7 11:47:28 CEST 2011
-// $Id: HLTMuTree.cc,v 1.4 2013/01/18 16:57:54 yjlee Exp $
+// $Id: HLTMuTree.cc,v 1.5 2013/01/22 17:07:24 yilmaz Exp $
 //
 //
 
@@ -152,7 +152,7 @@ HLTMuTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
             vector<int> momid;
             vector<int>::iterator it_jpsi, it_ups;
             for (unsigned int mom = 0; mom < genPtl->numberOfMothers(); mom++) {
-              cout << "mom pid: " << genPtl->mother(mom)->pdgId() << endl;
+              //cout << "mom pid: " << genPtl->mother(mom)->pdgId() << endl;
               momid.push_back(genPtl->mother(mom)->pdgId());
             }
 
@@ -167,7 +167,7 @@ HLTMuTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                 const Candidate *mother = genPtl->mother(0);
                 momid.clear();
                 for (unsigned int mom = 0; mom < mother->numberOfMothers(); mom++) {
-                  cout << "grand mom pid: " << mother->mother(mom)->pdgId() << endl;
+                  //cout << "grand mom pid: " << mother->mother(mom)->pdgId() << endl;
                   momid.push_back(mother->mother(mom)->pdgId());
                 }
 
@@ -223,7 +223,7 @@ HLTMuTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     } //End of sim tracks
 */
     GenMu.nptl = nGen;
-    cout << "gen_nptl: " << GenMu.nptl << endl;
+    //cout << "gen_nptl: " << GenMu.nptl << endl;
     if (nGen >= nmax) {
       cout << "Gen muons in a event exceeded maximum. \n";
       return ;
@@ -295,7 +295,7 @@ HLTMuTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
           GlbMu.nValPixHits[nGlb] = p.numberOfValidPixelHits();
           GlbMu.nMatchedStations[nGlb] = muCand->numberOfMatchedStations();
           
-          cout<<nGlb<<" Glb muon pt  " << GlbMu.pt[nGlb]<<endl;
+          //cout<<nGlb<<" Glb muon pt  " << GlbMu.pt[nGlb]<<endl;
           nGlb++;
         }
         
@@ -392,10 +392,10 @@ HLTMuTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                   muon::SelectionType st2 = muon::selectionTypeFromString("TrackerMuonArbitrated");
                   DiMu.isArb2[nDiMu] = muon::isGoodMuon(*muCand2.get(), st2);
                   
-                  cout<<nDiMu<<" first muon pt  " << DiMu.pt1[nDiMu]<<" second muon pt  " << DiMu.pt2[nDiMu] << endl;
+                  //cout<<nDiMu<<" first muon pt  " << DiMu.pt1[nDiMu]<<" second muon pt  " << DiMu.pt2[nDiMu] << endl;
                   
           				nDiMu++;
-	                cout << nDiMu << endl;
+					//cout << nDiMu << endl;
 			          }
 			        }
             }
