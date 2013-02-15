@@ -13,7 +13,7 @@
 //
 // Original Author:  Mihee Jo,588 R-012,+41227673278,
 //         Created:  Thu Jul  7 11:47:28 CEST 2011
-// $Id: HLTMuTree.cc,v 1.5 2013/01/22 17:07:24 yilmaz Exp $
+// $Id: HLTMuTree.cc,v 1.6 2013/01/28 15:51:12 mnguyen Exp $
 //
 //
 
@@ -370,6 +370,7 @@ HLTMuTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                   DiMu.pt[nDiMu] = ZRecoGlb.pt();
                   DiMu.eta[nDiMu] = ZRecoGlb.eta();
                   DiMu.phi[nDiMu] = ZRecoGlb.phi();
+		  DiMu.rapidity[nDiMu] = ZRecoGlb.Rapidity();
 
                   DiMu.pt1[nDiMu] = glb->pt();
                   DiMu.eta1[nDiMu] = glb->eta();
@@ -382,10 +383,19 @@ HLTMuTree::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                   DiMu.phi2[nDiMu] = glb2->phi();
                   DiMu.dxy2[nDiMu] = glb2->dxy(vertex->begin()->position()); 
                   DiMu.dz2[nDiMu] = glb2->dz(vertex->begin()->position());
-				          DiMu.charge2[nDiMu] = glb2->charge();
-                  
-			            DiMu.nTrkHit1[nDiMu] = muCand->innerTrack().get()->hitPattern().numberOfValidTrackerHits();
-			            DiMu.nTrkHit2[nDiMu] = muCand2->innerTrack().get()->hitPattern().numberOfValidTrackerHits();
+		  DiMu.charge2[nDiMu] = glb2->charge();
+		  DiMu.charge[nDiMu] = glb->charge() + glb2->charge();
+
+		  DiMu.nTrkHit1[nDiMu] = trk->hitPattern().numberOfValidTrackerHits();
+		  DiMu.nTrkHit2[nDiMu] = trk2->hitPattern().numberOfValidTrackerHits();
+		  DiMu.nMuHit1[nDiMu] = glb->hitPattern().numberOfValidMuonHits();
+		  DiMu.nMuHit2[nDiMu] = glb2->hitPattern().numberOfValidMuonHits();
+	          DiMu.nTrkLayers1[nDiMu] = glb->hitPattern().trackerLayersWithMeasurement();
+	          DiMu.nTrkLayers2[nDiMu] = glb2->hitPattern().trackerLayersWithMeasurement();
+        	  DiMu.nPixHit1[nDiMu] = trk->hitPattern().numberOfValidPixelHits();
+        	  DiMu.nPixHit2[nDiMu] = trk2->hitPattern().numberOfValidPixelHits();
+        	  DiMu.nMatchedStations1[nDiMu] = muCand->numberOfMatchedStations();
+        	  DiMu.nMatchedStations2[nDiMu] = muCand2->numberOfMatchedStations();
 				  
                   muon::SelectionType st = muon::selectionTypeFromString("TrackerMuonArbitrated");
                   DiMu.isArb1[nDiMu] = muon::isGoodMuon(*muCand.get(), st);
@@ -440,8 +450,6 @@ HLTMuTree::beginJob()
   treeMu->Branch("Gen_pt",GenMu.pt,"Gen_pt[Gen_nptl]/F");
   treeMu->Branch("Gen_eta",GenMu.eta,"Gen_eta[Gen_nptl]/F");
   treeMu->Branch("Gen_phi",GenMu.phi,"Gen_phi[Gen_nptl]/F");
-      int trkLayerWMeas[nmax];
-      int nMatchedStations[nmax];
 
   treeMu->Branch("Glb_nptl",&GlbMu.nptl,"Glb_nptl/I");
   treeMu->Branch("Glb_charge",GlbMu.charge,"Glb_charge[Glb_nptl]/I");
@@ -486,15 +494,25 @@ HLTMuTree::beginJob()
   treeMu->Branch("Di_eta",DiMu.eta,"Di_eta[Di_npair]/F");
   treeMu->Branch("Di_eta1",DiMu.eta1,"Di_eta1[Di_npair]/F");
   treeMu->Branch("Di_eta2",DiMu.eta2,"Di_eta2[Di_npair]/F");
+  treeMu->Branch("Di_rapidity",DiMu.rapidity,"Di_rapidity[Di_npair]/F");
   treeMu->Branch("Di_phi",DiMu.phi,"Di_phi[Di_npair]/F");
   treeMu->Branch("Di_phi1",DiMu.phi1,"Di_phi1[Di_npair]/F");
   treeMu->Branch("Di_phi2",DiMu.phi2,"Di_phi2[Di_npair]/F");
+  treeMu->Branch("Di_charge",DiMu.charge,"Di_charge[Di_npair]/I");
   treeMu->Branch("Di_charge1",DiMu.charge1,"Di_charge1[Di_npair]/I");
   treeMu->Branch("Di_charge2",DiMu.charge2,"Di_charge2[Di_npair]/I");
   treeMu->Branch("Di_isArb1",DiMu.isArb1,"Di_isArb1[Di_npair]/I");
   treeMu->Branch("Di_isArb2",DiMu.isArb2,"Di_isArb2[Di_npair]/I");
-  treeMu->Branch("Di_nTrkHit1",DiMu.nTrkHit1,"Di_nTrkHit1[Di_npair]/F");
-  treeMu->Branch("Di_nTrkHit2",DiMu.nTrkHit2,"Di_nTrkHit2[Di_npair]/F");
+  treeMu->Branch("Di_nTrkHit1",DiMu.nTrkHit1,"Di_nTrkHit1[Di_npair]/I");
+  treeMu->Branch("Di_nTrkHit2",DiMu.nTrkHit2,"Di_nTrkHit2[Di_npair]/I");
+  treeMu->Branch("Di_nMuHit1",DiMu.nMuHit1,"Di_nMuHit1[Di_npair]/I");
+  treeMu->Branch("Di_nMuHit2",DiMu.nMuHit2,"Di_nMuHit2[Di_npair]/I");
+  treeMu->Branch("Di_nTrkLayers1",DiMu.nTrkLayers1,"Di_nTrkLayers1[Di_npair]/I");
+  treeMu->Branch("Di_nTrkLayers2",DiMu.nTrkLayers2,"Di_nTrkLayers2[Di_npair]/I");
+  treeMu->Branch("Di_nPixHit1",DiMu.nPixHit1,"Di_nPixHit1[Di_npair]/I");
+  treeMu->Branch("Di_nPixHit2",DiMu.nPixHit2,"Di_nPixHit2[Di_npair]/I");
+  treeMu->Branch("Di_nMatchedStations1",DiMu.nMatchedStations1,"Di_nMatchedStations1[Di_npair]/I");
+  treeMu->Branch("Di_nMatchedStations2",DiMu.nMatchedStations2,"Di_nMatchedStations2[Di_npair]/I");
   treeMu->Branch("Di_trkChi2_1",DiMu.trkChi2_1,"Di_trkChi2_1[Di_npair]/F");
   treeMu->Branch("Di_trkChi2_2",DiMu.trkChi2_2,"Di_trkChi2_2[Di_npair]/F");
   treeMu->Branch("Di_glbChi2_1",DiMu.glbChi2_1,"Di_glbChi2_1[Di_npair]/F");
