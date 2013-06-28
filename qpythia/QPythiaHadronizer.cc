@@ -2,7 +2,7 @@
  *
  * Generates PYQUEN HepMC events
  *
- * $Id: QPythiaHadronizer.cc,v 1.2 2012/07/03 20:09:53 yilmaz Exp $
+ * $Id: QPythiaHadronizer.cc,v 1.1 2013/06/24 12:40:46 yjlee Exp $
 */
 
 #include <iostream>
@@ -148,6 +148,7 @@ bool QPythiaHadronizer::generatePartonsAndHadronize()
    // generate single partonic PYTHIA jet event
    
    // Take into account whether it's a nn or pp or pn interaction
+   cout <<"==========================initialize pythia"<<endl;
    if(doIsospin_) call_pyinit("CMS", nucleon(), nucleon(), comenergy);
    call_pyevnt();
    
@@ -220,7 +221,6 @@ bool QPythiaHadronizer::pyqpythia_init(const ParameterSet & pset)
   // PYEXEC is called later anyway
   string sHadOff("MSTP(111)=0");
   gen::call_pygive(sHadOff);
-  gen::call_pygive("MSTP(51)=7");
  
   return true;
 }
